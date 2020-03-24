@@ -7,6 +7,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/dimfeld/httptreemux v5.0.1+incompatible
 	github.com/dustin/go-humanize v1.0.0
+	github.com/friendsofgo/errors v0.9.2
 	github.com/geeks-accelerator/files v0.0.0-20190704085106-630677cd5c14
 	github.com/geeks-accelerator/sqlxmigrate v0.0.0-20190823021348-d047c980bb66
 	github.com/geeks-accelerator/swag v1.6.3
@@ -16,6 +17,7 @@ require (
 	github.com/go-playground/pkg v0.0.0-20190522230805-792a755e6910
 	github.com/go-playground/universal-translator v0.16.0
 	github.com/go-redis/redis v6.15.6+incompatible
+	github.com/gofrs/uuid v3.2.0+incompatible // indirect
 	github.com/google/go-cmp v0.4.0
 	github.com/gorilla/schema v1.1.0
 	github.com/gorilla/securecookie v1.1.1
@@ -24,6 +26,7 @@ require (
 	github.com/iancoleman/strcase v0.0.0-20191112232945-16388991a334
 	github.com/ikeikeikeike/go-sitemap-generator/v2 v2.0.2
 	github.com/jmoiron/sqlx v1.2.0
+	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.3.0
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
@@ -36,12 +39,16 @@ require (
 	github.com/pkg/errors v0.9.0
 	github.com/sethgrid/pester v0.0.0-20190127155807-68a33a018ad0
 	github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24
+	github.com/spf13/viper v1.3.2
 	github.com/stretchr/testify v1.4.0
 	github.com/sudo-suhas/symcrypto v1.0.0
 	github.com/tdewolff/minify v2.3.6+incompatible
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/urfave/cli v1.22.2
+	github.com/volatiletech/inflect v0.0.0-20170731032912-e7201282ae8d // indirect
+	github.com/volatiletech/null v8.0.0+incompatible
+	github.com/volatiletech/sqlboiler v3.6.1+incompatible
 	github.com/xwb1989/sqlparser v0.0.0-20180606152119-120387863bf2
 	gitlab.com/geeks-accelerator/oss/devops v1.0.59
 	golang.org/x/crypto v0.0.0-20200109152110-61a87790db17

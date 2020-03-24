@@ -677,6 +677,255 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// Create table subject
+		{
+			ID: "20200324-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE subject
+				(
+					id uuid NOT NULL,
+					name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					created_at timestamp without time zone NOT NULL,
+					updated_at timestamp without time zone NOT NULL,
+					CONSTRAINT subjects_pkey PRIMARY KEY (id)
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table subject`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table period
+		{
+			ID: "20200324-02",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE period
+				(
+					id uuid NOT NULL,
+					start_hour integer NOT NULL,
+					start_minute integer NOT NULL,
+					end_hour integer NOT NULL,
+					end_minute integer NOT NULL,
+					created_at timestamp without time zone NOT NULL,
+					updated_at timestamp without time zone NOT NULL,
+					CONSTRAINT periods_pkey PRIMARY KEY (id)
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table period`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table teacher
+		{
+			ID: "20200324-03",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE teacher
+				(
+					id uuid NOT NULL,
+					name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					cv character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					years_of_experience integer NOT NULL,
+					created_at timestamp without time zone NOT NULL,
+					updated_at timestamp without time zone NOT NULL,
+					CONSTRAINT teachers_pkey PRIMARY KEY (id)
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table teacher`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table 
+		{
+			ID: "20200324-04",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE specialization
+				(
+					teacher_id uuid NOT NULL,
+					subject_id uuid NOT NULL,
+					CONSTRAINT specializations_pkey PRIMARY KEY (teacher_id, subject_id),
+					CONSTRAINT specializations_subject_id_fkey FOREIGN KEY (subject_id)
+						REFERENCES subject (id) MATCH SIMPLE
+						ON UPDATE NO ACTION
+						ON DELETE NO ACTION,
+					CONSTRAINT specializations_teacher_id_fkey FOREIGN KEY (teacher_id)
+						REFERENCES teacher (id) MATCH SIMPLE
+						ON UPDATE NO ACTION
+						ON DELETE NO ACTION
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table specialization`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table student
+		{
+			ID: "20200324-05",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE student
+				(
+					id uuid NOT NULL,
+					name character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					username character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					age integer NOT NULL,
+					account_balance integer NOT NULL,
+					current_class integer NOT NULL,
+					parent_phone character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					parent_email character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					created_at timestamp without time zone NOT NULL,
+					updated_at timestamp without time zone NOT NULL,
+					CONSTRAINT students_pkey PRIMARY KEY (id)
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table student`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table students_periods
+		{
+			ID: "20200324-06",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE students_periods
+				(
+					student_id uuid NOT NULL,
+					period_id uuid NOT NULL,
+					CONSTRAINT students_periods_pkey PRIMARY KEY (student_id, period_id),
+					CONSTRAINT students_periods_period_id_fkey FOREIGN KEY (period_id)
+						REFERENCES period (id) MATCH SIMPLE
+						ON UPDATE NO ACTION
+						ON DELETE NO ACTION,
+					CONSTRAINT students_periods_student_id_fkey FOREIGN KEY (student_id)
+						REFERENCES student (id) MATCH SIMPLE
+						ON UPDATE NO ACTION
+						ON DELETE NO ACTION
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table students_periods`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table students_subjects
+		{
+			ID: "20200324-07",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE students_subjects
+				(
+					student_id uuid NOT NULL,
+					subject_id uuid NOT NULL,
+					CONSTRAINT students_subjects_pkey PRIMARY KEY (student_id, subject_id),
+					CONSTRAINT students_subjects_student_id_fkey FOREIGN KEY (student_id)
+						REFERENCES student (id) MATCH SIMPLE
+						ON UPDATE NO ACTION
+						ON DELETE NO ACTION,
+					CONSTRAINT students_subjects_subject_id_fkey FOREIGN KEY (subject_id)
+						REFERENCES subject (id) MATCH SIMPLE
+						ON UPDATE NO ACTION
+						ON DELETE NO ACTION
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table students_subjects`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// Create table deposits
+		{
+			ID: "20200324-08",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE deposits
+				(
+					id uuid NOT NULL,
+					student_id uuid NOT NULL REFERENCES student(id),
+					amount integer NOT NULL,
+					ref character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					status character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					channel character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					created_at timestamp without time zone NOT NULL,
+					updated_at timestamp without time zone NOT NULL,
+					CONSTRAINT deposits_pkey PRIMARY KEY (id)
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table deposits`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
 	}
 }
 
