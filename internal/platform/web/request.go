@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
 	"github.com/xwb1989/sqlparser"
 	"github.com/xwb1989/sqlparser/dependency/querypb"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 )
 
 // Headers

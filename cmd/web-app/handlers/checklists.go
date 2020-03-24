@@ -6,12 +6,12 @@ import (
 	"net/http"
 	"strings"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/checklist"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/datatable"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/datatable"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"

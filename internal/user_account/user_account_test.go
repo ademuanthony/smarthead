@@ -7,14 +7,14 @@ import (
 	"testing"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/tests"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/google/go-cmp/cmp"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/lib/pq"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/tests"
 )
 
 var (

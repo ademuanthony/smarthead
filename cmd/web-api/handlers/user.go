@@ -7,12 +7,12 @@ import (
 	"strings"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_auth"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/user"
+	"remoteschool/smarthead/internal/user_auth"
 
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"

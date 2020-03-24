@@ -12,15 +12,15 @@ import (
 	"testing"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/docker"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/schema"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/jmoiron/sqlx"
 	"github.com/kelseyhightower/envconfig"
+	"remoteschool/smarthead/internal/platform/docker"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/schema"
 )
 
 // Success and failure markers.

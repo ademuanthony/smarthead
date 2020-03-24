@@ -5,10 +5,10 @@ import (
 	"net/http"
 	"strings"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"github.com/iancoleman/strcase"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 // NewValidationError checks the error for validation errors and formats the correct response.

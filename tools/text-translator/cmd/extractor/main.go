@@ -3,12 +3,12 @@ package main
 import (
 	"flag"
 	"fmt"
-	"geeks-accelerator/oss/saas-starter-kit/tools/text-translator/internal/jsontranslator"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
+	"remoteschool/smarthead/tools/text-translator/internal/jsontranslator"
 	"strings"
 
 	"github.com/PuerkitoBio/goquery"

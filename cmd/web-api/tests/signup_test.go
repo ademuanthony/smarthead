@@ -8,14 +8,14 @@ import (
 	"testing"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/account"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/tests"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
-	"geeks-accelerator/oss/saas-starter-kit/internal/signup"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_auth"
 	"github.com/pborman/uuid"
+	"remoteschool/smarthead/internal/account"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/tests"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/signup"
+	"remoteschool/smarthead/internal/user_auth"
 )
 
 type mockSignup struct {

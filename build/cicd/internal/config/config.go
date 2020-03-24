@@ -10,8 +10,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/schema"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/cloudfront"
 	"github.com/aws/aws-sdk-go/service/rds"
@@ -20,11 +18,13 @@ import (
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"gitlab.com/geeks-accelerator/oss/devops/pkg/devdeploy"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/schema"
 )
 
 const (
 	// GitLabProjectBaseUrl is the base url used to create links to a specific CI/CD job or pipeline by ID.
-	GitLabProjectBaseUrl = "https://gitlab.com/geeks-accelerator/oss/saas-starter-kit"
+	GitLabProjectBaseUrl = "https://gitlab.com/remoteschool/smarthead"
 
 	// EnableRdsServerless will use the Aurora database engine that scales the capacity based on database load. This is
 	// a good option for intermittent or unpredictable workloads.

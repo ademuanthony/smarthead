@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 
 	httpext "github.com/go-playground/pkg/net/http"
 	ut "github.com/go-playground/universal-translator"

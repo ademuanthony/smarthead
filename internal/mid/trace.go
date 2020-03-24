@@ -3,13 +3,13 @@ package mid
 import (
 	"context"
 	"fmt"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"net/http"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/ext"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 // Trace adds the base tracing info for requests

@@ -6,16 +6,16 @@ import (
 	"testing"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/account"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/notify"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/tests"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_account"
 	"github.com/dgrijalva/jwt-go"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"remoteschool/smarthead/internal/account"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/notify"
+	"remoteschool/smarthead/internal/platform/tests"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/user"
+	"remoteschool/smarthead/internal/user_account"
 )
 
 var (

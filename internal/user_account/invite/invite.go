@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	//"geeks-accelerator/oss/saas-starter-kit/internal/account"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_account"
+	//"remoteschool/smarthead/internal/account"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/user"
+	"remoteschool/smarthead/internal/user_account"
 
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"

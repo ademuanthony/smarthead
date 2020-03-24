@@ -8,13 +8,13 @@ import (
 	"testing"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/checklist"
-	"geeks-accelerator/oss/saas-starter-kit/internal/mid"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/tests"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
 	"github.com/pborman/uuid"
+	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/mid"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/tests"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 )
 
 func mockChecklistCreateRequest(accountID string) checklist.ChecklistCreateRequest {

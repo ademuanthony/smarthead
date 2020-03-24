@@ -2,12 +2,12 @@ package mid
 
 import (
 	"context"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"net/http"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"github.com/gorilla/sessions"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 func Session(store sessions.Store, sessionName string) web.Middleware {

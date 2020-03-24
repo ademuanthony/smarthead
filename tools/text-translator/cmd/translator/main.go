@@ -3,10 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
-	"geeks-accelerator/oss/saas-starter-kit/tools/text-translator/aws"
-	"geeks-accelerator/oss/saas-starter-kit/tools/text-translator/internal/jsontranslator"
 	"os"
 	"path/filepath"
+	"remoteschool/smarthead/tools/text-translator/aws"
+	"remoteschool/smarthead/tools/text-translator/internal/jsontranslator"
 	"strings"
 )
 

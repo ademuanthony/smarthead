@@ -3,13 +3,13 @@ package handlers
 import (
 	"context"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/account"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
-	"geeks-accelerator/oss/saas-starter-kit/internal/signup"
 	"net/http"
+	"remoteschool/smarthead/internal/account"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/signup"
 
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"

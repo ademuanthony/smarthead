@@ -68,7 +68,7 @@ services:
       args:
         name: 'web-app'
     volumes:
-      - ./:/go/src/gitlab.com/geeks-accelerator/oss/saas-starter-kit
+      - ./:/go/src/gitlab.com/remoteschool/smarthead
     ports:
       - 3000:3000 # WEB APP
       - 4000:4000 # DEBUG API
@@ -110,7 +110,7 @@ services:
       args:
         name: 'web-api'
     volumes:
-      - ./:/go/src/gitlab.com/geeks-accelerator/oss/saas-starter-kit
+      - ./:/go/src/gitlab.com/remoteschool/smarthead
     ports:
       - 3001:3001 # WEB API
       - 4001:4001 # DEBUG API

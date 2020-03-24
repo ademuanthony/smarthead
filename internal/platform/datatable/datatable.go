@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 const (

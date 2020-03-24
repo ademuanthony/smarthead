@@ -3,8 +3,8 @@ package weberror
 import (
 	"context"
 	"fmt"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"net/http"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"strings"
 
 	"github.com/pkg/errors"

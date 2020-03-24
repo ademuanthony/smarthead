@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"net/url"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/mid"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/rds"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"remoteschool/smarthead/internal/mid"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 // Serverless provides support for ensuring serverless resources are available for the user. .

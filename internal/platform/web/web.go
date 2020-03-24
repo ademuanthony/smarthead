@@ -2,11 +2,11 @@ package web
 
 import (
 	"context"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
 	"log"
 	"net/http"
 	"os"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 	"syscall"
 	"time"
 

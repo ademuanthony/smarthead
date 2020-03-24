@@ -2,13 +2,13 @@ package mid
 
 import (
 	"context"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"log"
 	"net/http"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 // Logger writes some information about the request to the logs in the

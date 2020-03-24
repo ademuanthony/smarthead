@@ -4,10 +4,10 @@ import (
 	"context"
 	"log"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/schema"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 	"gitlab.com/geeks-accelerator/oss/devops/pkg/devdeploy"
+	"remoteschool/smarthead/internal/schema"
 )
 
 // RunSchemaMigrationsForTargetEnv executes schema migrations for the target environment.

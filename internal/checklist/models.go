@@ -5,11 +5,11 @@ import (
 	"time"
 
 	"database/sql/driver"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"github.com/jmoiron/sqlx"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 // Repository defines the required dependencies for Checklist.

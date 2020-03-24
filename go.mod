@@ -1,6 +1,7 @@
-module geeks-accelerator/oss/saas-starter-kit
+module remoteschool/smarthead
 
 require (
+	github.com/DATA-DOG/go-sqlmock v1.4.1 // indirect
 	github.com/PuerkitoBio/goquery v1.5.0
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751
 	github.com/aws/aws-sdk-go v1.27.2
@@ -44,6 +45,7 @@ require (
 	github.com/sudo-suhas/symcrypto v1.0.0
 	github.com/tdewolff/minify v2.3.6+incompatible
 	github.com/tdewolff/parse v2.3.4+incompatible // indirect
+	github.com/tdewolff/test v1.0.6 // indirect
 	github.com/tinylib/msgp v1.1.0 // indirect
 	github.com/urfave/cli v1.22.2
 	github.com/volatiletech/inflect v0.0.0-20170731032912-e7201282ae8d // indirect

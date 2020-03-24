@@ -7,10 +7,10 @@ import (
 	"os"
 	"testing"
 
-	_ "geeks-accelerator/oss/saas-starter-kit/internal/mid/saas-swagger/example/docs"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"github.com/stretchr/testify/assert"
+	_ "remoteschool/smarthead/internal/mid/saas-swagger/example/docs"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 func TestWrapHandler(t *testing.T) {

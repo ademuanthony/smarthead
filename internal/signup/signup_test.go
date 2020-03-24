@@ -5,16 +5,16 @@ import (
 	"testing"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/account"
-	"geeks-accelerator/oss/saas-starter-kit/internal/account/account_preference"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/tests"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_account"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_auth"
 	"github.com/google/go-cmp/cmp"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"remoteschool/smarthead/internal/account"
+	"remoteschool/smarthead/internal/account/account_preference"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/tests"
+	"remoteschool/smarthead/internal/user"
+	"remoteschool/smarthead/internal/user_account"
+	"remoteschool/smarthead/internal/user_auth"
 )
 
 var (

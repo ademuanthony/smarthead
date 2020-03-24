@@ -10,12 +10,12 @@ import (
 	"strings"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/geonames"
 	"github.com/geeks-accelerator/sqlxmigrate"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 	"github.com/pkg/errors"
 	"github.com/sethgrid/pester"
+	"remoteschool/smarthead/internal/geonames"
 )
 
 // migrationList returns a list of migrations to be executed. If the id of the
@@ -763,7 +763,7 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
-		// Create table 
+		// Create table
 		{
 			ID: "20200324-04",
 			Migrate: func(tx *sql.Tx) error {

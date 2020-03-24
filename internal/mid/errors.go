@@ -5,10 +5,10 @@ import (
 	"log"
 	"net/http"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 )
 
 // Errors handles errors coming out of the call chain. It detects normal

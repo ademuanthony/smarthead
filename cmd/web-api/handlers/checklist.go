@@ -6,11 +6,11 @@ import (
 	"strconv"
 	"strings"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/checklist"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"

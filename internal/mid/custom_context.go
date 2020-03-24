@@ -2,9 +2,9 @@ package mid
 
 import (
 	"context"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"net/http"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 // CustomContext sets a default set of context values.

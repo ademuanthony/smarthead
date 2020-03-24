@@ -4,8 +4,8 @@ import (
 	"context"
 	"crypto/md5"
 	"fmt"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
 	"github.com/dustin/go-humanize"
+	"remoteschool/smarthead/internal/platform/auth"
 	"strings"
 	"time"
 )

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"regexp"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web"
 	"github.com/tdewolff/minify"
 	"github.com/tdewolff/minify/css"
 	"github.com/tdewolff/minify/html"
@@ -14,6 +13,7 @@ import (
 	"github.com/tdewolff/minify/svg"
 	"github.com/tdewolff/minify/xml"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/web"
 )
 
 // Minify provides minification

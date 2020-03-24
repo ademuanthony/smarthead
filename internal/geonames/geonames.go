@@ -16,12 +16,12 @@ import (
 	"strings"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/pkg/errors"
 	"github.com/sethgrid/pester"
 	"github.com/shopspring/decimal"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 const (

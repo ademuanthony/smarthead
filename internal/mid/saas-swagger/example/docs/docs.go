@@ -19,7 +19,7 @@ var doc = `{
         "termsOfService": "http://geeksinthewoods.com/terms",
         "contact": {
             "name": "API Support",
-            "url": "https://gitlab.com/geeks-accelerator/oss/saas-starter-kit",
+            "url": "https://gitlab.com/remoteschool/smarthead",
             "email": "support@geeksinthewoods.com"
         },
         "license": {

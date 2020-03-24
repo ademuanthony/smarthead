@@ -3,11 +3,11 @@ package user_account
 import (
 	"context"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 // UserFindByAccount lists all the users for a given account ID.

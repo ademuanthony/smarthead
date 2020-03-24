@@ -3,11 +3,11 @@ package user_auth
 import (
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/account/account_preference"
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/auth"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user"
-	"geeks-accelerator/oss/saas-starter-kit/internal/user_account"
 	"github.com/jmoiron/sqlx"
+	"remoteschool/smarthead/internal/account/account_preference"
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/user"
+	"remoteschool/smarthead/internal/user_account"
 )
 
 // Repository defines the required dependencies for User Auth.

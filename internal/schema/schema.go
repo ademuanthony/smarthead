@@ -5,9 +5,9 @@ import (
 	"log"
 	"time"
 
-	"geeks-accelerator/oss/saas-starter-kit/internal/platform/web/webcontext"
 	"github.com/geeks-accelerator/sqlxmigrate"
 	"github.com/jmoiron/sqlx"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 // Migrate is the entry point for performing init schema and running all the migrations.
