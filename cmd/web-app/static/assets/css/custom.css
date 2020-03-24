@@ -274,7 +274,7 @@ li {
 }
 
 .mx-background-top-linear {
-    background: -webkit-linear-gradient(45deg, #54d400 48%, #1b1e21 48%);
-    background: -webkit-linear-gradient(left, #54d400 48%, #1b1e21 48%);
-    background: linear-gradient(45deg, #54d400 48%, #1b1e21 48%);
+    background: -webkit-linear-gradient(45deg, #4458B7 48%, #1b1e21 48%);
+    background: -webkit-linear-gradient(left, #4458B7 48%, #1b1e21 48%);
+    background: linear-gradient(45deg, #4458B7 48%, #1b1e21 48%);
 }
