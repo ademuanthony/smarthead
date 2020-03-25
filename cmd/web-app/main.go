@@ -35,6 +35,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
+	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
 	"remoteschool/smarthead/internal/user_account/invite"
@@ -455,6 +456,7 @@ func main() {
 	signupRepo := signup.NewRepository(masterDb, usrRepo, usrAccRepo, accRepo)
 	inviteRepo := invite.NewRepository(masterDb, usrRepo, usrAccRepo, accRepo, webRoute.UserInviteAccept, notifyEmail, cfg.Project.SharedSecretKey)
 	chklstRepo := checklist.NewRepository(masterDb)
+	subjectRepo := subject.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
 		Log:             log,
@@ -476,6 +478,7 @@ func main() {
 		ChecklistRepo:   chklstRepo,
 		Authenticator:   authenticator,
 		AwsSession:      awsSession,
+		SubjectRepo: 	 subjectRepo,
 	}
 
 	// =========================================================================

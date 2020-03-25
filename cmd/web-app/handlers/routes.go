@@ -19,6 +19,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
+	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
 	"remoteschool/smarthead/internal/user_account/invite"
@@ -53,6 +54,7 @@ type AppContext struct {
 	ChecklistRepo     *checklist.Repository
 	GeoRepo           *geonames.Repository
 	Authenticator     *auth.Authenticator
+	SubjectRepo		  *subject.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -134,6 +136,20 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("POST", "/checklists/create", p.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/checklists/create", p.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/checklists", p.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+	// Register subject management pages.
+	sub := Subjects{
+		Repo: 		   appCtx.SubjectRepo,
+		Redis:         appCtx.Redis,
+		Renderer:      appCtx.Renderer,
+	}
+	app.Handle("POST", "/admin/subjects/:subject_id/update", sub.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subjects/:subject_id/update", sub.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("POST", "/admin/subjects/:subject_id", sub.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subjects/:subject_id", sub.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("POST", "/admin/subjects/create", sub.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subjects/create", sub.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subjects", sub.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register user management pages.
 	us := Users{

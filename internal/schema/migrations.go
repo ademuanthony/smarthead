@@ -941,6 +941,34 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// Add phone to users table
+		{
+			ID: "20200325-02",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE subscription (
+					id uuid NOT NULL PRIMARY KEY,
+					student_id uuid NOT NULL REFERENCES student(id),
+					subject_id uuid NOT NULL REFERENCES subject(id),
+					period_id uuid NOT NULL REFERENCES period(id),
+					days_of_week INT NOT NULL,
+					start_date INT8 NOT NULL,
+					end_date INT8 NOT NULL,
+					created_at INT8 NOT NULL
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `DROP TABLE subscription`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+				return nil
+			},
+		},
 	}
 }
 

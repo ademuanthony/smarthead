@@ -60,17 +60,20 @@ var SubjectWhere = struct {
 
 // SubjectRels is where relationship names are stored.
 var SubjectRels = struct {
-	Teachers string
-	Students string
+	Teachers      string
+	Students      string
+	Subscriptions string
 }{
-	Teachers: "Teachers",
-	Students: "Students",
+	Teachers:      "Teachers",
+	Students:      "Students",
+	Subscriptions: "Subscriptions",
 }
 
 // subjectR is where relationships are stored.
 type subjectR struct {
-	Teachers TeacherSlice
-	Students StudentSlice
+	Teachers      TeacherSlice
+	Students      StudentSlice
+	Subscriptions SubscriptionSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -218,6 +221,27 @@ func (o *Subject) Students(mods ...qm.QueryMod) studentQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"student\".*"})
+	}
+
+	return query
+}
+
+// Subscriptions retrieves all the subscription's Subscriptions with an executor.
+func (o *Subject) Subscriptions(mods ...qm.QueryMod) subscriptionQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"subscription\".\"subject_id\"=?", o.ID),
+	)
+
+	query := Subscriptions(queryMods...)
+	queries.SetFrom(query.Query, "\"subscription\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"subscription\".*"})
 	}
 
 	return query
@@ -431,6 +455,94 @@ func (subjectL) LoadStudents(ctx context.Context, e boil.ContextExecutor, singul
 					foreign.R = &studentR{}
 				}
 				foreign.R.Subjects = append(foreign.R.Subjects, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadSubscriptions allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (subjectL) LoadSubscriptions(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubject interface{}, mods queries.Applicator) error {
+	var slice []*Subject
+	var object *Subject
+
+	if singular {
+		object = maybeSubject.(*Subject)
+	} else {
+		slice = *maybeSubject.(*[]*Subject)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subjectR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subjectR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`subscription`), qm.WhereIn(`subscription.subject_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load subscription")
+	}
+
+	var resultSlice []*Subscription
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice subscription")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on subscription")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for subscription")
+	}
+
+	if singular {
+		object.R.Subscriptions = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &subscriptionR{}
+			}
+			foreign.R.Subject = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.SubjectID {
+				local.R.Subscriptions = append(local.R.Subscriptions, foreign)
+				if foreign.R == nil {
+					foreign.R = &subscriptionR{}
+				}
+				foreign.R.Subject = local
 				break
 			}
 		}
@@ -717,6 +829,59 @@ func removeStudentsFromSubjectsSlice(o *Subject, related []*Student) {
 			break
 		}
 	}
+}
+
+// AddSubscriptions adds the given related objects to the existing relationships
+// of the subject, optionally inserting them as new records.
+// Appends related to o.R.Subscriptions.
+// Sets related.R.Subject appropriately.
+func (o *Subject) AddSubscriptions(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Subscription) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.SubjectID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"subscription\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"subject_id"}),
+				strmangle.WhereClause("\"", "\"", 2, subscriptionPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.SubjectID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &subjectR{
+			Subscriptions: related,
+		}
+	} else {
+		o.R.Subscriptions = append(o.R.Subscriptions, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &subscriptionR{
+				Subject: o,
+			}
+		} else {
+			rel.R.Subject = o
+		}
+	}
+	return nil
 }
 
 // Subjects retrieves all the records using an executor.
