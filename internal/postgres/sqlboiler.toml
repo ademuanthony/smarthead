@@ -6,6 +6,7 @@
     pass = "postgres"
     sslmode = "disable"
     whitelist=[
+            "accounts",
             "users",
             "subject",
             "period",

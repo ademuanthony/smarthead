@@ -50,3 +50,10 @@ func makeCacheKey(cols boil.Columns, nzDefaults []string) string {
 	strmangle.PutBuffer(buf)
 	return str
 }
+
+// Enum values for account_status_t
+const (
+	AccountStatusTActive   = "active"
+	AccountStatusTPending  = "pending"
+	AccountStatusTDisabled = "disabled"
+)

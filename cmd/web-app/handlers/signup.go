@@ -21,6 +21,7 @@ import (
 
 // Signup represents the Signup API method handler set.
 type Signup struct {
+	AccountRepo *account.Repository
 	SignupRepo *signup.Repository
 	AuthRepo   *user_auth.Repository
 	GeoRepo    *geonames.Repository
@@ -36,7 +37,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return err
 	}
 
-	//
+	// 
 	req := new(signup.SignupRequest)
 	data := make(map[string]interface{})
 	f := func() (bool, error) {
@@ -52,6 +53,14 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 			decoder := schema.NewDecoder()
 			if err := decoder.Decode(req, r.PostForm); err != nil {
 				return false, err
+			}
+
+			if req.Account.Name == "" {
+				id, err := h.AccountRepo.First(ctx)
+				if err != nil {
+					return false, err
+				}
+				req.Account.ID = *id
 			}
 
 			// Execute the account / user signup.

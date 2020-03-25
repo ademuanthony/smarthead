@@ -353,6 +353,662 @@ func testUsersInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testUserToManyBillingUserAccounts(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.BillingUserID, a.ID)
+	queries.Assign(&c.BillingUserID, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.BillingUserAccounts().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.BillingUserID, b.BillingUserID) {
+			bFound = true
+		}
+		if queries.Equal(v.BillingUserID, c.BillingUserID) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadBillingUserAccounts(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.BillingUserAccounts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.BillingUserAccounts = nil
+	if err = a.L.LoadBillingUserAccounts(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.BillingUserAccounts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManySignupUserAccounts(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, accountDBTypes, false, accountColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.SignupUserID, a.ID)
+	queries.Assign(&c.SignupUserID, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.SignupUserAccounts().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.SignupUserID, b.SignupUserID) {
+			bFound = true
+		}
+		if queries.Equal(v.SignupUserID, c.SignupUserID) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadSignupUserAccounts(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SignupUserAccounts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.SignupUserAccounts = nil
+	if err = a.L.LoadSignupUserAccounts(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.SignupUserAccounts); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testUserToManyAddOpBillingUserAccounts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Account{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Account{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddBillingUserAccounts(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.BillingUserID) {
+			t.Error("foreign key was wrong value", a.ID, first.BillingUserID)
+		}
+		if !queries.Equal(a.ID, second.BillingUserID) {
+			t.Error("foreign key was wrong value", a.ID, second.BillingUserID)
+		}
+
+		if first.R.BillingUser != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.BillingUser != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.BillingUserAccounts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.BillingUserAccounts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.BillingUserAccounts().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpBillingUserAccounts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Account{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetBillingUserAccounts(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.BillingUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetBillingUserAccounts(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.BillingUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.BillingUserID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.BillingUserID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.BillingUserID) {
+		t.Error("foreign key was wrong value", a.ID, d.BillingUserID)
+	}
+	if !queries.Equal(a.ID, e.BillingUserID) {
+		t.Error("foreign key was wrong value", a.ID, e.BillingUserID)
+	}
+
+	if b.R.BillingUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.BillingUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.BillingUser != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.BillingUser != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.BillingUserAccounts[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.BillingUserAccounts[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpBillingUserAccounts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Account{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddBillingUserAccounts(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.BillingUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveBillingUserAccounts(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.BillingUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.BillingUserID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.BillingUserID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.BillingUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.BillingUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.BillingUser != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.BillingUser != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.BillingUserAccounts) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.BillingUserAccounts[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.BillingUserAccounts[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testUserToManyAddOpSignupUserAccounts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Account{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Account{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSignupUserAccounts(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.SignupUserID) {
+			t.Error("foreign key was wrong value", a.ID, first.SignupUserID)
+		}
+		if !queries.Equal(a.ID, second.SignupUserID) {
+			t.Error("foreign key was wrong value", a.ID, second.SignupUserID)
+		}
+
+		if first.R.SignupUser != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.SignupUser != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.SignupUserAccounts[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.SignupUserAccounts[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.SignupUserAccounts().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpSignupUserAccounts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Account{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetSignupUserAccounts(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.SignupUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetSignupUserAccounts(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.SignupUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.SignupUserID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.SignupUserID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.SignupUserID) {
+		t.Error("foreign key was wrong value", a.ID, d.SignupUserID)
+	}
+	if !queries.Equal(a.ID, e.SignupUserID) {
+		t.Error("foreign key was wrong value", a.ID, e.SignupUserID)
+	}
+
+	if b.R.SignupUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.SignupUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.SignupUser != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.SignupUser != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.SignupUserAccounts[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.SignupUserAccounts[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpSignupUserAccounts(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Account
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Account{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, accountDBTypes, false, strmangle.SetComplement(accountPrimaryKeyColumns, accountColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddSignupUserAccounts(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.SignupUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveSignupUserAccounts(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.SignupUserAccounts().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.SignupUserID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.SignupUserID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.SignupUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.SignupUser != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.SignupUser != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.SignupUser != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.SignupUserAccounts) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.SignupUserAccounts[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.SignupUserAccounts[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
 func testUsersReload(t *testing.T) {
 	t.Parallel()
 

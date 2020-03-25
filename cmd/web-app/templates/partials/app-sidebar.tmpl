@@ -7,7 +7,7 @@
             <div class="sidebar-brand-icon rotate-n-15">
                 <i class="fas fa-dragon"></i>
             </div>
-            <div class="sidebar-brand-text mx-3">Example Checklist</div>
+            <div class="sidebar-brand-text mx-3">Remote School</div>
         </a>
 
         {{ if HasAuth $._Ctx }}
@@ -30,17 +30,22 @@
                 Interface
             </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#navSectionChecklists" aria-expanded="true" aria-controls="navSectionChecklists">
+                <a class="nav-link" href="/preferences">
                     <i class="fas fa-fw fa-layer-group"></i>
-                    <span>Checklists</span>
-                </a>
-                <div id="navSectionChecklists" class="collapse" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
-                        <a class="collapse-item" href="/checklists">Manage Checklists</a>
-                    </div>
-                </div>
+                    <span>Preferences</span></a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/subscriptions">
+                    <i class="fas fa-fw fa-layer-group"></i>
+                    <span>Subscriptions</span></a>
+            </li>
+
+            <li class="nav-item">
+                <a class="nav-link" href="/lessons">
+                    <i class="fas fa-fw fa-layer-group"></i>
+                    <span>Lessons</span></a>
             </li>
 
             {{ if HasRole $._Ctx "admin" }}
@@ -60,29 +65,6 @@
             {{end}}
 
         {{ end }}
-
-        <!-- Divider -->
-        <hr class="sidebar-divider">
-
-        <!-- Heading -->
-        <div class="sidebar-heading">
-            Examples
-        </div>
-
-        <!-- Nav Item - Pages Collapse Menu -->
-        <li class="nav-item">
-            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#navSectionComponents" aria-expanded="true" aria-controls="navSectionComponents">
-                <i class="fas fa-fw fa-cog"></i>
-                <span>Components</span>
-            </a>
-            <div id="navSectionComponents" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
-                <div class="bg-white py-2 collapse-inner rounded">
-                    <h6 class="collapse-header">Custom Components:</h6>
-                    <a class="collapse-item" href="/examples/flash-messages">Flash Messages</a>
-                    <a class="collapse-item" href="/examples/images">Responsive Images</a>
-                </div>
-            </div>
-        </li>
 
         <!-- Divider -->
         <hr class="sidebar-divider d-none d-md-block">

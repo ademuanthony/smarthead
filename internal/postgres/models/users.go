@@ -68,52 +68,6 @@ var UserColumns = struct {
 
 // Generated where
 
-type whereHelpernull_String struct{ field string }
-
-func (w whereHelpernull_String) EQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_String) NEQ(x null.String) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_String) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_String) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-func (w whereHelpernull_String) LT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_String) LTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_String) GT(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_String) GTE(x null.String) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
-type whereHelpernull_Time struct{ field string }
-
-func (w whereHelpernull_Time) EQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, false, x)
-}
-func (w whereHelpernull_Time) NEQ(x null.Time) qm.QueryMod {
-	return qmhelper.WhereNullEQ(w.field, true, x)
-}
-func (w whereHelpernull_Time) IsNull() qm.QueryMod    { return qmhelper.WhereIsNull(w.field) }
-func (w whereHelpernull_Time) IsNotNull() qm.QueryMod { return qmhelper.WhereIsNotNull(w.field) }
-func (w whereHelpernull_Time) LT(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LT, x)
-}
-func (w whereHelpernull_Time) LTE(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.LTE, x)
-}
-func (w whereHelpernull_Time) GT(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GT, x)
-}
-func (w whereHelpernull_Time) GTE(x null.Time) qm.QueryMod {
-	return qmhelper.Where(w.field, qmhelper.GTE, x)
-}
-
 var UserWhere = struct {
 	ID            whereHelperstring
 	Email         whereHelperstring
@@ -142,10 +96,17 @@ var UserWhere = struct {
 
 // UserRels is where relationship names are stored.
 var UserRels = struct {
-}{}
+	BillingUserAccounts string
+	SignupUserAccounts  string
+}{
+	BillingUserAccounts: "BillingUserAccounts",
+	SignupUserAccounts:  "SignupUserAccounts",
+}
 
 // userR is where relationships are stored.
 type userR struct {
+	BillingUserAccounts AccountSlice
+	SignupUserAccounts  AccountSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -252,6 +213,470 @@ func (q userQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bool,
 	}
 
 	return count > 0, nil
+}
+
+// BillingUserAccounts retrieves all the account's Accounts with an executor via billing_user_id column.
+func (o *User) BillingUserAccounts(mods ...qm.QueryMod) accountQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"accounts\".\"billing_user_id\"=?", o.ID),
+	)
+
+	query := Accounts(queryMods...)
+	queries.SetFrom(query.Query, "\"accounts\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"accounts\".*"})
+	}
+
+	return query
+}
+
+// SignupUserAccounts retrieves all the account's Accounts with an executor via signup_user_id column.
+func (o *User) SignupUserAccounts(mods ...qm.QueryMod) accountQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"accounts\".\"signup_user_id\"=?", o.ID),
+	)
+
+	query := Accounts(queryMods...)
+	queries.SetFrom(query.Query, "\"accounts\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"accounts\".*"})
+	}
+
+	return query
+}
+
+// LoadBillingUserAccounts allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadBillingUserAccounts(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		object = maybeUser.(*User)
+	} else {
+		slice = *maybeUser.(*[]*User)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`accounts`), qm.WhereIn(`accounts.billing_user_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load accounts")
+	}
+
+	var resultSlice []*Account
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice accounts")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on accounts")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for accounts")
+	}
+
+	if singular {
+		object.R.BillingUserAccounts = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &accountR{}
+			}
+			foreign.R.BillingUser = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.BillingUserID) {
+				local.R.BillingUserAccounts = append(local.R.BillingUserAccounts, foreign)
+				if foreign.R == nil {
+					foreign.R = &accountR{}
+				}
+				foreign.R.BillingUser = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadSignupUserAccounts allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadSignupUserAccounts(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		object = maybeUser.(*User)
+	} else {
+		slice = *maybeUser.(*[]*User)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`accounts`), qm.WhereIn(`accounts.signup_user_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load accounts")
+	}
+
+	var resultSlice []*Account
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice accounts")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on accounts")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for accounts")
+	}
+
+	if singular {
+		object.R.SignupUserAccounts = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &accountR{}
+			}
+			foreign.R.SignupUser = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.SignupUserID) {
+				local.R.SignupUserAccounts = append(local.R.SignupUserAccounts, foreign)
+				if foreign.R == nil {
+					foreign.R = &accountR{}
+				}
+				foreign.R.SignupUser = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// AddBillingUserAccounts adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.BillingUserAccounts.
+// Sets related.R.BillingUser appropriately.
+func (o *User) AddBillingUserAccounts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Account) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.BillingUserID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"accounts\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"billing_user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, accountPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.BillingUserID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			BillingUserAccounts: related,
+		}
+	} else {
+		o.R.BillingUserAccounts = append(o.R.BillingUserAccounts, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &accountR{
+				BillingUser: o,
+			}
+		} else {
+			rel.R.BillingUser = o
+		}
+	}
+	return nil
+}
+
+// SetBillingUserAccounts removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.BillingUser's BillingUserAccounts accordingly.
+// Replaces o.R.BillingUserAccounts with related.
+// Sets related.R.BillingUser's BillingUserAccounts accordingly.
+func (o *User) SetBillingUserAccounts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Account) error {
+	query := "update \"accounts\" set \"billing_user_id\" = null where \"billing_user_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.BillingUserAccounts {
+			queries.SetScanner(&rel.BillingUserID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.BillingUser = nil
+		}
+
+		o.R.BillingUserAccounts = nil
+	}
+	return o.AddBillingUserAccounts(ctx, exec, insert, related...)
+}
+
+// RemoveBillingUserAccounts relationships from objects passed in.
+// Removes related items from R.BillingUserAccounts (uses pointer comparison, removal does not keep order)
+// Sets related.R.BillingUser.
+func (o *User) RemoveBillingUserAccounts(ctx context.Context, exec boil.ContextExecutor, related ...*Account) error {
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.BillingUserID, nil)
+		if rel.R != nil {
+			rel.R.BillingUser = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("billing_user_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.BillingUserAccounts {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.BillingUserAccounts)
+			if ln > 1 && i < ln-1 {
+				o.R.BillingUserAccounts[i] = o.R.BillingUserAccounts[ln-1]
+			}
+			o.R.BillingUserAccounts = o.R.BillingUserAccounts[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+// AddSignupUserAccounts adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.SignupUserAccounts.
+// Sets related.R.SignupUser appropriately.
+func (o *User) AddSignupUserAccounts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Account) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.SignupUserID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"accounts\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"signup_user_id"}),
+				strmangle.WhereClause("\"", "\"", 2, accountPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.SignupUserID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			SignupUserAccounts: related,
+		}
+	} else {
+		o.R.SignupUserAccounts = append(o.R.SignupUserAccounts, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &accountR{
+				SignupUser: o,
+			}
+		} else {
+			rel.R.SignupUser = o
+		}
+	}
+	return nil
+}
+
+// SetSignupUserAccounts removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.SignupUser's SignupUserAccounts accordingly.
+// Replaces o.R.SignupUserAccounts with related.
+// Sets related.R.SignupUser's SignupUserAccounts accordingly.
+func (o *User) SetSignupUserAccounts(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Account) error {
+	query := "update \"accounts\" set \"signup_user_id\" = null where \"signup_user_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.SignupUserAccounts {
+			queries.SetScanner(&rel.SignupUserID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.SignupUser = nil
+		}
+
+		o.R.SignupUserAccounts = nil
+	}
+	return o.AddSignupUserAccounts(ctx, exec, insert, related...)
+}
+
+// RemoveSignupUserAccounts relationships from objects passed in.
+// Removes related items from R.SignupUserAccounts (uses pointer comparison, removal does not keep order)
+// Sets related.R.SignupUser.
+func (o *User) RemoveSignupUserAccounts(ctx context.Context, exec boil.ContextExecutor, related ...*Account) error {
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.SignupUserID, nil)
+		if rel.R != nil {
+			rel.R.SignupUser = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("signup_user_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.SignupUserAccounts {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.SignupUserAccounts)
+			if ln > 1 && i < ln-1 {
+				o.R.SignupUserAccounts[i] = o.R.SignupUserAccounts[ln-1]
+			}
+			o.R.SignupUserAccounts = o.R.SignupUserAccounts[:ln-1]
+			break
+		}
+	}
+
+	return nil
 }
 
 // Users retrieves all the records using an executor.

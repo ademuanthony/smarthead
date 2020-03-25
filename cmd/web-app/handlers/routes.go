@@ -202,6 +202,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register signup endpoints.
 	s := Signup{
+		AccountRepo: appCtx.AccountRepo,
 		SignupRepo: appCtx.SignupRepo,
 		AuthRepo:   appCtx.AuthRepo,
 		GeoRepo:    appCtx.GeoRepo,

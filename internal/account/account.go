@@ -5,13 +5,16 @@ import (
 	"database/sql"
 	"time"
 
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/postgres/models"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"remoteschool/smarthead/internal/platform/auth"
-	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 const (
@@ -337,6 +340,14 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 		ID:              id,
 		IncludeArchived: false,
 	})
+}
+
+func (repo *Repository) First(ctx context.Context) (*string, error) {
+	account, err := models.Accounts(qm.Limit(1), qm.OrderBy("created_at desc")).One(ctx, repo.DbConn)
+	if err != nil {
+		return nil, err
+	}
+	return &account.ID, nil
 }
 
 // Read gets the specified account from the database.

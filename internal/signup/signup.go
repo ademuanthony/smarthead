@@ -32,10 +32,18 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 	}
 	ctx = webcontext.ContextAddUniqueValue(ctx, req.Account, "Name", uniqName)
 
-	// Validate the request.
-	err = webcontext.Validator().StructCtx(ctx, req)
-	if err != nil {
-		return nil, err
+	if req.Account.Name != "" {
+		// Validate the request.
+		err = webcontext.Validator().StructCtx(ctx, req)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		// Validate the request.
+		err = webcontext.Validator().StructCtx(ctx, req.User)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	var resp SignupResult
@@ -45,6 +53,7 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 		FirstName:       req.User.FirstName,
 		LastName:        req.User.LastName,
 		Email:           req.User.Email,
+		Phone: 			 req.User.Phone,
 		Password:        req.User.Password,
 		PasswordConfirm: req.User.PasswordConfirm,
 		Timezone:        req.Account.Timezone,
@@ -56,33 +65,41 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 		return nil, err
 	}
 
-	accountStatus := account.AccountStatus_Active
-	accountReq := account.AccountCreateRequest{
-		Name:          req.Account.Name,
-		Address1:      req.Account.Address1,
-		Address2:      req.Account.Address2,
-		City:          req.Account.City,
-		Region:        req.Account.Region,
-		Country:       req.Account.Country,
-		Zipcode:       req.Account.Zipcode,
-		Status:        &accountStatus,
-		Timezone:      req.Account.Timezone,
-		SignupUserID:  &resp.User.ID,
-		BillingUserID: &resp.User.ID,
+	var accountID string = req.Account.ID
+	role := user_account.UserAccountRole_User
+
+	if req.Account.Name != "" {
+		accountStatus := account.AccountStatus_Active
+		accountReq := account.AccountCreateRequest{
+			Name:          req.Account.Name,
+			Address1:      req.Account.Address1,
+			Address2:      req.Account.Address2,
+			City:          req.Account.City,
+			Region:        req.Account.Region,
+			Country:       req.Account.Country,
+			Zipcode:       req.Account.Zipcode,
+			Status:        &accountStatus,
+			Timezone:      req.Account.Timezone,
+			SignupUserID:  &resp.User.ID,
+			BillingUserID: &resp.User.ID,
+		}
+
+		// Execute account creation.
+		resp.Account, err = repo.Account.Create(ctx, claims, accountReq, now)
+		if err != nil {
+			return nil, err
+		}
+		accountID = resp.Account.ID
+		role = user_account.UserAccountRole_Admin
 	}
 
-	// Execute account creation.
-	resp.Account, err = repo.Account.Create(ctx, claims, accountReq, now)
-	if err != nil {
-		return nil, err
-	}
 
 	// Associate the created user with the new account. The first user for the account will
 	// always have the role of admin.
 	ua := user_account.UserAccountCreateRequest{
 		UserID:    resp.User.ID,
-		AccountID: resp.Account.ID,
-		Roles:     []user_account.UserAccountRole{user_account.UserAccountRole_Admin},
+		AccountID: accountID,
+		Roles:     []user_account.UserAccountRole{role},
 		//Status:  Use default value
 	}
 

@@ -331,6 +331,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req User
 		FirstName:    req.FirstName,
 		LastName:     req.LastName,
 		Email:        req.Email,
+		Phone: 		  req.Phone,
 		Timezone:     req.Timezone,
 		PasswordHash: passwordHash,
 		PasswordSalt: passwordSalt,
@@ -341,8 +342,8 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req User
 	// Build the insert SQL statement.
 	query := sqlbuilder.NewInsertBuilder()
 	query.InsertInto(userTableName)
-	query.Cols("id", "first_name", "last_name", "email", "password_hash", "password_salt", "timezone", "created_at", "updated_at")
-	query.Values(u.ID, u.FirstName, u.LastName, u.Email, u.PasswordHash, u.PasswordSalt, u.Timezone, u.CreatedAt, u.UpdatedAt)
+	query.Cols("id", "first_name", "last_name", "email", "phone", "password_hash", "password_salt", "timezone", "created_at", "updated_at")
+	query.Values(u.ID, u.FirstName, u.LastName, u.Email, u.Phone, u.PasswordHash, u.PasswordSalt, u.Timezone, u.CreatedAt, u.UpdatedAt)
 
 	// Execute the query with the provided context.
 	sql, args := query.Build()
@@ -402,6 +403,7 @@ func (repo *Repository) CreateInvite(ctx context.Context, claims auth.Claims, re
 	u := User{
 		ID:        uuid.NewRandom().String(),
 		Email:     req.Email,
+		Phone:     req.Phone,
 		CreatedAt: now,
 		UpdatedAt: now,
 	}
@@ -409,8 +411,8 @@ func (repo *Repository) CreateInvite(ctx context.Context, claims auth.Claims, re
 	// Build the insert SQL statement.
 	query := sqlbuilder.NewInsertBuilder()
 	query.InsertInto(userTableName)
-	query.Cols("id", "email", "password_hash", "password_salt", "created_at", "updated_at")
-	query.Values(u.ID, u.Email, "", "", u.CreatedAt, u.UpdatedAt)
+	query.Cols("id", "email", "phone", "password_hash", "password_salt", "created_at", "updated_at")
+	query.Values(u.ID, u.Email, u.Phone, "", "", u.CreatedAt, u.UpdatedAt)
 
 	// Execute the query with the provided context.
 	sql, args := query.Build()
@@ -537,6 +539,9 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req User
 	}
 	if req.Email != nil {
 		fields = append(fields, query.Assign("email", req.Email))
+	}
+	if req.Phone != nil {
+		fields = append(fields, query.Assign("phone", req.Phone))
 	}
 	if req.Timezone != nil && *req.Timezone != "" {
 		fields = append(fields, query.Assign("timezone", *req.Timezone))
