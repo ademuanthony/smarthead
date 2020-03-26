@@ -1,5 +1,5 @@
-{{define "title"}}Subjects - {{ .subject.Name }}{{end}}
-{{define "subjectsActive"}}active{{end}}
+{{define "title"}}Periods - {{ .period }}{{end}}
+{{define "periodsActive"}}active{{end}}
 {{define "style"}}
 
 {{end}}
@@ -7,26 +7,22 @@
 
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
-            <li class="breadcrumb-item"><a href="{{ .urlSubjectsIndex }}">Subjects</a></li>
-            <li class="breadcrumb-item"><a href="{{ .urlSubjectsView }}">{{ .subject.Name }}</a></li>
+            <li class="breadcrumb-item"><a href="{{ .urlPeriodsIndex }}">Periods</a></li>
+            <li class="breadcrumb-item"><a href="{{ .urlPeriodsView }}">{{ .period }}</a></li>
             <li class="breadcrumb-item active" aria-current="page">View</li>
         </ol>
     </nav>
 
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">{{ .subject.Name }}</h1>
-    </div>
-
     <div class="card shadow mb-4">
         <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-            <h6 class="m-0 font-weight-bold text-dark">Subjects Details</h6>
+            <h6 class="m-0 font-weight-bold text-dark">Period Details</h6>
             <div class="dropdown no-arrow show">
                 <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
                     <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
                 </a>
                 <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in" aria-labelledby="dropdownMenuLink" x-placement="bottom-end" style="position: absolute; transform: translate3d(-156px, 19px, 0px); top: 0px; left: 0px; will-change: transform;">
                     <div class="dropdown-header">Actions</div>
-                    <a class="dropdown-item" href="{{ .urlSubjectsUpdate }}">Update Details</a>
+                    <a class="dropdown-item" href="{{ .urlPeriodsUpdate }}">Update Details</a>
                     {{ if HasRole $._Ctx "admin" }}
                         <form method="post"><input type="hidden" name="action" value="archive" /><input type="submit" value="Archive Subject" class="dropdown-item"></form>
                     {{ end }}
@@ -37,8 +33,8 @@
             <div class="row">
                 <div class="col-md-6">
                     <p>
-                        <small>Name</small><br/>
-                        <b>{{ .subject.Name }}</b>
+                        <small>Period</small><br/>
+                        <b>{{ .period }}</b>
                     </p>
                 </div>
             </div>

@@ -26,6 +26,7 @@ import (
 	"remoteschool/smarthead/internal/checklist"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/mid"
+	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/flag"
 	img_resize "remoteschool/smarthead/internal/platform/img-resize"
@@ -457,6 +458,7 @@ func main() {
 	inviteRepo := invite.NewRepository(masterDb, usrRepo, usrAccRepo, accRepo, webRoute.UserInviteAccept, notifyEmail, cfg.Project.SharedSecretKey)
 	chklstRepo := checklist.NewRepository(masterDb)
 	subjectRepo := subject.NewRepository(masterDb)
+	periodRepo := period.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
 		Log:             log,
@@ -479,6 +481,7 @@ func main() {
 		Authenticator:   authenticator,
 		AwsSession:      awsSession,
 		SubjectRepo: 	 subjectRepo,
+		PeriodRepo: 	 periodRepo,
 	}
 
 	// =========================================================================

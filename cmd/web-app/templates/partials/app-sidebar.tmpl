@@ -16,7 +16,7 @@
             <hr class="sidebar-divider my-0">
 
             <!-- Nav Item - Dashboard -->
-            <li class="nav-item">
+            <li class="nav-item {{block "dashboardActive" .}}{{end}}">
                 <a class="nav-link" href="/">
                     <i class="fas fa-fw fa-tachometer-alt"></i>
                     <span>Dashboard</span></a>
@@ -30,19 +30,13 @@
                 Interface
             </div>
 
-            <li class="nav-item">
-                <a class="nav-link" href="/preferences">
-                    <i class="fas fa-fw fa-layer-group"></i>
-                    <span>Preferences</span></a>
-            </li>
-
-            <li class="nav-item">
+            <li class='nav-item {{block "subscriptionsActive" .}}{{end}}'>
                 <a class="nav-link" href="/subscriptions">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Subscriptions</span></a>
             </li>
 
-            <li class="nav-item">
+            <li class="nav-item {{block "lessonsActive" .}}{{end}}">
                 <a class="nav-link" href="/lessons">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Lessons</span></a>
@@ -50,7 +44,7 @@
 
             {{ if HasRole $._Ctx "admin" }}
             <!-- Nav Item - Utilities Collapse Menu -->
-            <li class="nav-item">
+            <li class="nav-item {{block "usersActive" .}}{{end}}">
                 <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#navSectionUsers" aria-expanded="true" aria-controls="navSectionUsers">
                     <i class="fas fa-fw fa-users"></i>
                     <span>Users</span>
@@ -59,13 +53,18 @@
                     <div class="bg-white py-2 collapse-inner rounded">
                         <a class="collapse-item" href="/users">Manage Users</a>
                         <a class="collapse-item" href="/users/invite">Invite Users</a>
-                    </div>
+                    </div> 
                 </div>
             </li>
-            <li class="nav-item">
+            <li class="nav-item {{block "subjectsActive" .}}{{end}}">
                 <a class="nav-link" href="/admin/subjects">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Subjects</span></a>
+            </li>
+            <li class="nav-item {{block "periodsActive" .}}{{end}}">
+                <a class="nav-link" href="/admin/periods">
+                    <i class="fas fa-fw fa-layer-group"></i>
+                    <span>Periods</span></a>
             </li>
             {{end}}
 

@@ -1,0 +1,86 @@
+{{define "title"}}Update Period - {{ .period }}{{end}}
+{{define "periodsActive"}}active{{end}}
+{{define "style"}}
+
+{{end}}
+{{define "content"}}
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ .urlPeriodsIndex }}">Periods</a></li>
+            <li class="breadcrumb-item"><a href="{{ .urlPeriodsView }}">{{ .period }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Update</li>
+        </ol>
+    </nav>
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Update Period</h1>
+    </div>
+
+    <form class="user" method="post" novalidate>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-12">
+
+                        <h4 class="card-title">Period Details</h4>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputName">Start Hour</label>
+                            <input type="text" id="inputStartHour"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "StartHour" }}"
+                                   placeholder="Enter the start hour of the period" name="StartHour" value="{{ .form.StartHour }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "StartHour" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputName">Start Minute</label>
+                            <input type="text" id="inputStartMinute"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "StartMinute" }}"
+                                   placeholder="Enter the start minute for the period" name="StartMinute" value="{{ .form.StartMinute }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "StartMinute" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputName">End Hour</label>
+                            <input type="text" id="inputEndHour"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "EndHour" }}"
+                                   placeholder="Enter the end hour of the period" name="EndHour" value="{{ .form.EndHour }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "EndHour" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputName">End Minute</label>
+                            <input type="text" id="inputEndMinute"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "EndMinute" }}"
+                                   placeholder="Enter the end minute for the period" name="EndMinute" value="{{ .form.EndMinute }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "EndMinute" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <input id="btnSubmit" type="submit" name="action" value="Save" class="btn btn-primary"/>
+            </div>
+        </div>
+    </form>
+{{end}}
+{{define "js"}}
+
+{{end}}

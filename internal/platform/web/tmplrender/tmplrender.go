@@ -419,7 +419,8 @@ func (r *TemplateRenderer) Render(ctx context.Context, w http.ResponseWriter, re
 				if err := json.Unmarshal(dat, &msg); err != nil {
 					continue
 				}
-				flashes = append(flashes, msg)
+				// TODO: implement custom flash
+				// flashes = append(flashes, msg)
 			}
 
 			renderData["flashes"] = flashes
