@@ -1,0 +1,55 @@
+{{define "title"}}Welcome{{end}}
+{{define "dashboardActive"}}active{{end}}
+{{define "style"}}
+
+{{end}}
+{{define "content"}}
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-body">
+                    {{ if gt (len .subscriptions) 0 }}
+                    <table class="table">
+                        <tr>
+                            <th>State Date</th>
+                            <th>End Date</th>
+                            <th>Subject</th>
+                            <th>Period</th>
+                        </tr>
+                        {{range $sub := .subscriptions}}
+                        <tr>
+                            <td>{{$sub.StartDate.LocalDate}}</td>
+                            <td>{{$sub.EndDate.LocalDate}}</td>
+                            <td>{{$sub.Subject}}</td>
+                            <td>{{$sub.Period}}</td>
+                        </tr>
+                        {{ end }}
+                    </table>
+                    {{ else }}
+                    <div class="jumbotron">
+                        <h1 class="display-4">Subscribe and start learning!</h1>
+                        <p class="lead">You do not have an active subscription. Subscribe now and start learning from the comfort of your home</p>
+                        <hr class="my-4">
+                        <p>Click on the button below to make payment. Subscription cost <span class="naira">12,000</span> per subject per month</p>
+                        <p class="lead">
+                          <button class="btn btn-danger btn-lg" 
+                          data-controller="payment" data-click="click->payment#initiate">Make Payment</button>
+                        </p>
+                      </div>
+                    {{ end }}
+                </div>
+            </div>
+        </div>
+    </div>
+   
+
+{{end}}
+{{define "js"}}
+<script src="https://js.paystack.co/v1/inline.js"></script>
+
+{{end}}

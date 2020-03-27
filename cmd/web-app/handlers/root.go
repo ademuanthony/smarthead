@@ -2,32 +2,41 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"net/http"
 
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/webroute"
 
 	"github.com/ikeikeikeike/go-sitemap-generator/v2/stm"
 	"github.com/pkg/errors"
 	"github.com/sethgrid/pester"
-	"io/ioutil"
-	"net/http"
 )
 
 // Root represents the Root API method handler set.
 type Root struct {
-	Renderer web.Renderer
-	Sitemap  *stm.Sitemap
-	WebRoute webroute.WebRoute
+	StudentRepo      *student.Repository
+	SubscriptionRepo *subscription.Repository
+	Renderer         web.Renderer
+	Sitemap          *stm.Sitemap
+	WebRoute         webroute.WebRoute
 }
 
 // Index determines if the user has authentication and loads the associated page.
 func (h *Root) Index(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 	if claims, err := auth.ClaimsFromContext(ctx); err == nil && claims.HasAuth() {
-		return h.indexDashboard(ctx, w, r, params)
+		if claims.HasRole(auth.RoleAdmin) {
+			return h.indexDashboard(ctx, w, r, params)
+		} else if claims.HasRole(auth.RoleUser) {
+			return h.studentsDashboard(ctx, w, r, params)
+		}
 	}
 
 	return h.indexDefault(ctx, w, r, params)
@@ -36,6 +45,44 @@ func (h *Root) Index(ctx context.Context, w http.ResponseWriter, r *http.Request
 // indexDashboard loads the dashboard for a user when they are authenticated.
 func (h *Root) indexDashboard(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "root-dashboard.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
+}
+
+// studentsDashboard loads deshboard for register student
+func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	
+	ctxValue, err := webcontext.ContextValues(ctx)
+	if err != nil { 
+		return err
+	}
+
+	claims, err := auth.ClaimsFromContext(ctx)
+	if err != nil { 
+		return err
+	}
+
+	data := map[string]interface{}{}
+
+	currentStudent, err := h.StudentRepo.CurrentStudent(ctx, claims)
+	if err != nil {
+		return err
+	}
+	var limit uint = 5
+	activeSubscriptions, err := h.SubscriptionRepo.Find(ctx, claims, subscription.FindRequest{
+		Where: "student_id = ? AND end_date > ?",
+		Args: []interface{}{currentStudent.ID, ctxValue.Now.UTC().Unix()},
+		Order: []string{"end_date desc"},
+		Limit: &limit,
+	})
+
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+
+	data["subscriptions"] = activeSubscriptions
+
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "root-dashboard-students.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 // indexDefault loads the root index page when a user has no authentication.

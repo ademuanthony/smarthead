@@ -16,7 +16,7 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
 )
 
-// Subscriptions represents the Subscriptions API method handler set.
+// Deposits represents the Deposits API method handler set.
 type Subscriptions struct {
 	Repo        *subscription.Repository
 	StudentRepo *student.Repository

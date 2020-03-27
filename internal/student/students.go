@@ -70,7 +70,11 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 
 // CurrentStudent gets the currently logged in student from the database
 func (repo *Repository) CurrentStudent(ctx context.Context, claims auth.Claims) (*Student, error) {
-	studentModel, err := models.Students(models.StudentWhere.Username.EQ(claims.Subject)).One(ctx, repo.DbConn)
+	user, err := models.FindUser(ctx, repo.DbConn, claims.Subject)
+	if err != nil {
+		return nil, err
+	}
+	studentModel, err := models.Students(models.StudentWhere.Username.EQ(user.Email)).One(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err
 	}

@@ -12,6 +12,7 @@ import (
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/account/account_preference"
 	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/mid"
 	"remoteschool/smarthead/internal/period"
@@ -61,6 +62,7 @@ type AppContext struct {
 	PeriodRepo        *period.Repository
 	StudentRepo       *student.Repository
 	SubscriptionRepo  *subscription.Repository
+	DepositRepo		  *deposit.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -190,9 +192,21 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		Redis:       appCtx.Redis,
 		Renderer:    appCtx.Renderer,
 	}
-	app.Handle("GET", "/admin/subscriptions/:student_id", subscription.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/admin/subscriptions/:subscription_id", subscription.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/subscriptions", subscription.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/subscriptions", subscription.My, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+	// Register student management pages.
+	deposit := Deposits{
+		Repo:        appCtx.DepositRepo,
+		StudentRepo: appCtx.StudentRepo,
+		Redis:       appCtx.Redis,
+		Renderer:    appCtx.Renderer,
+	}
+	app.Handle("GET", "/admin/deposits/:deposit_id", deposit.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/deposits", deposit.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/payments/initiate", deposit.Initiate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/payments/:deposit_id/update-status", deposit.UpdateStatus, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register user management pages.
 	us := Users{
@@ -292,9 +306,11 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register root
 	r := Root{
-		Renderer: appCtx.Renderer,
-		WebRoute: appCtx.WebRoute,
-		Sitemap:  sm,
+		StudentRepo:      appCtx.StudentRepo,
+		SubscriptionRepo: appCtx.SubscriptionRepo,
+		Renderer:         appCtx.Renderer,
+		WebRoute:         appCtx.WebRoute,
+		Sitemap:          sm,
 	}
 	app.Handle("GET", "/api", r.SitePage)
 	app.Handle("GET", "/pricing", r.SitePage)

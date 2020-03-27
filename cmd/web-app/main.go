@@ -24,6 +24,7 @@ import (
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/account/account_preference"
 	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/mid"
 	"remoteschool/smarthead/internal/period"
@@ -463,31 +464,33 @@ func main() {
 	periodRepo := period.NewRepository(masterDb)
 	studentRepo := student.NewRepository(masterDb)
 	subscriptionRepo := subscription.NewRepository(masterDb)
+	depositRepo := deposit.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
-		Log:             log,
-		Env:             cfg.Env,
-		MasterDB:        masterDb,
-		MasterDbHost:    cfg.DB.Host,
-		Redis:           redisClient,
-		TemplateDir:     cfg.Service.TemplateDir,
-		StaticDir:       cfg.Service.StaticFiles.Dir,
-		WebRoute:        webRoute,
-		UserRepo:        usrRepo,
-		UserAccountRepo: usrAccRepo,
-		AccountRepo:     accRepo,
-		AccountPrefRepo: accPrefRepo,
-		AuthRepo:        authRepo,
-		GeoRepo:         geoRepo,
-		SignupRepo:      signupRepo,
-		InviteRepo:      inviteRepo,
-		ChecklistRepo:   chklstRepo,
-		Authenticator:   authenticator,
-		AwsSession:      awsSession,
-		SubjectRepo: 	 subjectRepo,
-		PeriodRepo: 	 periodRepo,
-		StudentRepo:	 studentRepo,
+		Log:              log,
+		Env:              cfg.Env,
+		MasterDB:         masterDb,
+		MasterDbHost:     cfg.DB.Host,
+		Redis:            redisClient,
+		TemplateDir:      cfg.Service.TemplateDir,
+		StaticDir:        cfg.Service.StaticFiles.Dir,
+		WebRoute:         webRoute,
+		UserRepo:         usrRepo,
+		UserAccountRepo:  usrAccRepo,
+		AccountRepo:      accRepo,
+		AccountPrefRepo:  accPrefRepo,
+		AuthRepo:         authRepo,
+		GeoRepo:          geoRepo,
+		SignupRepo:       signupRepo,
+		InviteRepo:       inviteRepo,
+		ChecklistRepo:    chklstRepo,
+		Authenticator:    authenticator,
+		AwsSession:       awsSession,
+		SubjectRepo:      subjectRepo,
+		PeriodRepo:       periodRepo,
+		StudentRepo:      studentRepo,
 		SubscriptionRepo: subscriptionRepo,
+		DepositRepo:      depositRepo,
 	}
 
 	// =========================================================================
