@@ -18,7 +18,7 @@
                         <tr>
                             <th>State Date</th>
                             <th>End Date</th>
-                            <th>Subject</th>
+                            <th>Subject</th> 
                             <th>Period</th>
                         </tr>
                         {{range $sub := .subscriptions}}
@@ -38,7 +38,7 @@
                         <p>Click on the button below to make payment. Subscription cost <span class="naira">12,000</span> per subject per month</p>
                         <p class="lead">
                           <button class="btn btn-danger btn-lg" 
-                          data-controller="payment" data-click="click->payment#initiate">Make Payment</button>
+                          data-controller="payment" data-action="click->payment#initiate">Make Payment</button>
                         </p>
                       </div>
                     {{ end }}

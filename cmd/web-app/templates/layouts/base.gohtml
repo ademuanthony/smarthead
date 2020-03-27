@@ -60,8 +60,8 @@
                 </div>
             </div>
         </div>
-        {{ end }}
-
+        {{ end }} 
+ 
         <!-- ============================================================== -->
         <!-- Javascript Bootstrap core JavaScript                           -->
         <!-- ============================================================== -->
@@ -87,6 +87,9 @@
         <!-- Page specific Javascript                                       -->
         <!-- ============================================================== -->
         {{block "js" .}} {{end}}
+
+        <script src="{{ SiteAssetUrl "/assets/js/vendors~app.bundle.js" }}"></script>
+        <script src="{{ SiteAssetUrl "/assets/js/app.bundle.js" }}"></script>
     </body>
 </html>
 {{end}}

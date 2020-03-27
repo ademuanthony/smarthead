@@ -48,10 +48,8 @@ func (h *Deposits) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
 		{Field: "student_id", Title: "Student", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
-		{Field: "subject_id", Title: "Subject", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Username"},
-		{Field: "period_id", Title: "Period", Visible: true, Searchable: true, Orderable: true},
-		{Field: "start_date", Title: "Start Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
-		{Field: "end_date", Title: "End Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Phone"},
+		{Field: "amount", Title: "Amount", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Amount"},
+		{Field: "status", Title: "Status", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Status"},
 		{Field: "created_at", Title: "Creation Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Email"},
 	}
 
@@ -65,6 +63,12 @@ func (h *Deposits) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 			case "student_id":
 				v.Value = q.StudentID
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlStudentsView(q.StudentID), q.Student)
+			case "amount":
+				v.Value = fmt.Sprintf("%d", q.Amount/100)
+				v.Formatted = v.Value
+			case "status":
+				v.Value = q.Status
+				v.Formatted = v.Value
 			case "created_at":
 				v.Value = q.CreatedAt.LocalDate
 				v.Formatted = v.Value
@@ -141,7 +145,7 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 
 	depositReq := deposit.CreateRequest{
 		Channel: "Paystack",
-		Amount: 120000,
+		Amount: 1200000, 
 		Status: deposit.StatusPending,
 		StudentID: currentStudent.ID,
 	}

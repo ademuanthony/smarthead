@@ -174,7 +174,8 @@ func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, now 
 	client := paystack.NewClient(apiKey, http.DefaultClient)
 	payment, err := client.Transaction.Verify(depositID)
 	if err != nil {
-		return err
+		panic(err)
+		// return err
 	}
 	if int(payment.Amount) * 100 < depositModel.Amount {
 		return errors.Errorf("partial payment received. Expected %d, got %f", depositModel.Amount/100, payment.Amount)

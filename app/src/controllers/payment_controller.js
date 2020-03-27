@@ -19,7 +19,7 @@ export default class extends Controller {
     var handler = PaystackPop.setup({
       key: 'pk_test_6e0424ff8e08138c2fcce3f4f2b05052c4b3f77c',
       email: result.student.parent_email,
-      amount: result.amount / 100,
+      amount: result.amount,
       currency: 'NGN',
       ref: result.id,
       metadata: {

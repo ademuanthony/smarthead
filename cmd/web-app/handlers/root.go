@@ -37,7 +37,7 @@ func (h *Root) Index(ctx context.Context, w http.ResponseWriter, r *http.Request
 		} else if claims.HasRole(auth.RoleUser) {
 			return h.studentsDashboard(ctx, w, r, params)
 		}
-	}
+	} 
 
 	return h.indexDefault(ctx, w, r, params)
 }

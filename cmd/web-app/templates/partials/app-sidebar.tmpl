@@ -9,7 +9,7 @@
             </div>
             <div class="sidebar-brand-text mx-3">Remote School</div>
         </a>
-
+ 
         {{ if HasAuth $._Ctx }}
 
             <!-- Divider -->
@@ -50,6 +50,11 @@
                     <span>Periods</span></a>
             </li>
             <li class='nav-item {{block "adminSubscriptionsActive" .}}{{end}}'>
+                <a class="nav-link" href="/admin/deposits">
+                    <i class="fas fa-fw fa-layer-group"></i>
+                    <span>Deposits</span></a>
+            </li>
+            <li class='nav-item {{block "adminSubscriptionsActive" .}}{{end}}'>
                 <a class="nav-link" href="/admin/subscriptions">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Subscriptions</span></a>
@@ -60,6 +65,12 @@
                 <a class="nav-link" href="/subscriptions">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>My Subscriptions</span></a>
+            </li>
+
+            <li class='nav-item {{block "subscriptionsActive" .}}{{end}}'>
+                <a class="nav-link" href="/deposits">
+                    <i class="fas fa-fw fa-layer-group"></i>
+                    <span>My Deposit</span></a>
             </li>
 
             <li class="nav-item {{block "lessonsActive" .}}{{end}}">
