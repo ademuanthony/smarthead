@@ -185,12 +185,14 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register student management pages.
 	subscription := Subscriptions{
-		Repo:     appCtx.SubscriptionRepo,
-		Redis:    appCtx.Redis,
-		Renderer: appCtx.Renderer,
+		Repo:        appCtx.SubscriptionRepo,
+		StudentRepo: appCtx.StudentRepo,
+		Redis:       appCtx.Redis,
+		Renderer:    appCtx.Renderer,
 	}
 	app.Handle("GET", "/admin/subscriptions/:student_id", subscription.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/subscriptions", subscription.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/subscriptions", subscription.My, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register user management pages.
 	us := Users{

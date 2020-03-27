@@ -68,6 +68,16 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 	return FromModel(studentModel), nil
 }
 
+// CurrentStudent gets the currently logged in student from the database
+func (repo *Repository) CurrentStudent(ctx context.Context, claims auth.Claims) (*Student, error) {
+	studentModel, err := models.Students(models.StudentWhere.Username.EQ(claims.Subject)).One(ctx, repo.DbConn)
+	if err != nil {
+		return nil, err
+	}
+
+	return FromModel(studentModel), nil
+}
+
 // Create inserts a new student into the database.
 func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.Time) (*Student, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.student.Create")

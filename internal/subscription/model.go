@@ -35,6 +35,7 @@ type Subscription struct {
 	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 	CreatedAt  int64  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	Status	   string `json:"status"`
 
 	Subject *subject.Subject `json:"subject"`
 	Student *student.Student `json:"student"`
@@ -78,6 +79,7 @@ type Response struct {
 	StartDate  web.TimeResponse `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    web.TimeResponse `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 	CreatedAt  web.TimeResponse `json:"created_at"` // CreatedAt contains multiple format options for display.
+	Status	   string 			`json:"status"`
 
 	Subject string `json:"subject"`
 	Student string `json:"student"`
