@@ -20,7 +20,9 @@ import (
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
+	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subject"
+	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
 	"remoteschool/smarthead/internal/user_account/invite"
@@ -55,8 +57,10 @@ type AppContext struct {
 	ChecklistRepo     *checklist.Repository
 	GeoRepo           *geonames.Repository
 	Authenticator     *auth.Authenticator
-	SubjectRepo		  *subject.Repository
-	PeriodRepo		  *period.Repository
+	SubjectRepo       *subject.Repository
+	PeriodRepo        *period.Repository
+	StudentRepo       *student.Repository
+	SubscriptionRepo  *subscription.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -141,9 +145,9 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register subject management pages.
 	sub := Subjects{
-		Repo: 		   appCtx.SubjectRepo,
-		Redis:         appCtx.Redis,
-		Renderer:      appCtx.Renderer,
+		Repo:     appCtx.SubjectRepo,
+		Redis:    appCtx.Redis,
+		Renderer: appCtx.Renderer,
 	}
 	app.Handle("POST", "/admin/subjects/:subject_id/update", sub.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/subjects/:subject_id/update", sub.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
@@ -155,9 +159,9 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register period management pages.
 	prd := Periods{
-		Repo: 		   appCtx.PeriodRepo,
-		Redis:         appCtx.Redis,
-		Renderer:      appCtx.Renderer,
+		Repo:     appCtx.PeriodRepo,
+		Redis:    appCtx.Redis,
+		Renderer: appCtx.Renderer,
 	}
 	app.Handle("POST", "/admin/periods/:period_id/update", prd.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/periods/:period_id/update", prd.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
@@ -166,6 +170,27 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("POST", "/admin/periods/create", prd.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/periods/create", prd.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/periods", prd.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+	// Register student management pages.
+	stu := Students{
+		Repo:     appCtx.StudentRepo,
+		Redis:    appCtx.Redis,
+		Renderer: appCtx.Renderer,
+	}
+	app.Handle("POST", "/admin/students/:student_id/update", stu.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/students/:student_id/update", stu.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("POST", "/admin/students/:student_id", stu.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/students/:student_id", stu.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/admin/students", stu.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+	// Register student management pages.
+	subscription := Subscriptions{
+		Repo:     appCtx.SubscriptionRepo,
+		Redis:    appCtx.Redis,
+		Renderer: appCtx.Renderer,
+	}
+	app.Handle("GET", "/admin/subscriptions/:student_id", subscription.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/admin/subscriptions", subscription.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register user management pages.
 	us := Users{
@@ -235,10 +260,11 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	// Register signup endpoints.
 	s := Signup{
 		AccountRepo: appCtx.AccountRepo,
-		SignupRepo: appCtx.SignupRepo,
-		AuthRepo:   appCtx.AuthRepo,
-		GeoRepo:    appCtx.GeoRepo,
-		Renderer:   appCtx.Renderer,
+		SignupRepo:  appCtx.SignupRepo,
+		AuthRepo:    appCtx.AuthRepo,
+		GeoRepo:     appCtx.GeoRepo,
+		StudentRepo: appCtx.StudentRepo,
+		Renderer:    appCtx.Renderer,
 	}
 	// This route is not authenticated
 	app.Handle("POST", "/signup", s.Step1)

@@ -1,17 +1,18 @@
-package branch
+package subscription
 
 import (
 	"context"
 	"time"
+
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/postgres/models"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/boil"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"merryworld/surebank/internal/platform/auth"
-	"merryworld/surebank/internal/platform/web/webcontext"
-	"merryworld/surebank/internal/postgres/models"
 )
 
 var (
@@ -22,16 +23,12 @@ var (
 	ErrForbidden = errors.New("Attempted action is not allowed")
 )
 
-// Find gets all the branches from the database based on the request params.
-func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest) (Branches, error) {
+// Find gets all the subscription from the database based on the request params.
+func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest) (Subscriptions, error) {
 	var queries []QueryMod
 
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
-	}
-
-	if !req.IncludeArchived {
-		queries = append(queries, And("archived_at is null"))
 	}
 
 	if len(req.Order) > 0 {
@@ -48,52 +45,40 @@ func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest
 		queries = append(queries, Offset(int(*req.Offset)))
 	}
 
-	branchSlice, err := models.Branches(queries...).All(ctx, repo.DbConn)
+	subscriptionSlice, err := models.Subscriptions(queries...).All(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err
 	}
 
-	var result Branches
-	for _, rec := range branchSlice {
+	var result Subscriptions
+	for _, rec := range subscriptionSlice {
 		result = append(result, FromModel(rec))
 	}
 
 	return result, nil
 }
 
-// ReadByID gets the specified branch by ID from the database.
+// ReadByID gets the specified subscription by ID from the database.
 func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Subscription, error) {
-	branchModel, err := models.FindBranch(ctx, repo.DbConn, id)
+	subscriptionModel, err := models.FindSubscription(ctx, repo.DbConn, id)
 	if err != nil {
 		return nil, err
 	}
 
-	return FromModel(branchModel), nil
+	return FromModel(subscriptionModel), nil
 }
 
-// Create inserts a new checklist into the database.
+// Create inserts a new subscription into the database.
 func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, now time.Time) (*Subscription, error) {
-	span, ctx := tracer.StartSpanFromContext(ctx, "internal.branch.Create")
+	span, ctx := tracer.StartSpanFromContext(ctx, "internal.subscription.Create")
 	defer span.Finish()
 	if claims.Audience == "" {
 		return nil, errors.WithStack(ErrForbidden)
 	}
 
-	// Admin users can update branch they have access to.
-	if !claims.HasRole(auth.RoleAdmin) {
-		return nil, errors.WithStack(ErrForbidden)
-	}
-
-	exists, err := models.Branches(models.BranchWhere.Name.EQ(req.Name)).Exists(ctx, repo.DbConn)
-	if err != nil {
-		return nil, err
-	}
-	ctx = webcontext.ContextAddUniqueValue(ctx, req, "Name", !exists)
-	// ctx = context.WithValue(ctx, webcontext.KeyTagUnique, !exists)
-
 	// Validate the request.
 	v := webcontext.Validator()
-	err = v.StructCtx(ctx, req)
+	err := v.StructCtx(ctx, req)
 	if err != nil {
 		return nil, err
 	}
@@ -108,121 +93,30 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	// Postgres truncates times to milliseconds when storing. We and do the same
 	// here so the value we return is consistent with what we store.
 	now = now.Truncate(time.Millisecond)
-	m := models.Branch{
+	m := models.Subscription{
 		ID:        uuid.NewRandom().String(),
-		Name:      req.Name,
+		DaysOfWeek: req.DaysOfWeek,
+		EndDate: req.EndDate,
+		PeriodID: req.PeriodID,
+		StartDate: req.StartDate,
+		StudentID: req.StudentID,
+		SubjectID: req.SubjectID,
 		CreatedAt: now.Unix(),
-		UpdatedAt: now.Unix(),
+
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
-		return nil, errors.WithMessage(err, "Insert branch failed")
+		return nil, errors.WithMessage(err, "Insert subscription failed")
 	}
 
 	return &Subscription{
 		ID:         m.ID,
-		Name:       m.Name,
-		CreatedAt:  time.Unix(m.CreatedAt, 0),
-		UpdatedAt:  time.Unix(m.UpdatedAt, 0),
 	}, nil
-}
-
-// Update replaces an branch in the database.
-func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req UpdateRequest, now time.Time) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, "internal.branch.Update")
-	defer span.Finish()
-
-	if claims.Audience == "" {
-		return errors.WithStack(ErrForbidden)
-	}
-	// Admin users can update branches they have access to.
-	if !claims.HasRole(auth.RoleAdmin) {
-		return errors.WithStack(ErrForbidden)
-	}
-
-	var unique = true
-	if req.Name != nil {
-		exists, err := models.Branches(models.BranchWhere.Name.EQ(*req.Name), models.BranchWhere.ID.NEQ(req.ID)).Exists(ctx, repo.DbConn)
-		if err != nil {
-			return err
-		}
-		unique = !exists
-	}
-
-	ctx = webcontext.ContextAddUniqueValue(ctx, req, "Name", unique)
-
-	// Validate the request.
-	v := webcontext.Validator()
-	err := v.Struct(req)
-	if err != nil {
-		return err
-	}
-
-	cols := models.M{}
-	if req.Name != nil {
-		cols[models.BrandColumns.Name] = *req.Name
-	}
-
-	if len(cols) == 0 {
-		return nil
-	}
-
-	// If now empty set it to the current time.
-	if now.IsZero() {
-		now = time.Now()
-	}
-
-	// Always store the time as UTC.
-	now = now.UTC()
-	// Postgres truncates times to milliseconds when storing. We and do the same
-	// here so the value we return is consistent with what we store.
-	now = now.Truncate(time.Millisecond)
-
-	cols[models.BranchColumns.UpdatedAt] = now
-
-	_,err = models.Branches(models.BranchWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, cols)
-
-	return nil
-}
-
-// Archive soft deleted the checklist from the database.
-func (repo *Repository) Archive(ctx context.Context, claims auth.Claims, req ArchiveRequest, now time.Time) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, "internal.branch.Archive")
-	defer span.Finish()
-
-	if claims.Audience == "" {
-		return errors.WithStack(ErrForbidden)
-	}
-	// Admin users can update branches they have access to.
-	if !claims.HasRole(auth.RoleAdmin) {
-		return errors.WithStack(ErrForbidden)
-	}
-	// Validate the request.
-	v := webcontext.Validator()
-	err := v.Struct(req)
-	if err != nil {
-		return err
-	}
-
-	// If now empty set it to the current time.
-	if now.IsZero() {
-		now = time.Now()
-	}
-
-	// Always store the time as UTC.
-	now = now.UTC()
-	// Postgres truncates times to milliseconds when storing. We and do the same
-	// here so the value we return is consistent with what we store.
-	now = now.Truncate(time.Millisecond)
-
-	_,err = models.Branches(models.BranchWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, models.M{models.BranchColumns.ArchivedAt: now})
-
-	return nil
 }
 
 // Delete removes an checklist from the database.
 func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req DeleteRequest) error {
-	span, ctx := tracer.StartSpanFromContext(ctx, "internal.branch.Delete")
+	span, ctx := tracer.StartSpanFromContext(ctx, "internal.subscription.Delete")
 	defer span.Finish()
 
 	// Validate the request.
@@ -232,7 +126,6 @@ func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req Dele
 		return err
 	}
 
-	// Ensure the claims can modify the project specified in the request.
 	if claims.Audience == "" {
 		return errors.WithStack(ErrForbidden)
 	}
@@ -241,7 +134,7 @@ func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req Dele
 		return errors.WithStack(ErrForbidden)
 	}
 
-	_, err = models.Branches(models.BranchWhere.ID.EQ(req.ID)).DeleteAll(ctx, repo.DbConn)
+	_, err = models.Subscriptions(models.SubscriptionWhere.ID.EQ(req.ID)).DeleteAll(ctx, repo.DbConn)
 	if err != nil {
 		return errors.WithStack(err)
 	}

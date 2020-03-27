@@ -42,7 +42,7 @@ type Response struct {
 	Name       string            `json:"name"  validate:"required" example:"Rocket Launch"`
 }
 
-// Response transforms Branch to the Response that is used for display.
+// Response transforms Subject to the Response that is used for display.
 // Additional filtering by context values or translations could be applied.
 func (m *Subject) Response(ctx context.Context) *Response {
 	if m == nil {

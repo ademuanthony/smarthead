@@ -36,7 +36,9 @@ import (
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
+	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subject"
+	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
 	"remoteschool/smarthead/internal/user_account/invite"
@@ -459,6 +461,8 @@ func main() {
 	chklstRepo := checklist.NewRepository(masterDb)
 	subjectRepo := subject.NewRepository(masterDb)
 	periodRepo := period.NewRepository(masterDb)
+	studentRepo := student.NewRepository(masterDb)
+	subscriptionRepo := subscription.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
 		Log:             log,
@@ -482,6 +486,8 @@ func main() {
 		AwsSession:      awsSession,
 		SubjectRepo: 	 subjectRepo,
 		PeriodRepo: 	 periodRepo,
+		StudentRepo:	 studentRepo,
+		SubscriptionRepo: subscriptionRepo,
 	}
 
 	// =========================================================================

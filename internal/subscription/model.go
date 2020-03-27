@@ -1,12 +1,16 @@
-package branch
+package subscription
 
 import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
+	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subject"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // Repository defines the required dependencies for Branch.
@@ -23,7 +27,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 
 // Branch represents a workflow.
 type Subscription struct {
-	ID         string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	ID         string `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
@@ -31,32 +35,53 @@ type Subscription struct {
 	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 	CreatedAt  int64  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	
-	
+
+	Subject *subject.Subject `json:"subject"`
+	Student *student.Student `json:"student"`
+	Period  *period.Period   `json:"period"`
 }
 
 func FromModel(rec *models.Subscription) *Subscription {
 	b := &Subscription{
 		ID:         rec.ID,
-		Name:       rec.Name,
-		CreatedAt:  time.Unix(rec.CreatedAt, 0),
-		UpdatedAt:  time.Unix(rec.UpdatedAt, 0),
+		CreatedAt:  rec.CreatedAt,
+		DaysOfWeek: rec.DaysOfWeek,
+		EndDate:    rec.EndDate,
+		PeriodID:   rec.PeriodID,
+		StartDate:  rec.StartDate,
+		StudentID:  rec.StudentID,
+		SubjectID:  rec.SubjectID,
 	}
-	if rec.ArchivedAt.Valid {
-		archivedAt := time.Unix(rec.ArchivedAt.Int64, 0)
-		b.ArchivedAt = &archivedAt
-	}
+	if rec.R != nil {
+		if rec.R.Period != nil {
+			b.Period = period.FromModel(rec.R.Period)
+		}
 
+		if rec.R.Subject != nil {
+			b.Subject = subject.FromModel(rec.R.Subject)
+		}
+
+		if rec.R.Student != nil {
+			b.Student = student.FromModel(rec.R.Student)
+		}
+	}
 	return b
 }
 
 // Response represents a workflow that is returned for display.
 type Response struct {
-	ID         string            `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name       string            `json:"name"  validate:"required" example:"Rocket Launch"`
-	CreatedAt  web.TimeResponse  `json:"created_at"`            // CreatedAt contains multiple format options for display.
-	UpdatedAt  web.TimeResponse  `json:"updated_at"`            // UpdatedAt contains multiple format options for display.
-	ArchivedAt *web.TimeResponse `json:"archived_at,omitempty"` // ArchivedAt contains multiple format options for display.
+	ID         string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	StudentID  string           `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	SubjectID  string           `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string           `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	DaysOfWeek int              `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	StartDate  web.TimeResponse `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
+	EndDate    web.TimeResponse `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
+	CreatedAt  web.TimeResponse `json:"created_at"` // CreatedAt contains multiple format options for display.
+
+	Subject string `json:"subject"`
+	Student string `json:"student"`
+	Period  string `json:"period"`
 }
 
 // Response transforms Branch to the Response that is used for display.
@@ -67,25 +92,36 @@ func (m *Subscription) Response(ctx context.Context) *Response {
 	}
 
 	r := &Response{
-		ID:        m.ID,
-		Name:      m.Name,
-		CreatedAt: web.NewTimeResponse(ctx, m.CreatedAt),
-		UpdatedAt: web.NewTimeResponse(ctx, m.UpdatedAt),
+		ID:         m.ID,
+		CreatedAt:  web.NewTimeResponse(ctx, time.Unix(m.CreatedAt, 0)),
+		DaysOfWeek: m.DaysOfWeek,
+		EndDate:    web.NewTimeResponse(ctx, time.Unix(m.EndDate, 0)),
+		PeriodID:   m.PeriodID,
+		StartDate:  web.NewTimeResponse(ctx, time.Unix(m.StartDate, 0)),
+		StudentID:  m.StudentID,
+		SubjectID:  m.SubjectID,
 	}
 
-	if m.ArchivedAt != nil && !m.ArchivedAt.IsZero() {
-		at := web.NewTimeResponse(ctx, *m.ArchivedAt)
-		r.ArchivedAt = &at
+	if m.Student != nil {
+		r.Student = m.Student.Name
+	}
+
+	if m.Subject != nil {
+		r.Subject = m.Subject.Name
+	}
+
+	if m.Period != nil {
+		r.Period = m.Period.String()
 	}
 
 	return r
 }
 
-// Branches a list of Branches.
-type Branches []*Subscription
+// Subscriptions a list of Subscriptions.
+type Subscriptions []*Subscription
 
-// Response transforms a list of Branches to a list of Responses.
-func (m *Branches) Response(ctx context.Context) []*Response {
+// Response transforms a list of Subscriptions to a list of Responses.
+func (m *Subscriptions) Response(ctx context.Context) []*Response {
 	var l []*Response
 	if m != nil && len(*m) > 0 {
 		for _, n := range *m {
@@ -96,24 +132,20 @@ func (m *Branches) Response(ctx context.Context) []*Response {
 	return l
 }
 
-// CreateRequest contains information needed to create a new Branch.
+// CreateRequest contains information needed to create a new Subscription.
 type CreateRequest struct {
-	Name      string           `json:"name" validate:"required"  example:"Rocket Launch"`
+	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	DaysOfWeek int    `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
+	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 }
 
 // ReadRequest defines the information needed to read a checklist.
 type ReadRequest struct {
 	ID              string `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	IncludeArchived bool   `json:"include-archived" example:"false"`
-}
-
-// UpdateRequest defines what information may be provided to modify an existing
-// Branch. All fields are optional so clients can send just the fields they want
-// changed. It uses pointer fields so we can differentiate between a field that
-// was not provided and a field that was provided as explicitly blank.
-type UpdateRequest struct {
-	ID     string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name   *string          `json:"name,omitempty" validate:"omitempty,unique" example:"Rocket Launch to Moon"`
 }
 
 // ArchiveRequest defines the information needed to archive a checklist. This will archive (soft-delete) the

@@ -12,6 +12,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
+	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/user_auth"
 
 	"github.com/gorilla/schema"
@@ -25,6 +26,7 @@ type Signup struct {
 	SignupRepo *signup.Repository
 	AuthRepo   *user_auth.Repository
 	GeoRepo    *geonames.Repository
+	StudentRepo *student.Repository
 	MasterDB   *sqlx.DB
 	Renderer   web.Renderer
 }
@@ -79,6 +81,13 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				}
 			}
 
+			// create the student account
+			h.StudentRepo.Create(ctx, student.CreateRequest{
+				Name: req.User.FirstName + " " + req.User.LastName,
+				ParentEmail: req.User.Email,
+				ParentPhone: req.User.Phone,
+				Username: req.User.Email,
+			}, time.Now())
 			// Authenticated the new user.
 			token, err := h.AuthRepo.Authenticate(ctx, user_auth.AuthenticateRequest{
 				Email:    req.User.Email,
