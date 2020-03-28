@@ -1098,21 +1098,21 @@ func main() {
 			}
 		}
 
-		// Enable autocert to store certs via Secret Manager.
-		secretPrefix := filepath.Join(cfg.Aws.SecretsManagerConfigPrefix, "autocert")
+		// // Enable autocert to store certs via Secret Manager.
+		// secretPrefix := filepath.Join(cfg.Aws.SecretsManagerConfigPrefix, "autocert")
 
-		// Local file cache to reduce requests hitting Secret Manager.
-		localCache := autocert.DirCache(os.TempDir())
+		// // Local file cache to reduce requests hitting Secret Manager.
+		// localCache := autocert.DirCache(os.TempDir())
 
-		cache, err := devdeploy.NewSecretManagerAutocertCache(log, awsSession, secretPrefix, localCache)
-		if err != nil {
-			log.Fatalf("main : HTTPS : %+v", err)
-		}
+		// cache, err := devdeploy.NewSecretManagerAutocertCache(log, awsSession, secretPrefix, localCache)
+		// if err != nil {
+		// 	log.Fatalf("main : HTTPS : %+v", err)
+		// }
 
 		m := &autocert.Manager{
 			Prompt:     autocert.AcceptTOS,
 			HostPolicy: autocert.HostWhitelist(hosts...),
-			Cache:      cache,
+			// Cache:      cache,
 		}
 		api.TLSConfig = &tls.Config{GetCertificate: m.GetCertificate}
 		api.TLSConfig.NextProtos = append(api.TLSConfig.NextProtos, acme.ALPNProto)
