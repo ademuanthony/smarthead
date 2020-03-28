@@ -152,7 +152,7 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 	depo, err := h.Repo.Create(ctx, claims, depositReq, ctxValues.Now)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
-	}
+	} 
 
 	depo.Student = currentStudent
 
