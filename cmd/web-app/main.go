@@ -7,7 +7,6 @@ import (
 	"expvar"
 	"fmt"
 	"html/template"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
