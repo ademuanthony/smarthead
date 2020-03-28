@@ -7,6 +7,7 @@ import (
 	"expvar"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -1119,9 +1120,37 @@ func main() {
 
 		httpServers = append(httpServers, api)
 
+		fileExists := func (filename string) bool {
+			info, err := os.Stat(filename)
+			if os.IsNotExist(err) {
+				return false
+			}
+			return !info.IsDir()
+		}
+
+		var cert string
+		var privKey string
+
+		certRoot := "/etc/letsencrypt/live/remoteschool.com.ng/"
+		if fileExists(certRoot + "cert.pem") {
+			content, err := ioutil.ReadFile(certRoot + "cert.pem")
+			if err != nil {
+				log.Fatal(err)
+			}
+			cert = string(content)
+
+			content, err = ioutil.ReadFile(certRoot + "privkey.pem")
+			if err != nil {
+				log.Fatal(err)
+			}
+			privKey = string(content)
+		}
+		// /etc/letsencrypt/live/remoteschool.com.ng/
+		// cert.pem  chain.pem  fullchain.pem  privkey.pem
+
 		go func() {
 			log.Printf("main : APP Listening %s with SSL cert for hosts %s", cfg.HTTPS.Host, strings.Join(hosts, ", "))
-			serverErrors <- api.ListenAndServeTLS("", "")
+			serverErrors <- api.ListenAndServeTLS(cert, privKey)
 		}()
 	}
 
