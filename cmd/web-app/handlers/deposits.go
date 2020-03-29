@@ -66,7 +66,7 @@ func (h *Deposits) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlStudentsView(q.StudentID), q.Student)
 			case "amount":
 				v.Value = fmt.Sprintf("%d", q.Amount/100)
-				v.Formatted = v.Value
+				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlDepositsView(q.ID), v.Value)
 			case "status":
 				v.Value = q.Status
 				v.Formatted = v.Value
@@ -191,7 +191,7 @@ func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *h
 // View handles displaying a deposits.
 func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
-	studentID := params["subscription_id"]
+	depositID := params["deposit_id"]
 
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
@@ -199,14 +199,47 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	}
 
 	data := make(map[string]interface{})
+	f := func() (bool, error) {
+		if r.Method == http.MethodPost {
+			err := r.ParseForm()
+			if err != nil {
+				return false, err
+			}
 
-	sub, err := h.Repo.ReadByID(ctx, claims, studentID)
+			switch r.PostForm.Get("action") {
+			case "archive":
+				err = h.Repo.Delete(ctx, claims, deposit.DeleteRequest{
+					ID: depositID,
+				})
+				if err != nil {
+					return false, err
+				}
+
+				webcontext.SessionFlashSuccess(ctx,
+					"Deposit Archive",
+					"Deposit successfully archive.")
+
+				return true, web.Redirect(ctx, w, r, urlDepositsIndex(), http.StatusFound)
+			}
+		}
+
+		return false, nil
+	}
+
+	end, err := f()
+	if err != nil {
+		return web.RenderError(ctx, w, r, err, h.Renderer, TmplLayoutBase, TmplContentErrorGeneric, web.MIMETextHTMLCharsetUTF8)
+	} else if end {
+		return nil
+	}
+
+	sub, err := h.Repo.ReadByID(ctx, claims, depositID)
 	if err != nil {
 		return err
 	}
 	data["student"] = sub.Response(ctx)
 	data["urlDepositsIndex"] = urlDepositsIndex()
-	data["urlDepositsView"] = urlDepositsView(studentID)
+	data["urlDepositsView"] = urlDepositsView(depositID)
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-deposits-view.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }

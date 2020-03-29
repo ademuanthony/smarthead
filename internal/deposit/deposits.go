@@ -219,7 +219,7 @@ func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, clai
 	return sub, nil
 }
 
-// Delete removes an checklist from the database.
+// Delete removes a deposit from the database.
 func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req DeleteRequest) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.deposit.Delete")
 	defer span.Finish()
