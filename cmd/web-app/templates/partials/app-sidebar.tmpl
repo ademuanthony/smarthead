@@ -54,7 +54,7 @@
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Periods</span></a>
             </li>
-            <li class='nav-item {{block "adminSubscriptionsActive" .}}{{end}}'>
+            <li class='nav-item {{block "adminDepositsActive" .}}{{end}}'>
                 <a class="nav-link" href="/admin/deposits">
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Deposits</span></a>
@@ -64,8 +64,7 @@
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Subscriptions</span></a>
             </li>
-            {{end}}
-
+            {{ else }}
             <li class='nav-item {{block "subscriptionsActive" .}}{{end}}'>
                 <a class="nav-link" href="/subscriptions">
                     <i class="fas fa-fw fa-layer-group"></i>
@@ -83,6 +82,7 @@
                     <i class="fas fa-fw fa-layer-group"></i>
                     <span>Lessons</span></a>
             </li>
+            {{end}}
 
         {{ end }}
 
