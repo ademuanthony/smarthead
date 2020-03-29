@@ -14,6 +14,7 @@ import (
 // Repository defines the required dependencies for Branch.
 type Repository struct {
 	DbConn *sqlx.DB
+	PaystackSecret string
 }
 
 const (
@@ -23,9 +24,10 @@ const (
 )
 
 // NewRepository creates a new Repository that defines dependencies for Branch.
-func NewRepository(db *sqlx.DB) *Repository {
+func NewRepository(db *sqlx.DB, paystackSecret string) *Repository {
 	return &Repository{
 		DbConn: db,
+		PaystackSecret: paystackSecret,
 	}
 }
 

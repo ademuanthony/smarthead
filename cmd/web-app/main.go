@@ -121,6 +121,8 @@ func main() {
 			SharedSecretKey   string `default:"" envconfig:"SHARED_SECRET_KEY"`
 			EmailSender       string `default:"test@example.saasstartupkit.com" envconfig:"EMAIL_SENDER"`
 			WebApiBaseUrl     string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
+			PaystackSecret	  string `envconfig:"PAYSTACK_SECRET"`
+			PaystackPublicKey string `envconfig:"PAYSTACK_PUBLIC_KEY"`
 		}
 		Redis struct {
 			Host            string        `default:":6379" envconfig:"HOST"`
@@ -464,7 +466,7 @@ func main() {
 	periodRepo := period.NewRepository(masterDb)
 	studentRepo := student.NewRepository(masterDb)
 	subscriptionRepo := subscription.NewRepository(masterDb)
-	depositRepo := deposit.NewRepository(masterDb)
+	depositRepo := deposit.NewRepository(masterDb, cfg.Project.PaystackSecret)
 
 	appCtx := &handlers.AppContext{
 		Log:              log,

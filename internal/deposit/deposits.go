@@ -5,13 +5,13 @@ import (
 	"net/http"
 	"time"
 
+	"remoteschool/smarthead/internal/paystack"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/postgres/models"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
-	"github.com/rpip/paystack-go"
 	"github.com/volatiletech/sqlboiler/boil"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -170,8 +170,7 @@ func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, now 
 	if err != nil {
 		return err
 	}
-	apiKey := "sk_test_b748a89ad84f35c2f1a8b81681f956274de048bb"
-	client := paystack.NewClient(apiKey, http.DefaultClient)
+	client := paystack.NewClient(repo.PaystackSecret, http.DefaultClient)
 	payment, err := client.Transaction.Verify(depositID)
 	if err != nil {
 		panic(err)
