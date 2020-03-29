@@ -941,7 +941,7 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
-		// Add phone to users table
+		// Create subscription table
 		{
 			ID: "20200325-02",
 			Migrate: func(tx *sql.Tx) error {
@@ -963,6 +963,47 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 			},
 			Rollback: func(tx *sql.Tx) error {
 				q1 := `DROP TABLE subscription`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+				return nil
+			},
+		},
+		// Add subject, period and days to deposits table
+		{
+			ID: "20200329-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE deposits
+				ADD subject_id uuid NOT NULL REFERENCES subject(id),
+				ADD period_id uuid NOT NULL REFERENCES period(id),
+				ADD days_of_week INT NOT NULL
+					  `
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
+		// Create subscription table
+		{
+			ID: "20200329-02",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE classes (
+					id uuid NOT NULL PRIMARY KEY,
+					name character varying(256) NOT NULL
+				)`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `DROP TABLE classes`
 				if _, err := tx.Exec(q1); err != nil {
 					return errors.Wrapf(err, "Query failed %s", q1)
 				}

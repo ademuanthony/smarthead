@@ -9,6 +9,7 @@ import (
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/postgres/models"
+	"remoteschool/smarthead/internal/subscription"
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
@@ -96,13 +97,16 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	// here so the value we return is consistent with what we store.
 	now = now.Truncate(time.Millisecond)
 	m := models.Deposit{
-		ID:        uuid.NewRandom().String(),
-		StudentID: req.StudentID,
-		CreatedAt: now,
-		Amount:    req.Amount,
-		Channel:   req.Channel,
-		Status:    req.Status,
-		Ref:       req.Ref,
+		ID:         uuid.NewRandom().String(),
+		StudentID:  req.StudentID,
+		SubjectID:  req.SubjectID,
+		DaysOfWeek: req.DaysOfWeek,
+		PeriodID:   req.PeriodID,
+		CreatedAt:  now,
+		Amount:     req.Amount,
+		Channel:    req.Channel,
+		Status:     req.Status,
+		Ref:        req.Ref,
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
@@ -159,33 +163,60 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 		return nil
 	}
 
-	_,err = models.Deposits(models.DepositWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, cols)
+	_, err = models.Deposits(models.DepositWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, cols)
 
 	return nil
 }
 
 // UpdateStatus updates the status of the the supplied deposit by quering the channel
-func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, now time.Time) error {
+func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, claims auth.Claims, now time.Time) (*subscription.Subscription, error) {
 	depositModel, err := models.FindDeposit(ctx, repo.DbConn, depositID)
 	if err != nil {
-		return err
+		return nil, err
+	}
+	if depositModel.Status == StatusPaid {
+		return nil, errors.New("duplicate payment verification request")
 	}
 	client := paystack.NewClient(repo.PaystackSecret, http.DefaultClient)
 	payment, err := client.Transaction.Verify(depositID)
 	if err != nil {
-		panic(err)
-		// return err
+		// TODO: inform the admin of verification problem
+		return nil, err
 	}
-	if int(payment.Amount) * 100 < depositModel.Amount {
-		return errors.Errorf("partial payment received. Expected %d, got %f", depositModel.Amount/100, payment.Amount)
+	if int(payment.Amount)*100 < depositModel.Amount {
+		return nil, errors.Errorf("partial payment received. Expected %d, got %f", depositModel.Amount/100, payment.Amount)
 	}
 	depositModel.Status = StatusPaid
 	_, err = depositModel.Update(ctx, repo.DbConn, boil.Infer())
 	if err != nil {
 		//Todo: log fatal error for admin to resolve
-		return errors.New("payment received but unable to update status. contact admin for help")
+		return nil, errors.New("payment received but unable to update status. contact admin for help")
 	}
-	return nil
+
+	endDate := now.Add(30 * 24 * time.Hour)
+	subReq := subscription.CreateRequest{
+		StudentID: depositModel.StudentID,
+		StartDate: now.Unix(),
+		EndDate:   endDate.Unix(),
+		DaysOfWeek: depositModel.DaysOfWeek,
+		PeriodID: depositModel.PeriodID,
+		SubjectID: depositModel.SubjectID,
+	}
+
+	sub, err := repo.SubscriptionRepo.Create(ctx, claims, subReq, now)
+
+	if err != nil {
+		//TODO: log critical error and inform admin
+		return nil, errors.New("payment received but unable to create subscription. Please contact the admin")
+	}
+
+	depositModel.Status = StatusSubscribed
+	_, err = depositModel.Update(ctx, repo.DbConn, boil.Infer())
+	if err != nil {
+		//TODO: log fatal error for admin to resolve
+	}
+
+	return sub, nil
 }
 
 // Delete removes an checklist from the database.

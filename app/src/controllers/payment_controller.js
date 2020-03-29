@@ -4,12 +4,17 @@ import axios from 'axios'
 export default class extends Controller {
   static get targets () {
     return [
-      'navbar'
+      'class', 'subject', 'period'
     ]
   }
 
   async initiate () {
-    const resp = await axios.get('/payments/initiate')
+    const req = {
+      'subject_id': this.subjectTarget.value,
+      'period_id': this.periodTarget.value,
+      'class_id': this.classTarget.value
+    }
+    const resp = await axios.post('/payments/initiate', req)
     const result = resp.data
     if (result.error) {
       window.alert(result.error)

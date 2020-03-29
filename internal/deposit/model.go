@@ -7,52 +7,61 @@ import (
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subscription"
 
 	"github.com/jmoiron/sqlx"
 )
 
 // Repository defines the required dependencies for Branch.
 type Repository struct {
-	DbConn *sqlx.DB
-	PaystackSecret string
+	DbConn           *sqlx.DB
+	SubscriptionRepo *subscription.Repository
+	PaystackSecret   string
 }
 
 const (
-	StatusPending = "pending"
-	StatusPaid = "paid"
+	StatusPending    = "pending"
+	StatusPaid       = "paid"
 	StatusSubscribed = "subscribed"
 )
 
 // NewRepository creates a new Repository that defines dependencies for Branch.
-func NewRepository(db *sqlx.DB, paystackSecret string) *Repository {
+func NewRepository(db *sqlx.DB, subscriptionRepo *subscription.Repository, paystackSecret string) *Repository {
 	return &Repository{
-		DbConn: db,
+		DbConn:         db,
+		SubscriptionRepo: subscriptionRepo,
 		PaystackSecret: paystackSecret,
 	}
 }
 
 // Branch represents a workflow.
 type Deposit struct {
-	ID        string    `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	StudentID string    `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
-	Amount    int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Ref       string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
-	Status    string    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Channel   string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ID         string    `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	StudentID  string    `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	SubjectID  string    `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string    `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	DaysOfWeek int       `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	Amount     int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Ref        string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
+	Status     string    `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Channel    string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
+	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	Student *student.Student `json:"student"`
 }
 
 func FromModel(rec *models.Deposit) *Deposit {
 	b := &Deposit{
-		ID:        rec.ID,
-		StudentID: rec.StudentID,
-		Amount:    rec.Amount,
-		Ref:       rec.Ref,
-		Status:    rec.Status,
-		Channel:   rec.Channel,
-		CreatedAt: rec.CreatedAt,
+		ID:         rec.ID,
+		StudentID:  rec.StudentID,
+		SubjectID:  rec.SubjectID,
+		PeriodID:   rec.PeriodID,
+		DaysOfWeek: rec.DaysOfWeek,
+		Amount:     rec.Amount,
+		Ref:        rec.Ref,
+		Status:     rec.Status,
+		Channel:    rec.Channel,
+		CreatedAt:  rec.CreatedAt,
 	}
 	if rec.R != nil {
 		if rec.R.Student != nil {
@@ -64,13 +73,16 @@ func FromModel(rec *models.Deposit) *Deposit {
 
 // Response represents a workflow that is returned for display.
 type Response struct {
-	ID        string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	StudentID string           `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
-	Amount    int              `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Ref       string           `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
-	Status    string           `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Channel   string           `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
-	CreatedAt web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ID         string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	StudentID  string           `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	SubjectID  string           `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string           `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	DaysOfWeek int              `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	Amount     int              `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Ref        string           `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
+	Status     string           `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Channel    string           `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
+	CreatedAt  web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	Student string `json:"student"`
 }
@@ -83,13 +95,16 @@ func (m *Deposit) Response(ctx context.Context) *Response {
 	}
 
 	r := &Response{
-		ID:        m.ID,
-		CreatedAt: web.NewTimeResponse(ctx, m.CreatedAt),
-		StudentID: m.StudentID,
-		Amount:    m.Amount,
-		Ref:       m.Ref,
-		Status:    m.Status,
-		Channel:   m.Channel,
+		ID:         m.ID,
+		CreatedAt:  web.NewTimeResponse(ctx, m.CreatedAt),
+		StudentID:  m.StudentID,
+		SubjectID:  m.SubjectID,
+		PeriodID:   m.PeriodID,
+		DaysOfWeek: m.DaysOfWeek,
+		Amount:     m.Amount,
+		Ref:        m.Ref,
+		Status:     m.Status,
+		Channel:    m.Channel,
 	}
 
 	if m.Student != nil {
@@ -116,16 +131,20 @@ func (m *Deposits) Response(ctx context.Context) []*Response {
 
 // CreateRequest contains information needed to create a new Deposit.
 type CreateRequest struct {
-	StudentID string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
-	Amount    int    `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Ref       string `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
-	Status    string `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Channel   string `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
+	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string `json:"class_id"`
+	DaysOfWeek int    `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	Amount     int    `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Ref        string `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
+	Status     string `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Channel    string `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
 }
 
 // UpdateRequest contains information needed to update a Deposit.
 type UpdateRequest struct {
-	ID     string `boil:"id" json:"id" validate:"required" yaml:"id"`
+	ID     string  `boil:"id" json:"id" validate:"required" yaml:"id"`
 	Ref    *string `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
 	Status *string `boil:"status" json:"status" toml:"status" yaml:"status"`
 }

@@ -11,6 +11,7 @@ import (
 	"remoteschool/smarthead/internal/platform/datatable"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/student"
 
 	"github.com/pkg/errors"
@@ -118,7 +119,7 @@ func (h *Deposits) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	data := map[string]interface{}{
-		"datatable":             dt.Response(),
+		"datatable":        dt.Response(),
 		"urlDepositsIndex": urlDepositsIndex(),
 	}
 
@@ -127,12 +128,12 @@ func (h *Deposits) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 // ApiCreate initialize a new deposit
 func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
-	
+
 	ctxValues, err := webcontext.ContextValues(ctx)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
-	
+
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
@@ -142,17 +143,24 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
-
-	depositReq := deposit.CreateRequest{
-		Channel: "Paystack",
-		Amount: 1200000, 
-		Status: deposit.StatusPending,
-		StudentID: currentStudent.ID,
+ 
+	depositReq := new(deposit.CreateRequest)
+	if err := web.Decode(ctx, r, &depositReq); err != nil {
+		if _, ok := errors.Cause(err).(*weberror.Error); !ok {
+			err = weberror.NewError(ctx, err, http.StatusBadRequest)
+		}
+		return web.RespondJsonError(ctx, w, err)
 	}
-	depo, err := h.Repo.Create(ctx, claims, depositReq, ctxValues.Now)
+
+	depositReq.Channel = "Paystack"
+	depositReq.Amount = 1200000 
+	depositReq.Status = deposit.StatusPending
+	depositReq.StudentID = currentStudent.ID
+
+	depo, err := h.Repo.Create(ctx, claims, *depositReq, ctxValues.Now)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
-	} 
+	}
 
 	depo.Student = currentStudent
 
@@ -161,17 +169,23 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 
 // UpdateStatus updates the status of the payment with the specified ID
 func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+
 	ctxValues, err := webcontext.ContextValues(ctx)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
 
+	claims, err := auth.ClaimsFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
 	depositID := params["deposit_id"]
-	err = h.Repo.UpdateStatus(ctx, depositID, ctxValues.Now)
+	subs, err := h.Repo.UpdateStatus(ctx, depositID, claims, ctxValues.Now)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
-	return web.RespondJson(ctx, w, "", http.StatusOK)
+	return web.RespondJson(ctx, w, subs, http.StatusOK)
 }
 
 // View handles displaying a deposits.

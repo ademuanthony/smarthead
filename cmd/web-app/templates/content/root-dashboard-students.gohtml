@@ -31,14 +31,42 @@
                         {{ end }}
                     </table>
                     {{ else }}
-                    <div class="jumbotron">
+                    <div class="jumbotron" data-controller="payment">
                         <h1 class="display-4">Subscribe and start learning!</h1>
                         <p class="lead">You do not have an active subscription. Subscribe now and start learning from the comfort of your home</p>
                         <hr class="my-4">
                         <p>Click on the button below to make payment. Subscription cost <span class="naira">12,000</span> per subject per month</p>
                         <p class="lead">
-                          <button class="btn btn-danger btn-lg" 
-                          data-controller="payment" data-action="click->payment#initiate">Make Payment</button>
+                            <div class="form-row">
+                                <div class="col-md-4 col-sm-12 mt-3">
+                                    <select data-target="payment.class" class="form-control">
+                                        <option>Select Class</option>
+                                        {{ range $class := .classes }}
+                                        <option value="{{ $class.ID }}">{{ $class.Name }}</option>
+                                        {{ end }}
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-sm-12 mt-3">
+                                    <select data-target="payment.subject" class="form-control">
+                                        <option>Select Subject</option>
+                                        {{ range $subject := .subjects }}
+                                        <option value="{{ $subject.ID }}">{{ $subject.Name }}</option>
+                                        {{ end }} 
+                                    </select>
+                                </div>
+                                <div class="col-md-4 col-sm-12 mt-3">
+                                    <select data-target="payment.period" class="form-control">
+                                        <option>Select Period</option>
+                                        {{ range $period := .periods }}
+                                        <option value="{{ $period.ID }}">{{ $period }}</option>
+                                        {{ end }}
+                                    </select>
+                                </div>
+                                <div class="col-md-4 offset-4 col-sm-12 mt-3">
+                                    <button class="btn btn-danger btn-lg btn-block" 
+                                        data-action="click->payment#initiate">Make Payment</button>
+                                </div>
+                            </div>
                         </p>
                       </div>
                     {{ end }}

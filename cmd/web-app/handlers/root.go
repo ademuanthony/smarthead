@@ -8,10 +8,13 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	"remoteschool/smarthead/internal/class"
+	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/webroute"
 
@@ -24,6 +27,9 @@ import (
 type Root struct {
 	StudentRepo      *student.Repository
 	SubscriptionRepo *subscription.Repository
+	ClassRepo		 *class.Repository
+	SubjectRepo		 *subject.Repository
+	PeriodRepo		 *period.Repository
 	Renderer         web.Renderer
 	Sitemap          *stm.Sitemap
 	WebRoute         webroute.WebRoute
@@ -66,6 +72,32 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	if err != nil {
 		return err
 	}
+
+	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
+		Order: []string{"name"},
+	})
+	if err != nil {
+		return err
+	}
+	data["classes"] = classes
+
+	periods, err := h.PeriodRepo.Find(ctx, claims, period.FindRequest{
+		Order: []string{"start_hour"},
+	})
+	if err != nil {
+		return err
+	} 
+	data["periods"] = periods
+
+
+	subjects, err := h.SubjectRepo.Find(ctx, claims, subject.FindRequest{
+		Order: []string{"name"},
+	})
+	if err != nil {
+		return err
+	}
+	data["subjects"] = subjects
+
 	var limit uint = 5
 	activeSubscriptions, err := h.SubscriptionRepo.Find(ctx, claims, subscription.FindRequest{
 		Where: "student_id = ? AND end_date > ?",
@@ -80,7 +112,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		}
 	}
 
-	data["subscriptions"] = activeSubscriptions
+	data["subscriptions"] = activeSubscriptions.Response(ctx)
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "root-dashboard-students.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }

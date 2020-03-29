@@ -11,6 +11,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -26,6 +27,10 @@ var (
 // Find gets all the subscription from the database based on the request params.
 func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest) (Subscriptions, error) {
 	var queries []QueryMod
+
+	queries = append(queries, qm.Load(models.SubscriptionRels.Subject))
+	queries = append(queries, qm.Load(models.SubscriptionRels.Student))
+	queries = append(queries, qm.Load(models.SubscriptionRels.Period))
 
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
@@ -108,6 +113,8 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
 		return nil, errors.WithMessage(err, "Insert subscription failed")
 	}
+
+	// TODO: get the associated subject and create lesson
 
 	return &Subscription{
 		ID:         m.ID,

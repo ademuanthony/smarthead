@@ -23,37 +23,46 @@ import (
 
 // Deposit is an object representing the database table.
 type Deposit struct {
-	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	StudentID string    `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
-	Amount    int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Ref       string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
-	Status    string    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Channel   string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
+	StudentID  string    `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	Amount     int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Ref        string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
+	Status     string    `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Channel    string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
+	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	SubjectID  string    `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string    `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	DaysOfWeek int       `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 
 	R *depositR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L depositL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var DepositColumns = struct {
-	ID        string
-	StudentID string
-	Amount    string
-	Ref       string
-	Status    string
-	Channel   string
-	CreatedAt string
-	UpdatedAt string
+	ID         string
+	StudentID  string
+	Amount     string
+	Ref        string
+	Status     string
+	Channel    string
+	CreatedAt  string
+	UpdatedAt  string
+	SubjectID  string
+	PeriodID   string
+	DaysOfWeek string
 }{
-	ID:        "id",
-	StudentID: "student_id",
-	Amount:    "amount",
-	Ref:       "ref",
-	Status:    "status",
-	Channel:   "channel",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:         "id",
+	StudentID:  "student_id",
+	Amount:     "amount",
+	Ref:        "ref",
+	Status:     "status",
+	Channel:    "channel",
+	CreatedAt:  "created_at",
+	UpdatedAt:  "updated_at",
+	SubjectID:  "subject_id",
+	PeriodID:   "period_id",
+	DaysOfWeek: "days_of_week",
 }
 
 // Generated where
@@ -75,35 +84,47 @@ func (w whereHelperint) IN(slice []int) qm.QueryMod {
 }
 
 var DepositWhere = struct {
-	ID        whereHelperstring
-	StudentID whereHelperstring
-	Amount    whereHelperint
-	Ref       whereHelperstring
-	Status    whereHelperstring
-	Channel   whereHelperstring
-	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
+	ID         whereHelperstring
+	StudentID  whereHelperstring
+	Amount     whereHelperint
+	Ref        whereHelperstring
+	Status     whereHelperstring
+	Channel    whereHelperstring
+	CreatedAt  whereHelpertime_Time
+	UpdatedAt  whereHelpertime_Time
+	SubjectID  whereHelperstring
+	PeriodID   whereHelperstring
+	DaysOfWeek whereHelperint
 }{
-	ID:        whereHelperstring{field: "\"deposits\".\"id\""},
-	StudentID: whereHelperstring{field: "\"deposits\".\"student_id\""},
-	Amount:    whereHelperint{field: "\"deposits\".\"amount\""},
-	Ref:       whereHelperstring{field: "\"deposits\".\"ref\""},
-	Status:    whereHelperstring{field: "\"deposits\".\"status\""},
-	Channel:   whereHelperstring{field: "\"deposits\".\"channel\""},
-	CreatedAt: whereHelpertime_Time{field: "\"deposits\".\"created_at\""},
-	UpdatedAt: whereHelpertime_Time{field: "\"deposits\".\"updated_at\""},
+	ID:         whereHelperstring{field: "\"deposits\".\"id\""},
+	StudentID:  whereHelperstring{field: "\"deposits\".\"student_id\""},
+	Amount:     whereHelperint{field: "\"deposits\".\"amount\""},
+	Ref:        whereHelperstring{field: "\"deposits\".\"ref\""},
+	Status:     whereHelperstring{field: "\"deposits\".\"status\""},
+	Channel:    whereHelperstring{field: "\"deposits\".\"channel\""},
+	CreatedAt:  whereHelpertime_Time{field: "\"deposits\".\"created_at\""},
+	UpdatedAt:  whereHelpertime_Time{field: "\"deposits\".\"updated_at\""},
+	SubjectID:  whereHelperstring{field: "\"deposits\".\"subject_id\""},
+	PeriodID:   whereHelperstring{field: "\"deposits\".\"period_id\""},
+	DaysOfWeek: whereHelperint{field: "\"deposits\".\"days_of_week\""},
 }
 
 // DepositRels is where relationship names are stored.
 var DepositRels = struct {
+	Period  string
 	Student string
+	Subject string
 }{
+	Period:  "Period",
 	Student: "Student",
+	Subject: "Subject",
 }
 
 // depositR is where relationships are stored.
 type depositR struct {
+	Period  *Period
 	Student *Student
+	Subject *Subject
 }
 
 // NewStruct creates a new relationship struct
@@ -115,8 +136,8 @@ func (*depositR) NewStruct() *depositR {
 type depositL struct{}
 
 var (
-	depositAllColumns            = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at"}
-	depositColumnsWithoutDefault = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at"}
+	depositAllColumns            = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week"}
+	depositColumnsWithoutDefault = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week"}
 	depositColumnsWithDefault    = []string{}
 	depositPrimaryKeyColumns     = []string{"id"}
 )
@@ -212,6 +233,20 @@ func (q depositQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (bo
 	return count > 0, nil
 }
 
+// Period pointed to by the foreign key.
+func (o *Deposit) Period(mods ...qm.QueryMod) periodQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.PeriodID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Periods(queryMods...)
+	queries.SetFrom(query.Query, "\"period\"")
+
+	return query
+}
+
 // Student pointed to by the foreign key.
 func (o *Deposit) Student(mods ...qm.QueryMod) studentQuery {
 	queryMods := []qm.QueryMod{
@@ -224,6 +259,113 @@ func (o *Deposit) Student(mods ...qm.QueryMod) studentQuery {
 	queries.SetFrom(query.Query, "\"student\"")
 
 	return query
+}
+
+// Subject pointed to by the foreign key.
+func (o *Deposit) Subject(mods ...qm.QueryMod) subjectQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.SubjectID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Subjects(queryMods...)
+	queries.SetFrom(query.Query, "\"subject\"")
+
+	return query
+}
+
+// LoadPeriod allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (depositL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, singular bool, maybeDeposit interface{}, mods queries.Applicator) error {
+	var slice []*Deposit
+	var object *Deposit
+
+	if singular {
+		object = maybeDeposit.(*Deposit)
+	} else {
+		slice = *maybeDeposit.(*[]*Deposit)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &depositR{}
+		}
+		args = append(args, object.PeriodID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &depositR{}
+			}
+
+			for _, a := range args {
+				if a == obj.PeriodID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.PeriodID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`period`), qm.WhereIn(`period.id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Period")
+	}
+
+	var resultSlice []*Period
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Period")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for period")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for period")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Period = foreign
+		if foreign.R == nil {
+			foreign.R = &periodR{}
+		}
+		foreign.R.Deposits = append(foreign.R.Deposits, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.PeriodID == foreign.ID {
+				local.R.Period = foreign
+				if foreign.R == nil {
+					foreign.R = &periodR{}
+				}
+				foreign.R.Deposits = append(foreign.R.Deposits, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadStudent allows an eager lookup of values, cached into the
@@ -319,6 +461,146 @@ func (depositL) LoadStudent(ctx context.Context, e boil.ContextExecutor, singula
 	return nil
 }
 
+// LoadSubject allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (depositL) LoadSubject(ctx context.Context, e boil.ContextExecutor, singular bool, maybeDeposit interface{}, mods queries.Applicator) error {
+	var slice []*Deposit
+	var object *Deposit
+
+	if singular {
+		object = maybeDeposit.(*Deposit)
+	} else {
+		slice = *maybeDeposit.(*[]*Deposit)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &depositR{}
+		}
+		args = append(args, object.SubjectID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &depositR{}
+			}
+
+			for _, a := range args {
+				if a == obj.SubjectID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.SubjectID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`subject`), qm.WhereIn(`subject.id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Subject")
+	}
+
+	var resultSlice []*Subject
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Subject")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for subject")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for subject")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Subject = foreign
+		if foreign.R == nil {
+			foreign.R = &subjectR{}
+		}
+		foreign.R.Deposits = append(foreign.R.Deposits, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.SubjectID == foreign.ID {
+				local.R.Subject = foreign
+				if foreign.R == nil {
+					foreign.R = &subjectR{}
+				}
+				foreign.R.Deposits = append(foreign.R.Deposits, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// SetPeriod of the deposit to the related item.
+// Sets o.R.Period to related.
+// Adds o to related.R.Deposits.
+func (o *Deposit) SetPeriod(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Period) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"deposits\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"period_id"}),
+		strmangle.WhereClause("\"", "\"", 2, depositPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.PeriodID = related.ID
+	if o.R == nil {
+		o.R = &depositR{
+			Period: related,
+		}
+	} else {
+		o.R.Period = related
+	}
+
+	if related.R == nil {
+		related.R = &periodR{
+			Deposits: DepositSlice{o},
+		}
+	} else {
+		related.R.Deposits = append(related.R.Deposits, o)
+	}
+
+	return nil
+}
+
 // SetStudent of the deposit to the related item.
 // Sets o.R.Student to related.
 // Adds o to related.R.Deposits.
@@ -357,6 +639,53 @@ func (o *Deposit) SetStudent(ctx context.Context, exec boil.ContextExecutor, ins
 
 	if related.R == nil {
 		related.R = &studentR{
+			Deposits: DepositSlice{o},
+		}
+	} else {
+		related.R.Deposits = append(related.R.Deposits, o)
+	}
+
+	return nil
+}
+
+// SetSubject of the deposit to the related item.
+// Sets o.R.Subject to related.
+// Adds o to related.R.Deposits.
+func (o *Deposit) SetSubject(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Subject) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"deposits\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"subject_id"}),
+		strmangle.WhereClause("\"", "\"", 2, depositPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.SubjectID = related.ID
+	if o.R == nil {
+		o.R = &depositR{
+			Subject: related,
+		}
+	} else {
+		o.R.Subject = related
+	}
+
+	if related.R == nil {
+		related.R = &subjectR{
 			Deposits: DepositSlice{o},
 		}
 	} else {

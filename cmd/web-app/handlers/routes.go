@@ -12,6 +12,7 @@ import (
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/account/account_preference"
 	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/mid"
@@ -62,7 +63,8 @@ type AppContext struct {
 	PeriodRepo        *period.Repository
 	StudentRepo       *student.Repository
 	SubscriptionRepo  *subscription.Repository
-	DepositRepo		  *deposit.Repository
+	DepositRepo       *deposit.Repository
+	ClassRepo         *class.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -186,8 +188,22 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("GET", "/admin/students", stu.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register student management pages.
+	cla := Classes{
+		Repo:     appCtx.ClassRepo,
+		Redis:    appCtx.Redis,
+		Renderer: appCtx.Renderer,
+	}
+	app.Handle("POST", "/admin/classes/:class_id/update", cla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/classes/:class_id/update", cla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("POST", "/admin/classes/:class_id", cla.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/classes/:class_id", cla.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("POST", "/admin/classes/create", cla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/classes/create", cla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/classes", cla.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+	// Register student management pages.
 	subscription := Subscriptions{
-		Repo:        appCtx.SubscriptionRepo,
+		Repo:        appCtx.SubscriptionRepo, 
 		StudentRepo: appCtx.StudentRepo,
 		Redis:       appCtx.Redis,
 		Renderer:    appCtx.Renderer,
@@ -205,7 +221,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	}
 	app.Handle("GET", "/admin/deposits/:deposit_id", deposit.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/deposits", deposit.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
-	app.Handle("GET", "/payments/initiate", deposit.Initiate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("POST", "/payments/initiate", deposit.Initiate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/payments/:deposit_id/update-status", deposit.UpdateStatus, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register user management pages.
@@ -308,6 +324,9 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	r := Root{
 		StudentRepo:      appCtx.StudentRepo,
 		SubscriptionRepo: appCtx.SubscriptionRepo,
+		ClassRepo:        appCtx.ClassRepo,
+		PeriodRepo:       appCtx.PeriodRepo,
+		SubjectRepo:      appCtx.SubjectRepo,
 		Renderer:         appCtx.Renderer,
 		WebRoute:         appCtx.WebRoute,
 		Sitemap:          sm,

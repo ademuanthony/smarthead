@@ -24,6 +24,7 @@ import (
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/account/account_preference"
 	"remoteschool/smarthead/internal/checklist"
+	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/mid"
@@ -121,7 +122,7 @@ func main() {
 			SharedSecretKey   string `default:"" envconfig:"SHARED_SECRET_KEY"`
 			EmailSender       string `default:"test@example.saasstartupkit.com" envconfig:"EMAIL_SENDER"`
 			WebApiBaseUrl     string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
-			PaystackSecret	  string `envconfig:"PAYSTACK_SECRET"`
+			PaystackSecret    string `envconfig:"PAYSTACK_SECRET"`
 			PaystackPublicKey string `envconfig:"PAYSTACK_PUBLIC_KEY"`
 		}
 		Redis struct {
@@ -466,7 +467,8 @@ func main() {
 	periodRepo := period.NewRepository(masterDb)
 	studentRepo := student.NewRepository(masterDb)
 	subscriptionRepo := subscription.NewRepository(masterDb)
-	depositRepo := deposit.NewRepository(masterDb, cfg.Project.PaystackSecret)
+	depositRepo := deposit.NewRepository(masterDb, subscriptionRepo, cfg.Project.PaystackSecret)
+	classRepo := class.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
 		Log:              log,
@@ -493,6 +495,7 @@ func main() {
 		StudentRepo:      studentRepo,
 		SubscriptionRepo: subscriptionRepo,
 		DepositRepo:      depositRepo,
+		ClassRepo:        classRepo,
 	}
 
 	// =========================================================================

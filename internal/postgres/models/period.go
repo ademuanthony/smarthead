@@ -75,15 +75,18 @@ var PeriodWhere = struct {
 
 // PeriodRels is where relationship names are stored.
 var PeriodRels = struct {
+	Deposits      string
 	Students      string
 	Subscriptions string
 }{
+	Deposits:      "Deposits",
 	Students:      "Students",
 	Subscriptions: "Subscriptions",
 }
 
 // periodR is where relationships are stored.
 type periodR struct {
+	Deposits      DepositSlice
 	Students      StudentSlice
 	Subscriptions SubscriptionSlice
 }
@@ -194,6 +197,27 @@ func (q periodQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
+// Deposits retrieves all the deposit's Deposits with an executor.
+func (o *Period) Deposits(mods ...qm.QueryMod) depositQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"deposits\".\"period_id\"=?", o.ID),
+	)
+
+	query := Deposits(queryMods...)
+	queries.SetFrom(query.Query, "\"deposits\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"deposits\".*"})
+	}
+
+	return query
+}
+
 // Students retrieves all the student's Students with an executor.
 func (o *Period) Students(mods ...qm.QueryMod) studentQuery {
 	var queryMods []qm.QueryMod
@@ -235,6 +259,94 @@ func (o *Period) Subscriptions(mods ...qm.QueryMod) subscriptionQuery {
 	}
 
 	return query
+}
+
+// LoadDeposits allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (periodL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singular bool, maybePeriod interface{}, mods queries.Applicator) error {
+	var slice []*Period
+	var object *Period
+
+	if singular {
+		object = maybePeriod.(*Period)
+	} else {
+		slice = *maybePeriod.(*[]*Period)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &periodR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &periodR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`deposits`), qm.WhereIn(`deposits.period_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load deposits")
+	}
+
+	var resultSlice []*Deposit
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice deposits")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on deposits")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for deposits")
+	}
+
+	if singular {
+		object.R.Deposits = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &depositR{}
+			}
+			foreign.R.Period = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.PeriodID {
+				local.R.Deposits = append(local.R.Deposits, foreign)
+				if foreign.R == nil {
+					foreign.R = &depositR{}
+				}
+				foreign.R.Period = local
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadStudents allows an eager lookup of values, cached into the
@@ -430,6 +542,59 @@ func (periodL) LoadSubscriptions(ctx context.Context, e boil.ContextExecutor, si
 		}
 	}
 
+	return nil
+}
+
+// AddDeposits adds the given related objects to the existing relationships
+// of the period, optionally inserting them as new records.
+// Appends related to o.R.Deposits.
+// Sets related.R.Period appropriately.
+func (o *Period) AddDeposits(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Deposit) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.PeriodID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"deposits\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"period_id"}),
+				strmangle.WhereClause("\"", "\"", 2, depositPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.PeriodID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &periodR{
+			Deposits: related,
+		}
+	} else {
+		o.R.Deposits = append(o.R.Deposits, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &depositR{
+				Period: o,
+			}
+		} else {
+			rel.R.Period = o
+		}
+	}
 	return nil
 }
 

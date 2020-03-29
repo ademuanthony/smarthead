@@ -13,6 +13,7 @@ import "testing"
 // Separating the tests thusly grants avoidance of Postgres deadlocks.
 func TestParent(t *testing.T) {
 	t.Run("Accounts", testAccounts)
+	t.Run("Classes", testClasses)
 	t.Run("Deposits", testDeposits)
 	t.Run("Periods", testPeriods)
 	t.Run("Students", testStudents)
@@ -24,6 +25,7 @@ func TestParent(t *testing.T) {
 
 func TestDelete(t *testing.T) {
 	t.Run("Accounts", testAccountsDelete)
+	t.Run("Classes", testClassesDelete)
 	t.Run("Deposits", testDepositsDelete)
 	t.Run("Periods", testPeriodsDelete)
 	t.Run("Students", testStudentsDelete)
@@ -35,6 +37,7 @@ func TestDelete(t *testing.T) {
 
 func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Accounts", testAccountsQueryDeleteAll)
+	t.Run("Classes", testClassesQueryDeleteAll)
 	t.Run("Deposits", testDepositsQueryDeleteAll)
 	t.Run("Periods", testPeriodsQueryDeleteAll)
 	t.Run("Students", testStudentsQueryDeleteAll)
@@ -46,6 +49,7 @@ func TestQueryDeleteAll(t *testing.T) {
 
 func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Accounts", testAccountsSliceDeleteAll)
+	t.Run("Classes", testClassesSliceDeleteAll)
 	t.Run("Deposits", testDepositsSliceDeleteAll)
 	t.Run("Periods", testPeriodsSliceDeleteAll)
 	t.Run("Students", testStudentsSliceDeleteAll)
@@ -57,6 +61,7 @@ func TestSliceDeleteAll(t *testing.T) {
 
 func TestExists(t *testing.T) {
 	t.Run("Accounts", testAccountsExists)
+	t.Run("Classes", testClassesExists)
 	t.Run("Deposits", testDepositsExists)
 	t.Run("Periods", testPeriodsExists)
 	t.Run("Students", testStudentsExists)
@@ -68,6 +73,7 @@ func TestExists(t *testing.T) {
 
 func TestFind(t *testing.T) {
 	t.Run("Accounts", testAccountsFind)
+	t.Run("Classes", testClassesFind)
 	t.Run("Deposits", testDepositsFind)
 	t.Run("Periods", testPeriodsFind)
 	t.Run("Students", testStudentsFind)
@@ -79,6 +85,7 @@ func TestFind(t *testing.T) {
 
 func TestBind(t *testing.T) {
 	t.Run("Accounts", testAccountsBind)
+	t.Run("Classes", testClassesBind)
 	t.Run("Deposits", testDepositsBind)
 	t.Run("Periods", testPeriodsBind)
 	t.Run("Students", testStudentsBind)
@@ -90,6 +97,7 @@ func TestBind(t *testing.T) {
 
 func TestOne(t *testing.T) {
 	t.Run("Accounts", testAccountsOne)
+	t.Run("Classes", testClassesOne)
 	t.Run("Deposits", testDepositsOne)
 	t.Run("Periods", testPeriodsOne)
 	t.Run("Students", testStudentsOne)
@@ -101,6 +109,7 @@ func TestOne(t *testing.T) {
 
 func TestAll(t *testing.T) {
 	t.Run("Accounts", testAccountsAll)
+	t.Run("Classes", testClassesAll)
 	t.Run("Deposits", testDepositsAll)
 	t.Run("Periods", testPeriodsAll)
 	t.Run("Students", testStudentsAll)
@@ -112,6 +121,7 @@ func TestAll(t *testing.T) {
 
 func TestCount(t *testing.T) {
 	t.Run("Accounts", testAccountsCount)
+	t.Run("Classes", testClassesCount)
 	t.Run("Deposits", testDepositsCount)
 	t.Run("Periods", testPeriodsCount)
 	t.Run("Students", testStudentsCount)
@@ -124,6 +134,8 @@ func TestCount(t *testing.T) {
 func TestInsert(t *testing.T) {
 	t.Run("Accounts", testAccountsInsert)
 	t.Run("Accounts", testAccountsInsertWhitelist)
+	t.Run("Classes", testClassesInsert)
+	t.Run("Classes", testClassesInsertWhitelist)
 	t.Run("Deposits", testDepositsInsert)
 	t.Run("Deposits", testDepositsInsertWhitelist)
 	t.Run("Periods", testPeriodsInsert)
@@ -145,7 +157,9 @@ func TestInsert(t *testing.T) {
 func TestToOne(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUser", testAccountToOneUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUser", testAccountToOneUserUsingSignupUser)
+	t.Run("DepositToPeriodUsingPeriod", testDepositToOnePeriodUsingPeriod)
 	t.Run("DepositToStudentUsingStudent", testDepositToOneStudentUsingStudent)
+	t.Run("DepositToSubjectUsingSubject", testDepositToOneSubjectUsingSubject)
 	t.Run("SubscriptionToPeriodUsingPeriod", testSubscriptionToOnePeriodUsingPeriod)
 	t.Run("SubscriptionToStudentUsingStudent", testSubscriptionToOneStudentUsingStudent)
 	t.Run("SubscriptionToSubjectUsingSubject", testSubscriptionToOneSubjectUsingSubject)
@@ -158,12 +172,14 @@ func TestOneToOne(t *testing.T) {}
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
+	t.Run("PeriodToDeposits", testPeriodToManyDeposits)
 	t.Run("PeriodToStudents", testPeriodToManyStudents)
 	t.Run("PeriodToSubscriptions", testPeriodToManySubscriptions)
 	t.Run("StudentToDeposits", testStudentToManyDeposits)
 	t.Run("StudentToPeriods", testStudentToManyPeriods)
 	t.Run("StudentToSubjects", testStudentToManySubjects)
 	t.Run("StudentToSubscriptions", testStudentToManySubscriptions)
+	t.Run("SubjectToDeposits", testSubjectToManyDeposits)
 	t.Run("SubjectToTeachers", testSubjectToManyTeachers)
 	t.Run("SubjectToStudents", testSubjectToManyStudents)
 	t.Run("SubjectToSubscriptions", testSubjectToManySubscriptions)
@@ -177,7 +193,9 @@ func TestToMany(t *testing.T) {
 func TestToOneSet(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUserAccounts", testAccountToOneSetOpUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUserAccounts", testAccountToOneSetOpUserUsingSignupUser)
+	t.Run("DepositToPeriodUsingDeposits", testDepositToOneSetOpPeriodUsingPeriod)
 	t.Run("DepositToStudentUsingDeposits", testDepositToOneSetOpStudentUsingStudent)
+	t.Run("DepositToSubjectUsingDeposits", testDepositToOneSetOpSubjectUsingSubject)
 	t.Run("SubscriptionToPeriodUsingSubscriptions", testSubscriptionToOneSetOpPeriodUsingPeriod)
 	t.Run("SubscriptionToStudentUsingSubscriptions", testSubscriptionToOneSetOpStudentUsingStudent)
 	t.Run("SubscriptionToSubjectUsingSubscriptions", testSubscriptionToOneSetOpSubjectUsingSubject)
@@ -201,12 +219,14 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
+	t.Run("PeriodToDeposits", testPeriodToManyAddOpDeposits)
 	t.Run("PeriodToStudents", testPeriodToManyAddOpStudents)
 	t.Run("PeriodToSubscriptions", testPeriodToManyAddOpSubscriptions)
 	t.Run("StudentToDeposits", testStudentToManyAddOpDeposits)
 	t.Run("StudentToPeriods", testStudentToManyAddOpPeriods)
 	t.Run("StudentToSubjects", testStudentToManyAddOpSubjects)
 	t.Run("StudentToSubscriptions", testStudentToManyAddOpSubscriptions)
+	t.Run("SubjectToDeposits", testSubjectToManyAddOpDeposits)
 	t.Run("SubjectToTeachers", testSubjectToManyAddOpTeachers)
 	t.Run("SubjectToStudents", testSubjectToManyAddOpStudents)
 	t.Run("SubjectToSubscriptions", testSubjectToManyAddOpSubscriptions)
@@ -243,6 +263,7 @@ func TestToManyRemove(t *testing.T) {
 
 func TestReload(t *testing.T) {
 	t.Run("Accounts", testAccountsReload)
+	t.Run("Classes", testClassesReload)
 	t.Run("Deposits", testDepositsReload)
 	t.Run("Periods", testPeriodsReload)
 	t.Run("Students", testStudentsReload)
@@ -254,6 +275,7 @@ func TestReload(t *testing.T) {
 
 func TestReloadAll(t *testing.T) {
 	t.Run("Accounts", testAccountsReloadAll)
+	t.Run("Classes", testClassesReloadAll)
 	t.Run("Deposits", testDepositsReloadAll)
 	t.Run("Periods", testPeriodsReloadAll)
 	t.Run("Students", testStudentsReloadAll)
@@ -265,6 +287,7 @@ func TestReloadAll(t *testing.T) {
 
 func TestSelect(t *testing.T) {
 	t.Run("Accounts", testAccountsSelect)
+	t.Run("Classes", testClassesSelect)
 	t.Run("Deposits", testDepositsSelect)
 	t.Run("Periods", testPeriodsSelect)
 	t.Run("Students", testStudentsSelect)
@@ -276,6 +299,7 @@ func TestSelect(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	t.Run("Accounts", testAccountsUpdate)
+	t.Run("Classes", testClassesUpdate)
 	t.Run("Deposits", testDepositsUpdate)
 	t.Run("Periods", testPeriodsUpdate)
 	t.Run("Students", testStudentsUpdate)
@@ -287,6 +311,7 @@ func TestUpdate(t *testing.T) {
 
 func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Accounts", testAccountsSliceUpdateAll)
+	t.Run("Classes", testClassesSliceUpdateAll)
 	t.Run("Deposits", testDepositsSliceUpdateAll)
 	t.Run("Periods", testPeriodsSliceUpdateAll)
 	t.Run("Students", testStudentsSliceUpdateAll)
