@@ -45,7 +45,7 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 	}
 
 	fields := []datatable.DisplayField{
-		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
+		{Field: "id", Title: "", Visible: true, Searchable: true, },
 		{Field: "student_id", Title: "Student", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 		{Field: "subject_id", Title: "Subject", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Username"},
 		{Field: "period_id", Title: "Period", Visible: true, Searchable: true, Orderable: true},
@@ -60,7 +60,8 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 			var v datatable.ColumnValue
 			switch col.Field {
 			case "id":
-				v.Value = fmt.Sprintf("%s", q.ID)
+				v.Value = q.ID
+				v.Formatted = fmt.Sprintf("<input type='checkbox' value='%s' class='form-control' data-target='subscription.selected'/>", q.ID)
 			case "student_id":
 				v.Value = q.StudentID
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlStudentsView(q.StudentID), q.Student)
