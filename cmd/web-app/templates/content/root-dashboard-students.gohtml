@@ -13,27 +13,13 @@
         <div class="col">
             <div class="card">
                 <div class="card-body">
-                    {{ if gt (len .subscriptions) 0 }}
-                    <table class="table">
-                        <tr>
-                            <th>State Date</th>
-                            <th>End Date</th>
-                            <th>Subject</th> 
-                            <th>Period</th>
-                        </tr>
-                        {{range $sub := .subscriptions}}
-                        <tr>
-                            <td>{{$sub.StartDate.LocalDate}}</td>
-                            <td>{{$sub.EndDate.LocalDate}}</td>
-                            <td>{{$sub.Subject}}</td>
-                            <td>{{$sub.Period}}</td>
-                        </tr>
-                        {{ end }}
-                    </table>
-                    {{ else }}
                     <div class="jumbotron" data-controller="payment">
+                    {{ if gt (len .subscriptions) 0 }}
                         <h1 class="display-4">Subscribe and start learning!</h1>
                         <p class="lead">You do not have an active subscription. Subscribe now and start learning from the comfort of your home</p>
+                        {{ else }}
+                        <h1 class="display-4">New Subscription</h1>
+                        {{ end }}
                         <hr class="my-4">
                         <p>Click on the button below to make payment. Subscription cost <span class="naira">12,000</span> per subject per month</p>
                         <p class="lead">
@@ -68,8 +54,26 @@
                                 </div>
                             </div>
                         </p>
-                      </div>
+                    </div>
+                    {{ if gt (len .subscriptions) 0 }}
+                    <table class="table">
+                        <tr>
+                            <th>State Date</th>
+                            <th>End Date</th>
+                            <th>Subject</th> 
+                            <th>Period</th>
+                        </tr>
+                        {{range $sub := .subscriptions}}
+                        <tr>
+                            <td>{{$sub.StartDate.LocalDate}}</td>
+                            <td>{{$sub.EndDate.LocalDate}}</td>
+                            <td>{{$sub.Subject}}</td>
+                            <td>{{$sub.Period}}</td>
+                        </tr>
+                        {{ end }}
+                    </table>
                     {{ end }}
+                    
                 </div>
             </div>
         </div>

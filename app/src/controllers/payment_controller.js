@@ -37,12 +37,12 @@ export default class extends Controller {
         ]
       },
       callback: async function (response) {
-        window.alert('success. transaction ref is ' + response.reference)
         const resp = await axios.get(`/payments/${response.reference}/update-status`)
         const result = resp.data
         if (result.error) {
           window.alert(result.error)
         }
+        window.alert('Success. Subscription successful, check the subscription table for your lesson start date')
         // todo: mark payment as succeded and reload the page with a pop for selecting subject and period
         window.location.reload()
       },
