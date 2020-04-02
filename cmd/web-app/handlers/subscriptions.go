@@ -94,6 +94,9 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 	}
 
 	loadFunc := func(ctx context.Context, sorting string, fields []datatable.DisplayField) (resp [][]datatable.ColumnValue, err error) {
+		if sorting == "" {
+			sorting = "created_at desc"
+		}
 		res, err := h.Repo.Find(ctx, claims, subscription.FindRequest{
 			Order: strings.Split(sorting, ","),
 		})

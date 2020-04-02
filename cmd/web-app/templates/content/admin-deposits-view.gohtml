@@ -30,10 +30,9 @@
                     {{ if HasRole $._Ctx "admin" }}
                         <form method="post"><input type="hidden" name="action" value="archive" />
                         <input type="submit" value="Delete Deposit" class="dropdown-item"></form>
-                        {{ if eq .deposit.Status "paid" }}
-
+                        {{ if eq .deposit.Status "pending" }}
                         <form method="post"><input type="hidden" name="action" value="subscribe" />
-                        <input type="submit" value="Subscribe" class="dropdown-item"></form>
+                        <input type="submit" value="Requery" class="dropdown-item"></form>
                         {{ end }}
                     {{ end }}
                 </div>

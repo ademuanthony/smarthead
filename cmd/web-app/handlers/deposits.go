@@ -83,6 +83,9 @@ func (h *Deposits) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	loadFunc := func(ctx context.Context, sorting string, fields []datatable.DisplayField) (resp [][]datatable.ColumnValue, err error) {
+		if sorting == "" {
+			sorting = "created_at desc"
+		}
 		res, err := h.Repo.Find(ctx, claims, deposit.FindRequest{
 			Order: strings.Split(sorting, ","),
 		})
@@ -230,7 +233,7 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 				if err != nil {
 					return false, err
 				}
-				
+
 				webcontext.SessionFlashSuccess(ctx,
 					"Deposit subscribe",
 					"Deposit successfully subscribe.")
