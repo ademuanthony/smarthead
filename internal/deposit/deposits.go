@@ -200,7 +200,6 @@ func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, clai
 	hoursLeft := (7 - int(now.Weekday())) * 24
 	startDate := now.Add(time.Hour * time.Duration(hoursLeft))
 	endDate := startDate.Add(30 * 24 * time.Hour)
-	now.Weekday()
 	subReq := subscription.CreateRequest{
 		StudentID:  depositModel.StudentID,
 		StartDate:  startDate.Unix(),

@@ -9,10 +9,21 @@ export default class extends Controller {
   }
 
   async initiate () {
+    const subject = this.subjectTarget.value
+    const period = this.periodTarget.value
+    const classID = this.classTarget.value
+    if (subject === '' || period === '' || classID === '') {
+      window.alert('Subject, period amd class is required')
+      return
+    }
+
+    if (this.loading) return
+    this.loading = true
+
     const req = {
-      'subject_id': this.subjectTarget.value,
-      'period_id': this.periodTarget.value,
-      'class_id': this.classTarget.value
+      'subject_id': subject,
+      'period_id': period,
+      'class_id': classID
     }
     const resp = await axios.post('/payments/initiate', req)
     const result = resp.data

@@ -193,6 +193,11 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 	depositID := params["deposit_id"]
 
+	ctxValues, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return err
+	}
+
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
 		return err
@@ -220,6 +225,16 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 					"Deposit successfully archive.")
 
 				return true, web.Redirect(ctx, w, r, urlDepositsIndex(), http.StatusFound)
+			case "subscribe":
+				_, err = h.Repo.UpdateStatus(ctx, depositID, claims, ctxValues.Now)
+				if err != nil {
+					return false, err
+				}
+				
+				webcontext.SessionFlashSuccess(ctx,
+					"Deposit subscribe",
+					"Deposit successfully subscribe.")
+				break
 			}
 		}
 
@@ -237,7 +252,7 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 	if err != nil {
 		return err
 	}
-	data["student"] = sub.Response(ctx)
+	data["deposit"] = sub.Response(ctx)
 	data["urlDepositsIndex"] = urlDepositsIndex()
 	data["urlDepositsView"] = urlDepositsView(depositID)
 
