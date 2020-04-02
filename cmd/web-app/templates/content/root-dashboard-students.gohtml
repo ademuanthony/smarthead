@@ -58,9 +58,10 @@
                     {{ if gt (len .subscriptions) 0 }}
                     <table class="table">
                         <tr>
-                            <th>State Date</th>
+                            <th>State Date</th> 
                             <th>End Date</th>
                             <th>Subject</th> 
+                            <th>Class</th>
                             <th>Period</th>
                         </tr>
                         {{range $sub := .subscriptions}}
@@ -68,6 +69,7 @@
                             <td>{{$sub.StartDate.LocalDate}}</td>
                             <td>{{$sub.EndDate.LocalDate}}</td>
                             <td>{{$sub.Subject}}</td>
+                            <td>{{$sub.Class}}</td>
                             <td>{{$sub.Period}}</td>
                         </tr>
                         {{ end }}
