@@ -34,6 +34,7 @@ type Period struct {
 }
 
 func (p Period) String() string {
+	
 	return fmt.Sprintf("%d:%02d - %d:%02d", p.StartHour, p.StartMinute, p.EndHour, p.EndMinute)
 }
 
