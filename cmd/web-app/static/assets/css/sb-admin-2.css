@@ -11706,19 +11706,19 @@ a:focus {
 }
 
 .bg-login-image {
-  background: url("https://dzuyel7n94hma.cloudfront.net/accelerator/img/saas-starter-kit-go-lang-login-600x800.png");
+  background: url("../../images/remote-school-banner.png");
   background-position: top center;
   background-size: cover;
 }
 
 .bg-register-image {
-  background: url("https://dzuyel7n94hma.cloudfront.net/accelerator/img/saas-starter-kit-go-lang-join-600x1000.png");
+  background: url("../../images/remote-school-banner.png");
   background-position: top center;
   background-size: cover;
 }
 
 .bg-password-image {
-  background: url("https://dzuyel7n94hma.cloudfront.net/accelerator/img/saas-starter-kit-go-lang-green-600x800.png");
+  background: url("../../images/remote-school-banner.png");
   background-position: top center;
   background-size: cover;
 }
