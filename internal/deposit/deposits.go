@@ -31,7 +31,7 @@ var (
 func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest) (Deposits, error) {
 	var queries []QueryMod
 
-	queries = append(queries, qm.Load(models.DepositRels.Student))
+	queries = append(queries, qm.Load(models.DepositRels.Student), qm.Load(models.DepositRels.Class))
 
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
@@ -105,6 +105,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		SubjectID:  req.SubjectID,
 		DaysOfWeek: req.DaysOfWeek,
 		PeriodID:   req.PeriodID,
+		ClassID:    req.ClassID,
 		CreatedAt:  now,
 		Amount:     req.Amount,
 		Channel:    req.Channel,
@@ -198,12 +199,14 @@ func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, clai
 
 	endDate := now.Add(30 * 24 * time.Hour)
 	subReq := subscription.CreateRequest{
-		StudentID: depositModel.StudentID,
-		StartDate: now.Unix(),
-		EndDate:   endDate.Unix(),
+		StudentID:  depositModel.StudentID,
+		StartDate:  now.Unix(),
+		EndDate:    endDate.Unix(),
 		DaysOfWeek: depositModel.DaysOfWeek,
-		PeriodID: depositModel.PeriodID,
-		SubjectID: depositModel.SubjectID,
+		PeriodID:   depositModel.PeriodID,
+		SubjectID:  depositModel.SubjectID,
+		ClassID: depositModel.ClassID,
+		DepositID: depositModel.ID,
 	}
 
 	sub, err := repo.SubscriptionRepo.Create(ctx, claims, subReq, now)

@@ -157,9 +157,12 @@ func TestInsert(t *testing.T) {
 func TestToOne(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUser", testAccountToOneUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUser", testAccountToOneUserUsingSignupUser)
+	t.Run("DepositToClassUsingClass", testDepositToOneClassUsingClass)
 	t.Run("DepositToPeriodUsingPeriod", testDepositToOnePeriodUsingPeriod)
 	t.Run("DepositToStudentUsingStudent", testDepositToOneStudentUsingStudent)
 	t.Run("DepositToSubjectUsingSubject", testDepositToOneSubjectUsingSubject)
+	t.Run("SubscriptionToClassUsingClass", testSubscriptionToOneClassUsingClass)
+	t.Run("SubscriptionToDepositUsingDeposit", testSubscriptionToOneDepositUsingDeposit)
 	t.Run("SubscriptionToPeriodUsingPeriod", testSubscriptionToOnePeriodUsingPeriod)
 	t.Run("SubscriptionToStudentUsingStudent", testSubscriptionToOneStudentUsingStudent)
 	t.Run("SubscriptionToSubjectUsingSubject", testSubscriptionToOneSubjectUsingSubject)
@@ -172,6 +175,9 @@ func TestOneToOne(t *testing.T) {}
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
+	t.Run("ClassToDeposits", testClassToManyDeposits)
+	t.Run("ClassToSubscriptions", testClassToManySubscriptions)
+	t.Run("DepositToSubscriptions", testDepositToManySubscriptions)
 	t.Run("PeriodToDeposits", testPeriodToManyDeposits)
 	t.Run("PeriodToStudents", testPeriodToManyStudents)
 	t.Run("PeriodToSubscriptions", testPeriodToManySubscriptions)
@@ -193,9 +199,12 @@ func TestToMany(t *testing.T) {
 func TestToOneSet(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUserAccounts", testAccountToOneSetOpUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUserAccounts", testAccountToOneSetOpUserUsingSignupUser)
+	t.Run("DepositToClassUsingDeposits", testDepositToOneSetOpClassUsingClass)
 	t.Run("DepositToPeriodUsingDeposits", testDepositToOneSetOpPeriodUsingPeriod)
 	t.Run("DepositToStudentUsingDeposits", testDepositToOneSetOpStudentUsingStudent)
 	t.Run("DepositToSubjectUsingDeposits", testDepositToOneSetOpSubjectUsingSubject)
+	t.Run("SubscriptionToClassUsingSubscriptions", testSubscriptionToOneSetOpClassUsingClass)
+	t.Run("SubscriptionToDepositUsingSubscriptions", testSubscriptionToOneSetOpDepositUsingDeposit)
 	t.Run("SubscriptionToPeriodUsingSubscriptions", testSubscriptionToOneSetOpPeriodUsingPeriod)
 	t.Run("SubscriptionToStudentUsingSubscriptions", testSubscriptionToOneSetOpStudentUsingStudent)
 	t.Run("SubscriptionToSubjectUsingSubscriptions", testSubscriptionToOneSetOpSubjectUsingSubject)
@@ -219,6 +228,9 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
+	t.Run("ClassToDeposits", testClassToManyAddOpDeposits)
+	t.Run("ClassToSubscriptions", testClassToManyAddOpSubscriptions)
+	t.Run("DepositToSubscriptions", testDepositToManyAddOpSubscriptions)
 	t.Run("PeriodToDeposits", testPeriodToManyAddOpDeposits)
 	t.Run("PeriodToStudents", testPeriodToManyAddOpStudents)
 	t.Run("PeriodToSubscriptions", testPeriodToManyAddOpSubscriptions)

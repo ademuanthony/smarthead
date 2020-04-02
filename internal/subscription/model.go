@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
@@ -31,15 +32,18 @@ type Subscription struct {
 	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string `json:"class_id"`
+	DepositID  string `json:"deposit_id"`
 	DaysOfWeek int    `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 	CreatedAt  int64  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	Status	   string `json:"status"`
+	Status     string `json:"status"`
 
 	Subject *subject.Subject `json:"subject"`
 	Student *student.Student `json:"student"`
 	Period  *period.Period   `json:"period"`
+	Class   *class.Class     `json:"_class"`
 }
 
 func FromModel(rec *models.Subscription) *Subscription {
@@ -48,6 +52,7 @@ func FromModel(rec *models.Subscription) *Subscription {
 		CreatedAt:  rec.CreatedAt,
 		DaysOfWeek: rec.DaysOfWeek,
 		EndDate:    rec.EndDate,
+		ClassID:    rec.ClassID,
 		PeriodID:   rec.PeriodID,
 		StartDate:  rec.StartDate,
 		StudentID:  rec.StudentID,
@@ -65,6 +70,10 @@ func FromModel(rec *models.Subscription) *Subscription {
 		if rec.R.Student != nil {
 			b.Student = student.FromModel(rec.R.Student)
 		}
+
+		if rec.R.Class != nil {
+			b.Class = class.FromModel(rec.R.Class)
+		}
 	}
 	return b
 }
@@ -75,15 +84,18 @@ type Response struct {
 	StudentID  string           `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string           `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string           `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string           `json:"class_id"`
+	DepositID  string           `json:"deposit_id"`
 	DaysOfWeek int              `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	StartDate  web.TimeResponse `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    web.TimeResponse `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 	CreatedAt  web.TimeResponse `json:"created_at"` // CreatedAt contains multiple format options for display.
-	Status	   string 			`json:"status"`
+	Status     string           `json:"status"`
 
 	Subject string `json:"subject"`
 	Student string `json:"student"`
 	Period  string `json:"period"`
+	Class   string `json:"_class"`
 }
 
 // Response transforms Branch to the Response that is used for display.
@@ -102,6 +114,8 @@ func (m *Subscription) Response(ctx context.Context) *Response {
 		StartDate:  web.NewTimeResponse(ctx, time.Unix(m.StartDate, 0)),
 		StudentID:  m.StudentID,
 		SubjectID:  m.SubjectID,
+		ClassID:    m.ClassID,
+		DepositID:  m.DepositID,
 	}
 
 	if m.Student != nil {
@@ -114,6 +128,10 @@ func (m *Subscription) Response(ctx context.Context) *Response {
 
 	if m.Period != nil {
 		r.Period = m.Period.String()
+	}
+
+	if m.Class != nil {
+		r.Class = m.Class.Name
 	}
 
 	return r
@@ -139,6 +157,8 @@ type CreateRequest struct {
 	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string `json:"class_id"`
+	DepositID  string `json:"deposit_id"`
 	DaysOfWeek int    `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`

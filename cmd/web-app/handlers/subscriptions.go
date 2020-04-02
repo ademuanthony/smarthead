@@ -43,12 +43,13 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 	if err != nil {
 		return err
 	}
-
+  
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "", Visible: true, Searchable: true, },
 		{Field: "student_id", Title: "Student", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 		{Field: "subject_id", Title: "Subject", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Username"},
-		{Field: "period_id", Title: "Period", Visible: true, Searchable: true, Orderable: true},
+		{Field: "period_id", Title: "Period", Visible: true, Searchable: true, Orderable: true, Filterable: true},
+		{Field: "class_id", Title: "Class", Visible: true, Searchable: true, Orderable: true, Filterable: true},
 		{Field: "start_date", Title: "Start Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
 		{Field: "end_date", Title: "End Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Phone"},
 		{Field: "created_at", Title: "Creation Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Email"},
@@ -71,6 +72,9 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 			case "period_id":
 				v.Value = q.PeriodID
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlSubjectsView(q.PeriodID), q.Period)
+			case "class_id":
+				v.Value = q.ClassID
+				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlClassesView(q.ClassID), q.Class)
 			case "start_date":
 				v.Value = q.StartDate.LocalDate
 				v.Formatted = v.Value

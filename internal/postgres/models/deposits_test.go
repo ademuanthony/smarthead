@@ -353,6 +353,210 @@ func testDepositsInsertWhitelist(t *testing.T) {
 	}
 }
 
+func testDepositToManySubscriptions(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Deposit
+	var b, c Subscription
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, depositDBTypes, true, depositColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Deposit struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, subscriptionDBTypes, false, subscriptionColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.DepositID = a.ID
+	c.DepositID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.Subscriptions().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.DepositID == b.DepositID {
+			bFound = true
+		}
+		if v.DepositID == c.DepositID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := DepositSlice{&a}
+	if err = a.L.LoadSubscriptions(ctx, tx, false, (*[]*Deposit)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Subscriptions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Subscriptions = nil
+	if err = a.L.LoadSubscriptions(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Subscriptions); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
+func testDepositToManyAddOpSubscriptions(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Deposit
+	var b, c, d, e Subscription
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, depositDBTypes, false, strmangle.SetComplement(depositPrimaryKeyColumns, depositColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Subscription{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, subscriptionDBTypes, false, strmangle.SetComplement(subscriptionPrimaryKeyColumns, subscriptionColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Subscription{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddSubscriptions(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.DepositID {
+			t.Error("foreign key was wrong value", a.ID, first.DepositID)
+		}
+		if a.ID != second.DepositID {
+			t.Error("foreign key was wrong value", a.ID, second.DepositID)
+		}
+
+		if first.R.Deposit != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Deposit != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Subscriptions[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Subscriptions[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.Subscriptions().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testDepositToOneClassUsingClass(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Deposit
+	var foreign Class
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, depositDBTypes, false, depositColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Deposit struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, classDBTypes, false, classColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Class struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	local.ClassID = foreign.ID
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Class().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := DepositSlice{&local}
+	if err = local.L.LoadClass(ctx, tx, false, (*[]*Deposit)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Class == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Class = nil
+	if err = local.L.LoadClass(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Class == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testDepositToOnePeriodUsingPeriod(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
@@ -506,6 +710,63 @@ func testDepositToOneSubjectUsingSubject(t *testing.T) {
 	}
 }
 
+func testDepositToOneSetOpClassUsingClass(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Deposit
+	var b, c Class
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, depositDBTypes, false, strmangle.SetComplement(depositPrimaryKeyColumns, depositColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, classDBTypes, false, strmangle.SetComplement(classPrimaryKeyColumns, classColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, classDBTypes, false, strmangle.SetComplement(classPrimaryKeyColumns, classColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Class{&b, &c} {
+		err = a.SetClass(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Class != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Deposits[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.ClassID != x.ID {
+			t.Error("foreign key was wrong value", a.ClassID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.ClassID))
+		reflect.Indirect(reflect.ValueOf(&a.ClassID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.ClassID != x.ID {
+			t.Error("foreign key was wrong value", a.ClassID, x.ID)
+		}
+	}
+}
 func testDepositToOneSetOpPeriodUsingPeriod(t *testing.T) {
 	var err error
 
@@ -752,7 +1013,7 @@ func testDepositsSelect(t *testing.T) {
 }
 
 var (
-	depositDBTypes = map[string]string{`ID`: `uuid`, `StudentID`: `uuid`, `Amount`: `integer`, `Ref`: `character varying`, `Status`: `character varying`, `Channel`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SubjectID`: `uuid`, `PeriodID`: `uuid`, `DaysOfWeek`: `integer`}
+	depositDBTypes = map[string]string{`ID`: `uuid`, `StudentID`: `uuid`, `Amount`: `integer`, `Ref`: `character varying`, `Status`: `character varying`, `Channel`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SubjectID`: `uuid`, `PeriodID`: `uuid`, `DaysOfWeek`: `integer`, `ClassID`: `uuid`}
 	_              = bytes.MinRead
 )
 

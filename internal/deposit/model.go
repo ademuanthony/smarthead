@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/student"
@@ -28,9 +29,9 @@ const (
 // NewRepository creates a new Repository that defines dependencies for Branch.
 func NewRepository(db *sqlx.DB, subscriptionRepo *subscription.Repository, paystackSecret string) *Repository {
 	return &Repository{
-		DbConn:         db,
+		DbConn:           db,
 		SubscriptionRepo: subscriptionRepo,
-		PaystackSecret: paystackSecret,
+		PaystackSecret:   paystackSecret,
 	}
 }
 
@@ -40,6 +41,7 @@ type Deposit struct {
 	StudentID  string    `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string    `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string    `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string    `json:"class_id"`
 	DaysOfWeek int       `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	Amount     int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Ref        string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
@@ -48,6 +50,7 @@ type Deposit struct {
 	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	Student *student.Student `json:"student"`
+	Class   *class.Class     `json:"_class"`
 }
 
 func FromModel(rec *models.Deposit) *Deposit {
@@ -56,6 +59,7 @@ func FromModel(rec *models.Deposit) *Deposit {
 		StudentID:  rec.StudentID,
 		SubjectID:  rec.SubjectID,
 		PeriodID:   rec.PeriodID,
+		ClassID:    rec.ClassID,
 		DaysOfWeek: rec.DaysOfWeek,
 		Amount:     rec.Amount,
 		Ref:        rec.Ref,
@@ -67,6 +71,10 @@ func FromModel(rec *models.Deposit) *Deposit {
 		if rec.R.Student != nil {
 			b.Student = student.FromModel(rec.R.Student)
 		}
+
+		if rec.R.Class != nil {
+			b.Class = class.FromModel(rec.R.Class)
+		}
 	}
 	return b
 }
@@ -77,6 +85,7 @@ type Response struct {
 	StudentID  string           `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string           `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string           `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string           `json:"class_id"`
 	DaysOfWeek int              `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	Amount     int              `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Ref        string           `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
@@ -85,6 +94,7 @@ type Response struct {
 	CreatedAt  web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 
 	Student string `json:"student"`
+	Class   string `json:"_class"`
 }
 
 // Response transforms Branch to the Response that is used for display.
@@ -109,6 +119,10 @@ func (m *Deposit) Response(ctx context.Context) *Response {
 
 	if m.Student != nil {
 		r.Student = m.Student.Name
+	}
+
+	if m.Class != nil {
+		r.Class = m.Class.Name
 	}
 
 	return r

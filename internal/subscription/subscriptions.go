@@ -31,11 +31,12 @@ func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest
 	queries = append(queries, qm.Load(models.SubscriptionRels.Subject))
 	queries = append(queries, qm.Load(models.SubscriptionRels.Student))
 	queries = append(queries, qm.Load(models.SubscriptionRels.Period))
+	queries = append(queries, qm.Load(models.SubscriptionRels.Class))
 
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
 	}
-
+ 
 	if len(req.Order) > 0 {
 		for _, s := range req.Order {
 			queries = append(queries, OrderBy(s))
@@ -99,15 +100,16 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	// here so the value we return is consistent with what we store.
 	now = now.Truncate(time.Millisecond)
 	m := models.Subscription{
-		ID:        uuid.NewRandom().String(),
+		ID:         uuid.NewRandom().String(),
 		DaysOfWeek: req.DaysOfWeek,
-		EndDate: req.EndDate,
-		PeriodID: req.PeriodID,
-		StartDate: req.StartDate,
-		StudentID: req.StudentID,
-		SubjectID: req.SubjectID,
-		CreatedAt: now.Unix(),
-
+		EndDate:    req.EndDate,
+		PeriodID:   req.PeriodID,
+		ClassID:    req.ClassID,
+		DepositID:  req.DepositID,
+		StartDate:  req.StartDate,
+		StudentID:  req.StudentID,
+		SubjectID:  req.SubjectID,
+		CreatedAt:  now.Unix(),
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
@@ -117,7 +119,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	// TODO: get the associated subject and create lesson
 
 	return &Subscription{
-		ID:         m.ID,
+		ID: m.ID,
 	}, nil
 }
 

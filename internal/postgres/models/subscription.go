@@ -31,6 +31,8 @@ type Subscription struct {
 	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
 	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
 	CreatedAt  int64  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ClassID    string `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
+	DepositID  string `boil:"deposit_id" json:"deposit_id" toml:"deposit_id" yaml:"deposit_id"`
 
 	R *subscriptionR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L subscriptionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -45,6 +47,8 @@ var SubscriptionColumns = struct {
 	StartDate  string
 	EndDate    string
 	CreatedAt  string
+	ClassID    string
+	DepositID  string
 }{
 	ID:         "id",
 	StudentID:  "student_id",
@@ -54,6 +58,8 @@ var SubscriptionColumns = struct {
 	StartDate:  "start_date",
 	EndDate:    "end_date",
 	CreatedAt:  "created_at",
+	ClassID:    "class_id",
+	DepositID:  "deposit_id",
 }
 
 // Generated where
@@ -83,6 +89,8 @@ var SubscriptionWhere = struct {
 	StartDate  whereHelperint64
 	EndDate    whereHelperint64
 	CreatedAt  whereHelperint64
+	ClassID    whereHelperstring
+	DepositID  whereHelperstring
 }{
 	ID:         whereHelperstring{field: "\"subscription\".\"id\""},
 	StudentID:  whereHelperstring{field: "\"subscription\".\"student_id\""},
@@ -92,14 +100,20 @@ var SubscriptionWhere = struct {
 	StartDate:  whereHelperint64{field: "\"subscription\".\"start_date\""},
 	EndDate:    whereHelperint64{field: "\"subscription\".\"end_date\""},
 	CreatedAt:  whereHelperint64{field: "\"subscription\".\"created_at\""},
+	ClassID:    whereHelperstring{field: "\"subscription\".\"class_id\""},
+	DepositID:  whereHelperstring{field: "\"subscription\".\"deposit_id\""},
 }
 
 // SubscriptionRels is where relationship names are stored.
 var SubscriptionRels = struct {
+	Class   string
+	Deposit string
 	Period  string
 	Student string
 	Subject string
 }{
+	Class:   "Class",
+	Deposit: "Deposit",
 	Period:  "Period",
 	Student: "Student",
 	Subject: "Subject",
@@ -107,6 +121,8 @@ var SubscriptionRels = struct {
 
 // subscriptionR is where relationships are stored.
 type subscriptionR struct {
+	Class   *Class
+	Deposit *Deposit
 	Period  *Period
 	Student *Student
 	Subject *Subject
@@ -121,8 +137,8 @@ func (*subscriptionR) NewStruct() *subscriptionR {
 type subscriptionL struct{}
 
 var (
-	subscriptionAllColumns            = []string{"id", "student_id", "subject_id", "period_id", "days_of_week", "start_date", "end_date", "created_at"}
-	subscriptionColumnsWithoutDefault = []string{"id", "student_id", "subject_id", "period_id", "days_of_week", "start_date", "end_date", "created_at"}
+	subscriptionAllColumns            = []string{"id", "student_id", "subject_id", "period_id", "days_of_week", "start_date", "end_date", "created_at", "class_id", "deposit_id"}
+	subscriptionColumnsWithoutDefault = []string{"id", "student_id", "subject_id", "period_id", "days_of_week", "start_date", "end_date", "created_at", "class_id", "deposit_id"}
 	subscriptionColumnsWithDefault    = []string{}
 	subscriptionPrimaryKeyColumns     = []string{"id"}
 )
@@ -218,6 +234,34 @@ func (q subscriptionQuery) Exists(ctx context.Context, exec boil.ContextExecutor
 	return count > 0, nil
 }
 
+// Class pointed to by the foreign key.
+func (o *Subscription) Class(mods ...qm.QueryMod) classQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.ClassID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Classes(queryMods...)
+	queries.SetFrom(query.Query, "\"classes\"")
+
+	return query
+}
+
+// Deposit pointed to by the foreign key.
+func (o *Subscription) Deposit(mods ...qm.QueryMod) depositQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.DepositID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Deposits(queryMods...)
+	queries.SetFrom(query.Query, "\"deposits\"")
+
+	return query
+}
+
 // Period pointed to by the foreign key.
 func (o *Subscription) Period(mods ...qm.QueryMod) periodQuery {
 	queryMods := []qm.QueryMod{
@@ -258,6 +302,192 @@ func (o *Subscription) Subject(mods ...qm.QueryMod) subjectQuery {
 	queries.SetFrom(query.Query, "\"subject\"")
 
 	return query
+}
+
+// LoadClass allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (subscriptionL) LoadClass(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubscription interface{}, mods queries.Applicator) error {
+	var slice []*Subscription
+	var object *Subscription
+
+	if singular {
+		object = maybeSubscription.(*Subscription)
+	} else {
+		slice = *maybeSubscription.(*[]*Subscription)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subscriptionR{}
+		}
+		args = append(args, object.ClassID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subscriptionR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ClassID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ClassID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`classes`), qm.WhereIn(`classes.id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Class")
+	}
+
+	var resultSlice []*Class
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Class")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for classes")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for classes")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Class = foreign
+		if foreign.R == nil {
+			foreign.R = &classR{}
+		}
+		foreign.R.Subscriptions = append(foreign.R.Subscriptions, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.ClassID == foreign.ID {
+				local.R.Class = foreign
+				if foreign.R == nil {
+					foreign.R = &classR{}
+				}
+				foreign.R.Subscriptions = append(foreign.R.Subscriptions, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadDeposit allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (subscriptionL) LoadDeposit(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubscription interface{}, mods queries.Applicator) error {
+	var slice []*Subscription
+	var object *Subscription
+
+	if singular {
+		object = maybeSubscription.(*Subscription)
+	} else {
+		slice = *maybeSubscription.(*[]*Subscription)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subscriptionR{}
+		}
+		args = append(args, object.DepositID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subscriptionR{}
+			}
+
+			for _, a := range args {
+				if a == obj.DepositID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.DepositID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`deposits`), qm.WhereIn(`deposits.id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Deposit")
+	}
+
+	var resultSlice []*Deposit
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Deposit")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for deposits")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for deposits")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Deposit = foreign
+		if foreign.R == nil {
+			foreign.R = &depositR{}
+		}
+		foreign.R.Subscriptions = append(foreign.R.Subscriptions, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.DepositID == foreign.ID {
+				local.R.Deposit = foreign
+				if foreign.R == nil {
+					foreign.R = &depositR{}
+				}
+				foreign.R.Subscriptions = append(foreign.R.Subscriptions, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadPeriod allows an eager lookup of values, cached into the
@@ -534,6 +764,100 @@ func (subscriptionL) LoadSubject(ctx context.Context, e boil.ContextExecutor, si
 				break
 			}
 		}
+	}
+
+	return nil
+}
+
+// SetClass of the subscription to the related item.
+// Sets o.R.Class to related.
+// Adds o to related.R.Subscriptions.
+func (o *Subscription) SetClass(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Class) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"subscription\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"class_id"}),
+		strmangle.WhereClause("\"", "\"", 2, subscriptionPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.ClassID = related.ID
+	if o.R == nil {
+		o.R = &subscriptionR{
+			Class: related,
+		}
+	} else {
+		o.R.Class = related
+	}
+
+	if related.R == nil {
+		related.R = &classR{
+			Subscriptions: SubscriptionSlice{o},
+		}
+	} else {
+		related.R.Subscriptions = append(related.R.Subscriptions, o)
+	}
+
+	return nil
+}
+
+// SetDeposit of the subscription to the related item.
+// Sets o.R.Deposit to related.
+// Adds o to related.R.Subscriptions.
+func (o *Subscription) SetDeposit(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Deposit) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"subscription\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"deposit_id"}),
+		strmangle.WhereClause("\"", "\"", 2, subscriptionPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.DepositID = related.ID
+	if o.R == nil {
+		o.R = &subscriptionR{
+			Deposit: related,
+		}
+	} else {
+		o.R.Deposit = related
+	}
+
+	if related.R == nil {
+		related.R = &depositR{
+			Subscriptions: SubscriptionSlice{o},
+		}
+	} else {
+		related.R.Subscriptions = append(related.R.Subscriptions, o)
 	}
 
 	return nil
