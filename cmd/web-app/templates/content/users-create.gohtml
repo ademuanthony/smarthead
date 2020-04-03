@@ -42,6 +42,12 @@
                             {{template "invalid-feedback" dict "fieldName" "UserCreateRequest.Email" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
                         </div>
                         <div class="form-group">
+                            <label for="inputEmail">Phone Number</label>
+                            <input type="text" class="form-control {{ ValidationFieldClass $.validationErrors "UserCreateRequest.Phone" }}"
+                                   placeholder="enter phone number" name="Phone" value="{{ .form.Phone }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "UserCreateRequest.Phone" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                        <div class="form-group">
                             <label for="inputPassword">Password</label>
                             <input type="password"
                                    class="form-control {{ ValidationFieldClass $.validationErrors "UserCreateRequest.Password" }}"
