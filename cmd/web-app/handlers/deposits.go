@@ -156,7 +156,7 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	depositReq.Channel = "Paystack"
-	depositReq.Amount = 1200000 
+	depositReq.Amount = 800000 
 	depositReq.Status = deposit.StatusPending
 	depositReq.StudentID = currentStudent.ID
 

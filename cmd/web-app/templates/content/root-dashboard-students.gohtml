@@ -1,89 +1,141 @@
-{{define "title"}}Welcome{{end}}
-{{define "dashboardActive"}}active{{end}}
+{{define "title"}}Welcome{{ end }} {{define "dashboardActive"}}active{{ end }}
 {{define "style"}}
 
-{{end}}
+{{ end }}
 {{define "content"}}
 
-    <div class="d-sm-flex align-items-center justify-content-between mb-4">
-        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
-    </div>
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+  <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+</div>
 
-    <div class="row">
-        <div class="col">
-            <div class="card">
-                <div class="card-body">
-                    <div class="jumbotron" data-controller="payment">
-                    {{ if gt (len .subscriptions) 0 }}
-                        <h1 class="display-4">Subscribe and start learning!</h1>
-                        <p class="lead">You do not have an active subscription. Subscribe now and start learning from the comfort of your home</p>
-                        {{ else }}
-                        <h1 class="display-4">New Subscription</h1>
-                        {{ end }}
-                        <hr class="my-4">
-                        <p>Click on the button below to make payment. Subscription cost <span class="naira">12,000</span> per subject per month</p>
-                        <p class="lead">
-                            <div class="form-row">
-                                <div class="col-md-4 col-sm-12 mt-3">
-                                    <select data-target="payment.class" class="form-control">
-                                        <option>Select Class</option>
-                                        {{ range $class := .classes }}
-                                        <option value="{{ $class.ID }}">{{ $class.Name }}</option>
-                                        {{ end }}
-                                    </select>
-                                </div>
-                                <div class="col-md-4 col-sm-12 mt-3">
-                                    <select data-target="payment.subject" class="form-control">
-                                        <option>Select Subject</option>
-                                        {{ range $subject := .subjects }}
-                                        <option value="{{ $subject.ID }}">{{ $subject.Name }}</option>
-                                        {{ end }} 
-                                    </select> 
-                                </div>
-                                <div class="col-md-4 col-sm-12 mt-3">
-                                    <select data-target="payment.period" class="form-control">
-                                        <option>Select Period</option>
-                                        {{ range $period := .periods }}
-                                        <option value="{{ $period.ID }}">{{ $period }}</option>
-                                        {{ end }}
-                                    </select>
-                                </div>
-                                <div class="col-md-4 offset-4 col-sm-12 mt-3">
-                                    <button class="btn btn-danger btn-lg btn-block" 
-                                        data-action="click->payment#initiate">Make Payment</button>
-                                </div>
-                            </div>
-                        </p>
-                    </div>
-                    {{ if gt (len .subscriptions) 0 }}
-                    <table class="table">
-                        <tr>
-                            <th>State Date</th> 
-                            <th>End Date</th>
-                            <th>Subject</th> 
-                            <th>Class</th>
-                            <th>Period</th>
-                        </tr>
-                        {{range $sub := .subscriptions}}
-                        <tr>
-                            <td>{{$sub.StartDate.LocalDate}}</td>
-                            <td>{{$sub.EndDate.LocalDate}}</td>
-                            <td>{{$sub.Subject}}</td>
-                            <td>{{$sub.Class}}</td>
-                            <td>{{$sub.Period}}</td>
-                        </tr>
-                        {{ end }}
-                    </table>
-                    {{ end }}
-                    
-                </div>
+<div class="row">
+  <div class="col">
+    <div class="card">
+      <div class="card-body">
+        <div class="jumbotron" data-controller="payment">
+          {{ if gt (len .subscriptions) 0 }}
+          <h1 class="display-4">Subscribe and start learning!</h1>
+          <p class="lead">
+            You do not have an active subscription. Subscribe now and start
+            learning from the comfort of your home
+          </p>
+          {{ else }}
+          <h1 class="display-4">New Subscription</h1>
+          {{ end }}
+          <hr class="my-4" />
+          <p>
+            Click on the button below to make payment. Subscription cost is
+            <span class="naira">8,000</span> for one subject,
+            <span class="naira">20,000</span> for three subjects,
+            <span class="naira">30,000</span> for five subjects per month
+          </p>
+          <div class="form-row">
+            <div class="col-md-4 col-sm-12 mt-3">
+              <select data-target="payment.class" class="form-control">
+                <option>Select Class</option>
+                {{ range $class := .classes }}
+                <option value="{{ $class.ID }}">{{ $class.Name }}</option>
+                {{ end }}
+              </select>
             </div>
-        </div>
-    </div>
-   
+            <div class="col-md-4 col-sm-12 mt-3">
+              <select data-target="payment.subject" class="form-control">
+                <option>Select Subject</option>
+                {{ range $subject := .subjects }}
+                <option value="{{ $subject.ID }}">{{ $subject.Name }}</option>
+                {{ end }}
+              </select>
+            </div>
+            <div class="col-md-4 col-sm-12 mt-3">
+              <select data-target="payment.period" class="form-control">
+                <option>Select Period</option>
+                {{ range $period := .periods }}
+                <option value="{{ $period.ID }}">{{ $period }}</option>
+                {{ end }}
+              </select>
+            </div>
+            <div class="col-md-4 offset-4 col-sm-12 mt-3">
+              <button
+                class="btn btn-danger btn-lg btn-block"
+                data-action="click->payment#initiate"
+              >
+                Make Payment
+              </button>
+            </div>
+            <div class="col d-none">
+              <button
+                data-action="click->sale#addToList"
+                class="btn btn-primary"
+              >
+                Add To List
+              </button>
+            </div>
+          </div>
 
-{{end}}
+          <div class="d-none mt-2" data-target="payment.cartItemDiv">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="text-right">#</th>
+                  <th>Class</th>
+                  <th>Subject</th>
+                  <th>Period</th>
+                  <th></th>
+                </tr>
+              </thead>
+              <tbody data-target="payment.listTbl"></tbody>
+              <tfoot>
+                <tr>
+                  <th colspan="5" class="text-right font-weight">Total Amount</th>
+                  <td class="text-right">
+                    <span
+                      class="font-weight-bolder"
+                      data-target="sale.cartTotal"
+                    ></span>
+                  </td>
+                </tr>
+              </tfoot>
+            </table>
+            <template data-target="sale.itemTemplate">
+              <tr>
+                <td class="text-right"></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+                <td></td>
+              </tr>
+            </template>
+
+          </div>
+        </div>
+        {{ if gt (len .subscriptions) 0 }}
+        <table class="table">
+          <tr>
+            <th>State Date</th>
+            <th>End Date</th>
+            <th>Subject</th>
+            <th>Class</th>
+            <th>Period</th>
+          </tr>
+          {{range $sub := .subscriptions}}
+          <tr>
+            <td>{{ $sub.StartDate.LocalDate }}</td>
+            <td>{{ $sub.EndDate.LocalDate }}</td>
+            <td>{{ $sub.Subject }}</td>
+            <td>{{ $sub.Class }}</td>
+            <td>{{ $sub.Period }}</td>
+          </tr>
+          {{ end }}
+        </table>
+        {{ end }}
+      </div>
+    </div>
+  </div>
+</div>
+
+{{ end }}
 {{define "js"}}
 <script src="https://js.paystack.co/v1/inline.js"></script>
 
-{{end}}
+{{ end }}

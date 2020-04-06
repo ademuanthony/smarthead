@@ -74,6 +74,10 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 	return FromModel(subscriptionModel), nil
 }
 
+func (repo *Repository) CountActiveSubscriptions(ctx context.Context, studentID string, now time.Time) (int64, error) {
+	return models.Subscriptions(models.SubscriptionWhere.StudentID.EQ(studentID), 
+	models.SubscriptionWhere.EndDate.GT(now.Unix())).Count(ctx, repo.DbConn)
+}
 // Create inserts a new subscription into the database.
 func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, now time.Time) (*Subscription, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.subscription.Create")
