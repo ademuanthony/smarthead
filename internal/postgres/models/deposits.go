@@ -35,6 +35,7 @@ type Deposit struct {
 	PeriodID   string    `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
 	DaysOfWeek int       `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	ClassID    string    `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
+	PaymentRef string    `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
 
 	R *depositR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L depositL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -53,6 +54,7 @@ var DepositColumns = struct {
 	PeriodID   string
 	DaysOfWeek string
 	ClassID    string
+	PaymentRef string
 }{
 	ID:         "id",
 	StudentID:  "student_id",
@@ -66,6 +68,7 @@ var DepositColumns = struct {
 	PeriodID:   "period_id",
 	DaysOfWeek: "days_of_week",
 	ClassID:    "class_id",
+	PaymentRef: "payment_ref",
 }
 
 // Generated where
@@ -99,6 +102,7 @@ var DepositWhere = struct {
 	PeriodID   whereHelperstring
 	DaysOfWeek whereHelperint
 	ClassID    whereHelperstring
+	PaymentRef whereHelperstring
 }{
 	ID:         whereHelperstring{field: "\"deposits\".\"id\""},
 	StudentID:  whereHelperstring{field: "\"deposits\".\"student_id\""},
@@ -112,6 +116,7 @@ var DepositWhere = struct {
 	PeriodID:   whereHelperstring{field: "\"deposits\".\"period_id\""},
 	DaysOfWeek: whereHelperint{field: "\"deposits\".\"days_of_week\""},
 	ClassID:    whereHelperstring{field: "\"deposits\".\"class_id\""},
+	PaymentRef: whereHelperstring{field: "\"deposits\".\"payment_ref\""},
 }
 
 // DepositRels is where relationship names are stored.
@@ -147,9 +152,9 @@ func (*depositR) NewStruct() *depositR {
 type depositL struct{}
 
 var (
-	depositAllColumns            = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week", "class_id"}
+	depositAllColumns            = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week", "class_id", "payment_ref"}
 	depositColumnsWithoutDefault = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week", "class_id"}
-	depositColumnsWithDefault    = []string{}
+	depositColumnsWithDefault    = []string{"payment_ref"}
 	depositPrimaryKeyColumns     = []string{"id"}
 )
 

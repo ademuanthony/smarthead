@@ -74,6 +74,23 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 	return FromModel(depositModel), nil
 }
 
+func subscriptionAmount (reqCount int) int {
+	var amount int
+	if (reqCount >= 5) {
+		fives := (reqCount - reqCount % 5) / 5
+		amount = 3000000 * fives
+		reqCount -= fives * 5
+	  }
+	  if (reqCount >= 3) {
+		threes := (reqCount - reqCount % 3) / 3
+		amount += 2000000 * threes
+		reqCount -= threes * 3
+	  }
+	  amount += reqCount * 800000
+
+	  return amount
+}
+
 // Create inserts a new subscription into the database.
 func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, now time.Time) (*Deposit, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.deposit.Create")
@@ -89,6 +106,8 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		return nil, err
 	}
 
+	var amount = subscriptionAmount(req.Count)
+
 	// If now empty set it to the current time.
 	if now.IsZero() {
 		now = time.Now()
@@ -99,7 +118,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	// Postgres truncates times to milliseconds when storing. We and do the same
 	// here so the value we return is consistent with what we store.
 	now = now.Truncate(time.Millisecond)
-	m := models.Deposit{
+	m := models.Deposit {
 		ID:         uuid.NewRandom().String(),
 		StudentID:  req.StudentID,
 		SubjectID:  req.SubjectID,
@@ -107,10 +126,11 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		PeriodID:   req.PeriodID,
 		ClassID:    req.ClassID,
 		CreatedAt:  now,
-		Amount:     req.Amount,
+		Amount:     amount,
 		Channel:    req.Channel,
 		Status:     req.Status,
 		Ref:        req.Ref,
+		PaymentRef: req.PaymentRef,
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
@@ -173,8 +193,8 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 }
 
 // UpdateStatus updates the status of the the supplied deposit by quering the channel
-func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, claims auth.Claims, now time.Time) (*subscription.Subscription, error) {
-	depositModel, err := models.FindDeposit(ctx, repo.DbConn, depositID)
+func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusRequest, claims auth.Claims, now time.Time) ([]*subscription.Subscription, error) {
+	depositModel, err := models.FindDeposit(ctx, repo.DbConn, req.ID)
 	if err != nil {
 		return nil, err
 	}
@@ -182,49 +202,77 @@ func (repo *Repository) UpdateStatus(ctx context.Context, depositID string, clai
 		return nil, errors.New("duplicate payment verification request")
 	}
 	client := paystack.NewClient(repo.PaystackSecret, http.DefaultClient)
-	payment, err := client.Transaction.Verify(depositID)
+	payment, err := client.Transaction.Verify(req.ID)
 	if err != nil {
 		// TODO: inform the admin of verification problem
+		panic(err)
 		return nil, err
 	}
 	if int(payment.Amount)*100 < depositModel.Amount {
 		return nil, errors.Errorf("partial payment received. Expected %d, got %f", depositModel.Amount/100, payment.Amount)
 	}
-	depositModel.Status = StatusPaid
-	_, err = depositModel.Update(ctx, repo.DbConn, boil.Infer())
+
+	tx, err := repo.DbConn.Begin()
 	if err != nil {
+		return nil, err
+	}
+
+	depositModel.Status = StatusPaid
+	_, err = depositModel.Update(ctx, tx, boil.Infer())
+	if err != nil {
+		_ = tx.Rollback()
 		//Todo: log fatal error for admin to resolve
 		return nil, errors.New("payment received but unable to update status. contact admin for help")
+	}
+
+	amount := subscriptionAmount(len(req.Items))
+	if amount > depositModel.Amount {
+		_ = tx.Rollback()
+		return nil, errors.New("Wrong amount received. Please contact the admin for help")
 	}
 
 	hoursLeft := (7 - int(now.Weekday())) * 24
 	startDate := now.Add(time.Hour * time.Duration(hoursLeft))
 	endDate := startDate.Add(30 * 24 * time.Hour)
-	subReq := subscription.CreateRequest{
-		StudentID:  depositModel.StudentID,
-		StartDate:  startDate.Unix(),
-		EndDate:    endDate.Unix(),
-		DaysOfWeek: depositModel.DaysOfWeek,
-		PeriodID:   depositModel.PeriodID,
-		SubjectID:  depositModel.SubjectID,
-		ClassID: depositModel.ClassID,
-		DepositID: depositModel.ID,
-	}
 
-	sub, err := repo.SubscriptionRepo.Create(ctx, claims, subReq, now)
+	var subs []*subscription.Subscription
 
-	if err != nil {
-		//TODO: log critical error and inform admin
-		return nil, errors.New("payment received but unable to create subscription. Please contact the admin")
+	for _, item := range req.Items {
+		subReq := subscription.CreateRequest {
+			StudentID:  depositModel.StudentID,
+			StartDate:  startDate.Unix(),
+			EndDate:    endDate.Unix(),
+			DaysOfWeek: depositModel.DaysOfWeek,
+			PeriodID:   item.PeriodID,
+			SubjectID:  item.SubjectID,
+			ClassID: item.ClassID,
+			DepositID: depositModel.ID,
+		}
+	
+		sub, err := repo.SubscriptionRepo.Create(ctx, claims, subReq, now)
+	
+		if err != nil {
+			_ = tx.Rollback()
+			//TODO: log critical error and inform admin
+			return nil, errors.New("payment received but unable to create subscription. Please contact the admin")
+		}
+		subs = append(subs, sub)
 	}
 
 	depositModel.Status = StatusSubscribed
 	_, err = depositModel.Update(ctx, repo.DbConn, boil.Infer())
 	if err != nil {
+		_ = tx.Rollback()
 		//TODO: log fatal error for admin to resolve
 	}
-
-	return sub, nil
+	
+	if err = tx.Commit(); err != nil {
+		// TODO: log critical error
+		_ = tx.Rollback()
+		return nil, err
+	}
+	
+	return subs, nil
 }
 
 // Delete removes a deposit from the database.

@@ -1013,7 +1013,7 @@ func testDepositsSelect(t *testing.T) {
 }
 
 var (
-	depositDBTypes = map[string]string{`ID`: `uuid`, `StudentID`: `uuid`, `Amount`: `integer`, `Ref`: `character varying`, `Status`: `character varying`, `Channel`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SubjectID`: `uuid`, `PeriodID`: `uuid`, `DaysOfWeek`: `integer`, `ClassID`: `uuid`}
+	depositDBTypes = map[string]string{`ID`: `uuid`, `StudentID`: `uuid`, `Amount`: `integer`, `Ref`: `character varying`, `Status`: `character varying`, `Channel`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SubjectID`: `uuid`, `PeriodID`: `uuid`, `DaysOfWeek`: `integer`, `ClassID`: `uuid`, `PaymentRef`: `character varying`}
 	_              = bytes.MinRead
 )
 

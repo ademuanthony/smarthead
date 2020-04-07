@@ -156,7 +156,6 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	depositReq.Channel = "Paystack"
-	depositReq.Amount = 800000 
 	depositReq.Status = deposit.StatusPending
 	depositReq.StudentID = currentStudent.ID
 
@@ -182,9 +181,19 @@ func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *h
 	if err != nil {
 		return err
 	}
-
+ 
 	depositID := params["deposit_id"]
-	subs, err := h.Repo.UpdateStatus(ctx, depositID, claims, ctxValues.Now)
+
+	var req = new(deposit.UpdateStatusRequest)
+	if err := web.Decode(ctx, r, req); err != nil {
+		if _, ok := errors.Cause(err).(*weberror.Error); !ok {
+			err = weberror.NewError(ctx, err, http.StatusBadRequest)
+		}
+		return web.RespondJsonError(ctx, w, err)
+	}
+	req.ID = depositID
+
+	subs, err := h.Repo.UpdateStatus(ctx, *req, claims, ctxValues.Now)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
@@ -196,10 +205,10 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 	depositID := params["deposit_id"]
 
-	ctxValues, err := webcontext.ContextValues(ctx)
-	if err != nil {
-		return err
-	}
+	// ctxValues, err := webcontext.ContextValues(ctx)
+	// if err != nil {
+	// 	return err
+	// }
 
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
@@ -229,10 +238,11 @@ func (h *Deposits) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 				return true, web.Redirect(ctx, w, r, urlDepositsIndex(), http.StatusFound)
 			case "subscribe":
-				_, err = h.Repo.UpdateStatus(ctx, depositID, claims, ctxValues.Now)
-				if err != nil {
-					return false, err
-				}
+				// TODO:
+				// _, err = h.Repo.UpdateStatus(ctx, depositID, claims, ctxValues.Now)
+				// if err != nil {
+				// 	return false, err
+				// }
 
 				webcontext.SessionFlashSuccess(ctx,
 					"Deposit subscribe",

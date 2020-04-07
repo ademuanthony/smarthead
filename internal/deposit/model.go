@@ -44,6 +44,7 @@ type Deposit struct {
 	ClassID    string    `json:"class_id"`
 	DaysOfWeek int       `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	Amount     int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	PaymentRef string 	 `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
 	Ref        string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
 	Status     string    `boil:"status" json:"status" toml:"status" yaml:"status"`
 	Channel    string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
@@ -88,6 +89,7 @@ type Response struct {
 	ClassID    string           `json:"class_id"`
 	DaysOfWeek int              `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	Amount     int              `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	PaymentRef string 	 		`boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
 	Ref        string           `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
 	Status     string           `boil:"status" json:"status" toml:"status" yaml:"status"`
 	Channel    string           `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
@@ -145,6 +147,7 @@ func (m *Deposits) Response(ctx context.Context) []*Response {
 
 // CreateRequest contains information needed to create a new Deposit.
 type CreateRequest struct {
+	Count 	   int    `json:"count"`
 	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
 	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
 	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
@@ -152,6 +155,7 @@ type CreateRequest struct {
 	DaysOfWeek int    `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
 	Amount     int    `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
 	Ref        string `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
+	PaymentRef string `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
 	Status     string `boil:"status" json:"status" toml:"status" yaml:"status"`
 	Channel    string `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
 }
@@ -161,6 +165,17 @@ type UpdateRequest struct {
 	ID     string  `boil:"id" json:"id" validate:"required" yaml:"id"`
 	Ref    *string `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
 	Status *string `boil:"status" json:"status" toml:"status" yaml:"status"`
+}
+
+type SubscriptionItem struct {
+	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
+	ClassID    string `json:"class_id"`
+}
+
+type UpdateStatusRequest struct {
+	ID     string  			  `json:"id" validate:"required" yaml:"id"`
+	Items  []SubscriptionItem `json:"items"`
 }
 
 // ReadRequest defines the information needed to read a checklist.

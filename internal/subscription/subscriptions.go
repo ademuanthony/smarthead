@@ -2,6 +2,7 @@ package subscription
 
 import (
 	"context"
+	"database/sql"
 	"time"
 
 	"remoteschool/smarthead/internal/platform/auth"
@@ -78,8 +79,26 @@ func (repo *Repository) CountActiveSubscriptions(ctx context.Context, studentID 
 	return models.Subscriptions(models.SubscriptionWhere.StudentID.EQ(studentID), 
 	models.SubscriptionWhere.EndDate.GT(now.Unix())).Count(ctx, repo.DbConn)
 }
+
+func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, 
+	now time.Time) (*Subscription, error) {
+		
+	tx, err := repo.DbConn.Begin()
+	if err != nil {
+		return nil, err
+	}
+	resp, err := repo.CreateTx(ctx, tx, claims, req, now)
+	if err != nil {
+		_ = tx.Rollback()
+		return nil, err
+	}
+
+	_ = tx.Commit()
+	return resp, nil
+}
+
 // Create inserts a new subscription into the database.
-func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, now time.Time) (*Subscription, error) {
+func (repo *Repository) CreateTx(ctx context.Context, tx *sql.Tx, claims auth.Claims, req CreateRequest, now time.Time) (*Subscription, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.subscription.Create")
 	defer span.Finish()
 	if claims.Audience == "" {

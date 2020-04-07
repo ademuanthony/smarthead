@@ -1036,6 +1036,23 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// Add payment_ref to deposit table
+		{
+			ID: "20200406-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE deposits
+				ADD payment_ref VARCHAR(64) NOT NULL DEFAULT ''`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
 	}
 }
 
