@@ -14,7 +14,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/student"
 
-	"github.com/pkg/errors"
+	"github.com/pkg/errors" 
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
 )
 
@@ -176,8 +176,8 @@ func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *h
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
-
-	claims, err := auth.ClaimsFromContext(ctx)
+ 
+	claims, err := auth.ClaimsFromContext(ctx) 
 	if err != nil {
 		return err
 	}

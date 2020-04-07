@@ -11,6 +11,7 @@ import (
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/subscription"
 
+	"github.com/davecgh/go-spew/spew"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/boil"
@@ -248,7 +249,7 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 			DepositID: depositModel.ID,
 		}
 	
-		sub, err := repo.SubscriptionRepo.Create(ctx, claims, subReq, now)
+		sub, err := repo.SubscriptionRepo.CreateTx(ctx, tx, claims, subReq, now)
 	
 		if err != nil {
 			_ = tx.Rollback()
@@ -259,10 +260,11 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 	}
 
 	depositModel.Status = StatusSubscribed
-	_, err = depositModel.Update(ctx, repo.DbConn, boil.Infer())
+	_, err = depositModel.Update(ctx, tx, boil.Infer())
 	if err != nil {
 		_ = tx.Rollback()
 		//TODO: log fatal error for admin to resolve
+		return nil, err
 	}
 	
 	if err = tx.Commit(); err != nil {

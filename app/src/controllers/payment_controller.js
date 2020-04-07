@@ -140,6 +140,7 @@ export default class extends Controller {
       'class_id': this.list[0].class_id,
       'period_id': this.list[0].period_id
     }
+    const that = this
     const resp = await axios.post('/payments/initiate', req)
     const result = resp.data
     if (result.error) {
@@ -164,12 +165,20 @@ export default class extends Controller {
         ]
       },
       callback: async function (response) {
-        const resp = await axios.post(`/payments/${response.reference}/update-status`, { items: this.list })
+        let items = []
+        for (let i = 0; i < that.list.length; i++) {
+          items.push({
+            'subject_id': that.list[i].subject_id,
+            'class_id': that.list[i].class_id,
+            'period_id': that.list[i].period_id
+          })
+        }
+        const resp = await axios.post(`/payments/${response.reference}/update-status`, { 'items': items })
         const result = resp.data
         if (result.error) {
           window.alert(result.error)
         }
-        window.alert('Success. Subscription successful, check the subscription table for your lesson start date')
+        window.alert('Success. Subscription successful, check the subscription table for your lesson\' start date')
         // todo: mark payment as succeded and reload the page with a pop for selecting subject and period
         window.location.reload()
       },
