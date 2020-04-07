@@ -205,7 +205,6 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 	payment, err := client.Transaction.Verify(req.ID)
 	if err != nil {
 		// TODO: inform the admin of verification problem
-		panic(err)
 		return nil, err
 	}
 	if int(payment.Amount)*100 < depositModel.Amount {
@@ -225,11 +224,11 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 		return nil, errors.New("payment received but unable to update status. contact admin for help")
 	}
 
-	amount := subscriptionAmount(len(req.Items))
-	if amount > depositModel.Amount {
-		_ = tx.Rollback()
-		return nil, errors.New("Wrong amount received. Please contact the admin for help")
-	}
+	// amount := subscriptionAmount(len(req.Items))
+	// if amount > depositModel.Amount {
+	// 	_ = tx.Rollback()
+	// 	return nil, errors.New("Wrong amount received. Please contact the admin for help")
+	// }
 
 	hoursLeft := (7 - int(now.Weekday())) * 24
 	startDate := now.Add(time.Hour * time.Duration(hoursLeft))
