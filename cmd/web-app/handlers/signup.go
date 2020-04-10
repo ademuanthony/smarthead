@@ -82,7 +82,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 			}
 
 			// Execute the account / user signup.
-			_, err = h.SignupRepo.Signup(ctx, claims, *req, ctxValues.Now)
+			signupResult, err := h.SignupRepo.Signup(ctx, claims, *req, ctxValues.Now)
 			if err != nil {
 				switch errors.Cause(err) {
 				case account.ErrForbidden:
@@ -96,6 +96,8 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 					}
 				}
 			}
+
+			claims.Audience = signupResult.User.ID
 
 			if !isFirst {
 				// create the student account
@@ -141,7 +143,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, ctxValues.Now)
 
 				if err != nil {
-					return false, err //, errors.New("Unable to create free trial for your new account. Please contact the admin")
+					return false, weberror.NewErrorMessage(ctx, err, 400, "Unable to create free trial for your new account. Please contact the admin")
 				}
 
 				maths, err := h.SubjectRepo.MathsID(ctx)
