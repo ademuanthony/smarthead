@@ -141,7 +141,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, ctxValues.Now)
 
 				if err != nil {
-					return false, err, //errors.New("Unable to create free trial for your new account. Please contact the admin")
+					return false, err //, errors.New("Unable to create free trial for your new account. Please contact the admin")
 				}
 
 				maths, err := h.SubjectRepo.MathsID(ctx)
