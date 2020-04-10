@@ -50,7 +50,7 @@ type SignupAccount struct {
 // SignupUser defined the details needed for user.
 type SignupUser struct {
 	FirstName       string `json:"first_name" validate:"required" example:"Gabi"`
-	LastName        string `json:"last_name" validate:"required" example:"May"`
+	LastName        string `json:"last_name" example:"May"`
 	Email           string `json:"email" validate:"required,email,unique" example:"{RANDOM_EMAIL}"`
 	Phone           string `json:"phone" validate:"required"`
 	Password        string `json:"password" validate:"required" example:"SecretString"`

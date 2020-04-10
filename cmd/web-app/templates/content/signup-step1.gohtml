@@ -41,6 +41,7 @@
                                     <div class="col-md-4 col-sm-12">
                                         <select data-target="form.ClassID" class="form-control">
                                             <option value="">Select Class</option>
+                                            {{ $classID =  .form.ClassID }}
                                             {{ range $class := .classes }}
                                             <option value="{{ $class.ID }}">{{ $class.Name }}</option>
                                             {{ end }}
