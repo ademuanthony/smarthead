@@ -39,7 +39,7 @@
                                         {{template "invalid-feedback" dict "fieldName" "User.LastName" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
                                     </div>
                                     <div class="col-md-4 col-sm-12">
-                                        <select data-target="form.ClassID" class="form-control">
+                                        <select name="ClassID" class="form-control">
                                             <option value="">Select Class</option>
                                             {{ $classID =  $.form.ClassID }}
                                             {{ range $class := .classes }}
