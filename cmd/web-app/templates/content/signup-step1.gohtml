@@ -41,7 +41,7 @@
                                     <div class="col-md-4 col-sm-12">
                                         <select name="ClassID" class="form-control">
                                             <option value="">Select Class</option>
-                                            {{ $classID =  $.form.ClassID }}
+                                            {{ $classID :=  $.form.ClassID }}
                                             {{ range $class := .classes }}
                                             <option value="{{ $class.ID }}" {{ if eq $classID $class.ID }}selected{{ end }}>{{ $class.Name }}</option>
                                             {{ end }}
