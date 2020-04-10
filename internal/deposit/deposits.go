@@ -74,6 +74,14 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 	return FromModel(depositModel), nil
 }
 
+func (repo *Repository) TrailDeposit(ctx context.Context) (*Deposit, error) {
+	m, err := models.Deposits(qm.Limit(1)).One(ctx, repo.DbConn)
+	if err != nil {
+		return nil, err
+	}
+	return FromModel(m), nil	
+}
+
 func subscriptionAmount (reqCount int) int {
 	var amount int
 	if (reqCount >= 5) {

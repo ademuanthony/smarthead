@@ -7,6 +7,7 @@ import (
 
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/class"
+	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web"
@@ -33,6 +34,7 @@ type Signup struct {
 	ClassRepo        *class.Repository
 	SubscriptionRepo *subscription.Repository
 	SubjectRepo      *subject.Repository
+	DepositRepo		 *deposit.Repository
 	MasterDB         *sqlx.DB
 	Renderer         web.Renderer
 }
@@ -116,6 +118,10 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				if err != nil {
 					return false, err
 				}
+				trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
+				if err != nil {
+					return false, err
+				}
 				eng, err := h.SubjectRepo.EnglishID(ctx)
 				if err != nil {
 					return false, err
@@ -129,6 +135,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 					PeriodID:  period.ID,
 					SubjectID: eng.ID,
 					ClassID:   s.ClassID,
+					DepositID: trailDeposit.ID,
 				}
 
 				_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, ctxValues.Now)
@@ -149,6 +156,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 					PeriodID:  period.ID,
 					SubjectID: maths.ID,
 					ClassID:   s.ClassID,
+					DepositID: trailDeposit.ID,
 				}
 
 				_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, ctxValues.Now)
