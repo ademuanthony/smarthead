@@ -1075,7 +1075,7 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 			ID: "20200410-04",
 			Migrate: func(tx *sql.Tx) error {
 				q1 := `ALTER TABLE student
-				ADD class_id uuid NOT NULL REFERENCES classes(id)`
+				ADD class_id uuid REFERENCES classes(id)`
 				
 				if _, err := tx.Exec(q1); err != nil {
 					return errors.Wrapf(err, "Query failed %s", q1)
