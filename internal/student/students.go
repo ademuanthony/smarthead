@@ -97,15 +97,15 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 	now = now.UTC().Truncate(time.Millisecond)
 
 	m := models.Student{
-		ID:   uuid.NewRandom().String(),
-		Name: req.Name,
-		Age: req.Age,
-		CurrentClass: req.CurrentClass,
+		ID:          uuid.NewRandom().String(),
+		Name:        req.Name,
+		Age:         req.Age,
+		ClassID:     req.ClassID,
 		ParentEmail: req.ParentEmail,
 		ParentPhone: req.ParentPhone,
-		Username: req.Username,
-		CreatedAt: now,
-		UpdatedAt: now,
+		Username:    req.Username,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
@@ -113,15 +113,15 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 	}
 
 	return &Student{
-		ID:   m.ID,
-		Name: m.Name,
-		Age: m.Age,
-		CurrentClass: m.CurrentClass,
+		ID:          m.ID,
+		Name:        m.Name,
+		Age:         m.Age,
+		ClassID:     m.ClassID,
 		ParentEmail: m.ParentEmail,
 		ParentPhone: m.ParentPhone,
-		Username: m.Username,
-		CreatedAt: now,
-		UpdatedAt: now,
+		Username:    m.Username,
+		CreatedAt:   now,
+		UpdatedAt:   now,
 	}, nil
 }
 
@@ -155,8 +155,8 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 	if req.Age != nil {
 		cols[models.StudentColumns.Age] = *req.Age
 	}
-	if req.CurrentClass != nil {
-		cols[models.StudentColumns.CurrentClass] = *req.CurrentClass
+	if req.ClassID != nil {
+		cols[models.StudentColumns.ClassID] = *req.ClassID
 	}
 	if req.ParentPhone != nil {
 		cols[models.StudentColumns.ParentPhone] = *req.ParentPhone

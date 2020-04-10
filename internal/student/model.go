@@ -4,9 +4,11 @@ import (
 	"context"
 	"time"
 
-	"github.com/jmoiron/sqlx"
+	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
+
+	"github.com/jmoiron/sqlx"
 )
 
 // Repository defines the required dependencies for Branch.
@@ -28,11 +30,14 @@ type Student struct {
 	Username       string    `boil:"username" json:"username" toml:"username" yaml:"username"`
 	Age            int       `boil:"age" json:"age" toml:"age" yaml:"age"`
 	AccountBalance int       `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
-	CurrentClass   int       `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	CurrentClass   string    `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	ClassID        string    `json:"class_id"`
 	ParentPhone    string    `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string    `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
 	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+
+	Class *class.Class `json:"_class"`
 }
 
 func FromModel(rec *models.Student) *Student {
@@ -42,11 +47,17 @@ func FromModel(rec *models.Student) *Student {
 		AccountBalance: rec.AccountBalance,
 		Age:            rec.Age,
 		CreatedAt:      rec.CreatedAt,
-		CurrentClass:   rec.CurrentClass,
+		ClassID:        rec.ClassID,
 		ParentEmail:    rec.ParentEmail,
 		ParentPhone:    rec.ParentPhone,
 		UpdatedAt:      rec.UpdatedAt,
 		Username:       rec.Username,
+	}
+
+	if rec.R != nil {
+		if rec.R.Class != nil {
+			b.Class = class.FromModel(rec.R.Class)
+		}
 	}
 
 	return b
@@ -59,7 +70,8 @@ type Response struct {
 	Username       string           `boil:"username" json:"username" toml:"username" yaml:"username"`
 	Age            int              `boil:"age" json:"age" toml:"age" yaml:"age"`
 	AccountBalance int              `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
-	CurrentClass   int              `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	ClassID        string           `json:"class_id"`
+	CurrentClass   string           `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
 	ParentPhone    string           `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string           `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
 	CreatedAt      web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
@@ -79,11 +91,15 @@ func (m *Student) Response(ctx context.Context) *Response {
 		Username:       m.Username,
 		Age:            m.Age,
 		AccountBalance: m.AccountBalance,
-		CurrentClass:   m.CurrentClass,
+		ClassID:        m.ClassID,
 		ParentEmail:    m.ParentEmail,
 		ParentPhone:    m.ParentPhone,
 		CreatedAt:      web.NewTimeResponse(ctx, m.CreatedAt),
 		UpdatedAt:      web.NewTimeResponse(ctx, m.UpdatedAt),
+	}
+
+	if m.Class != nil {
+		r.CurrentClass = m.Class.Name
 	}
 
 	return r
@@ -110,7 +126,7 @@ type CreateRequest struct {
 	Username       string `json:"username" json:"username" validate:"required" toml:"username" yaml:"username"`
 	Age            int    `json:"age" toml:"age" yaml:"age"`
 	AccountBalance int    `json:"account_balance" toml:"account_balance" yaml:"account_balance"`
-	CurrentClass   int    `json:"current_class" toml:"current_class" yaml:"current_class"`
+	ClassID        string `json:"class_id" toml:"class_id" yaml:"class_id"`
 	ParentPhone    string `json:"parent_phone" validate:"required" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string `json:"parent_email" validate:"required" toml:"parent_email" yaml:"parent_email"`
 }
@@ -131,7 +147,7 @@ type UpdateRequest struct {
 	Username       *string `json:"username"`
 	Age            *int    `json:"age"`
 	AccountBalance *int    `json:"account_balance"`
-	CurrentClass   *int    `json:"current_class"`
+	ClassID        *string `json:"class_id"`
 	ParentPhone    *string `json:"parent_phone"`
 	ParentEmail    *string `json:"parent_email"`
 }

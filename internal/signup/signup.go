@@ -110,3 +110,4 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 
 	return &resp, nil
 }
+

@@ -103,15 +103,15 @@ export default class extends Controller {
     let count = this.list.length
     if (count >= 5) {
       let fives = (count - count % 5) / 5
-      this.cartTotal = 30000 * fives
+      this.cartTotal = 15000 * fives
       count -= fives * 5
     }
     if (count >= 3) {
       let threes = (count - count % 3) / 3
-      this.cartTotal += 20000 * threes
+      this.cartTotal += 12000 * threes
       count -= threes * 3
     }
-    this.cartTotal += (count * 8000)
+    this.cartTotal += (count * 5000)
 
     this.cartTotalTarget.textContent = this.cartTotal
     let savings = (this.list.length * 8000) - this.cartTotal

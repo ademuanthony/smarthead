@@ -11,7 +11,6 @@ import (
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/subscription"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/boil"
@@ -79,15 +78,15 @@ func subscriptionAmount (reqCount int) int {
 	var amount int
 	if (reqCount >= 5) {
 		fives := (reqCount - reqCount % 5) / 5
-		amount = 3000000 * fives
+		amount = 1500000 * fives
 		reqCount -= fives * 5
 	  }
 	  if (reqCount >= 3) {
 		threes := (reqCount - reqCount % 3) / 3
-		amount += 2000000 * threes
+		amount += 1200000 * threes
 		reqCount -= threes * 3
 	  }
-	  amount += reqCount * 800000
+	  amount += reqCount * 500000
 
 	  return amount
 }
@@ -231,8 +230,7 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 	// 	return nil, errors.New("Wrong amount received. Please contact the admin for help")
 	// }
 
-	hoursLeft := (7 - int(now.Weekday())) * 24
-	startDate := now.Add(time.Hour * time.Duration(hoursLeft))
+	startDate := subscription.NextMonday(now)
 	endDate := startDate.Add(30 * 24 * time.Hour)
 
 	var subs []*subscription.Subscription

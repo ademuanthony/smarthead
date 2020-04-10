@@ -1053,6 +1053,40 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// Add school_order to classes table
+		{
+			ID: "20200410-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE classes
+				ADD school_order INT NOT NULL DEFAULT 0`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
+		// Add class_id to student table
+		{
+			ID: "20200410-04",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE student
+				ADD class_id uuid NOT NULL REFERENCES classes(id)`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
 	}
 }
 

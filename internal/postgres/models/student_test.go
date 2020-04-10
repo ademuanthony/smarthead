@@ -1283,6 +1283,114 @@ func testStudentToManyAddOpSubscriptions(t *testing.T) {
 		}
 	}
 }
+func testStudentToOneClassUsingClass(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Student
+	var foreign Class
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, studentDBTypes, false, studentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Student struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, classDBTypes, false, classColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Class struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	local.ClassID = foreign.ID
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Class().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if check.ID != foreign.ID {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := StudentSlice{&local}
+	if err = local.L.LoadClass(ctx, tx, false, (*[]*Student)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Class == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Class = nil
+	if err = local.L.LoadClass(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Class == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
+func testStudentToOneSetOpClassUsingClass(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Student
+	var b, c Class
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, studentDBTypes, false, strmangle.SetComplement(studentPrimaryKeyColumns, studentColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, classDBTypes, false, strmangle.SetComplement(classPrimaryKeyColumns, classColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, classDBTypes, false, strmangle.SetComplement(classPrimaryKeyColumns, classColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Class{&b, &c} {
+		err = a.SetClass(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Class != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Students[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if a.ClassID != x.ID {
+			t.Error("foreign key was wrong value", a.ClassID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.ClassID))
+		reflect.Indirect(reflect.ValueOf(&a.ClassID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if a.ClassID != x.ID {
+			t.Error("foreign key was wrong value", a.ClassID, x.ID)
+		}
+	}
+}
 
 func testStudentsReload(t *testing.T) {
 	t.Parallel()
@@ -1358,7 +1466,7 @@ func testStudentsSelect(t *testing.T) {
 }
 
 var (
-	studentDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `Username`: `character varying`, `Age`: `integer`, `AccountBalance`: `integer`, `CurrentClass`: `integer`, `ParentPhone`: `character varying`, `ParentEmail`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
+	studentDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `Username`: `character varying`, `Age`: `integer`, `AccountBalance`: `integer`, `CurrentClass`: `integer`, `ParentPhone`: `character varying`, `ParentEmail`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `ClassID`: `uuid`}
 	_              = bytes.MinRead
 )
 

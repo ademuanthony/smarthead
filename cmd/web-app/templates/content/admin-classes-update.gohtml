@@ -28,13 +28,22 @@
                 </div>
 
                 <div class="row">
-                    <div class="col-md-12">
+                    <div class="col-md-6">
                         <div class="form-group">
                             <label for="inputName">Name</label>
                             <input type="text" id="inputName"
                                    class="form-control {{ ValidationFieldClass $.validationErrors "Name" }}"
                                    placeholder="enter name" name="Name" value="{{ .form.Name }}" required>
                             {{template "invalid-feedback" dict "fieldName" "Name" "validationDefaults" $.userValidationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputName">School Order</label>
+                            <input type="text" id="inputName"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "SchoolOrder" }}"
+                                   placeholder="enter school order" name="SchoolOrder" value="{{ .form.SchoolOrder }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "SchoolOrder" "validationDefaults" $.userValidationDefaults "validationErrors" $.validationErrors }}
                         </div>
                     </div>
                 </div>

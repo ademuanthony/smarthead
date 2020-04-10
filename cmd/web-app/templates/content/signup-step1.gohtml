@@ -26,18 +26,27 @@
                                     <h2 class="h5 text-gray-900 mt-3 mb-3">Your User details</h2>
                                 </div>
                                 <div class="form-group row"> 
-                                    <div class="col-sm-6 mb-3 mb-sm-0">
+                                    <div class="col-md-4 col-sm-6 mb-3 mb-sm-0">
                                         <input type="text"
                                                class="form-control form-control-user {{ ValidationFieldClass $.validationErrors "User.FirstName" }}"
                                                name="User.FirstName" value="{{ $.form.User.FirstName }}" placeholder="First Name" required>
                                         {{template "invalid-feedback" dict "fieldName" "User.FirstName" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
                                     </div>
-                                    <div class="col-sm-6">
+                                    <div class="col-md-4 col-sm-6">
                                         <input type="text"
                                                class="form-control form-control-user {{ ValidationFieldClass $.validationErrors "User.LastName" }}"
                                                name="User.LastName" value="{{ $.form.User.LastName }}" placeholder="Last Name" required>
                                         {{template "invalid-feedback" dict "fieldName" "User.LastName" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
                                     </div>
+                                    <div class="col-md-4 col-sm-12">
+                                        <select data-target="form.ClassID" class="form-control">
+                                            <option value="">Select Class</option>
+                                            {{ range $class := .classes }}
+                                            <option value="{{ $class.ID }}">{{ $class.Name }}</option>
+                                            {{ end }}
+                                        </select>
+                                        {{template "invalid-feedback" dict "fieldName" "ClassID" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                                   </div>
                                 </div>
                                 <div class="form-group row">
                                     <div class="col-sm-12 mb-sm-0">

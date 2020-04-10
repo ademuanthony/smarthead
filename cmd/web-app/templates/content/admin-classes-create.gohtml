@@ -31,6 +31,15 @@
                             {{template "invalid-feedback" dict "fieldName" "Name" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
                         </div>
                     </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="inputName">School Order</label>
+                            <input type="text" id="inputName"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "SchoolOrder" }}"
+                                   placeholder="Enter a name for the class" name="SchoolOrder" value="{{ .form.SchoolOrder }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "SchoolOrder" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

@@ -431,6 +431,84 @@ func testClassToManyDeposits(t *testing.T) {
 	}
 }
 
+func testClassToManyStudents(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Class
+	var b, c Student
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, classDBTypes, true, classColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Class struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, studentDBTypes, false, studentColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, studentDBTypes, false, studentColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.ClassID = a.ID
+	c.ClassID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.Students().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.ClassID == b.ClassID {
+			bFound = true
+		}
+		if v.ClassID == c.ClassID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := ClassSlice{&a}
+	if err = a.L.LoadStudents(ctx, tx, false, (*[]*Class)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Students); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.Students = nil
+	if err = a.L.LoadStudents(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.Students); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testClassToManySubscriptions(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -576,6 +654,81 @@ func testClassToManyAddOpDeposits(t *testing.T) {
 		}
 
 		count, err := a.Deposits().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testClassToManyAddOpStudents(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Class
+	var b, c, d, e Student
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, classDBTypes, false, strmangle.SetComplement(classPrimaryKeyColumns, classColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Student{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, studentDBTypes, false, strmangle.SetComplement(studentPrimaryKeyColumns, studentColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Student{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddStudents(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.ClassID {
+			t.Error("foreign key was wrong value", a.ID, first.ClassID)
+		}
+		if a.ID != second.ClassID {
+			t.Error("foreign key was wrong value", a.ID, second.ClassID)
+		}
+
+		if first.R.Class != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Class != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.Students[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.Students[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.Students().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -734,7 +887,7 @@ func testClassesSelect(t *testing.T) {
 }
 
 var (
-	classDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`}
+	classDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `SchoolOrder`: `integer`}
 	_            = bytes.MinRead
 )
 

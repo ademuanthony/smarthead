@@ -1,0 +1,166 @@
+{{define "title"}}Surebank{{end}}
+{{define "description"}}The best features for streamlining your businesses processes to increase performance and efficiency.{{end}}
+{{define "style"}}
+
+{{end}}
+{{ define "content" }}
+        <div id="myCarousel" class="carousel slide" data-ride="carousel">
+            <ol class="carousel-indicators">
+                <li data-target="#myCarousel" data-slide-to="0" class="active"></li>
+                <li data-target="#myCarousel" data-slide-to="1"></li>
+            </ol>
+            <div class="carousel-inner">
+                <div class="carousel-item active">
+                    <img class="first-slide" src="https://dzuyel7n94hma.cloudfront.net/accelerator/img/saas-starter-kit-banner-01.png" style="width:100%;min-height: 500px" alt="First slide">
+                    <div class="container">
+                        <div class="carousel-caption text-center">
+                            <h1>Free English and Mathematics Lesson</h1>
+                            <p>Online interactive Mathematics and English lesson for all students. </p>
+
+                             <a href="#free-lessons" class="btn btn-primary">Get Started for Free</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="carousel-item">
+                    <img class="second-slide" src="https://dzuyel7n94hma.cloudfront.net/accelerator/img/saas-starter-kit-banner-02.png" style="width:100%;min-height: 500px" alt="Second slide">
+                    <div class="container">
+                        <div class="carousel-caption text-left">
+                            <h1>Remote Online Lessons</h1>
+                            <p>There is no need for your child to meet the teacher physically. Our platform create an online learning eviroment that 
+                            give the same experience as physical classroom. </p>
+                            <p><a class="btn btn-lg btn-primary" href="/signup" role="button">Sign up today</a></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <a class="carousel-control-prev" href="#myCarousel" role="button" data-slide="prev">
+                <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                <span class="sr-only">Previous</span>
+            </a>
+            <a class="carousel-control-next" href="#myCarousel" role="button" data-slide="next">
+                <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                <span class="sr-only">Next</span>
+            </a>
+        </div>
+
+        <div class="container" id="page-content" >
+            <div id="free-lessons" class="row">
+                <div class="col-md-12 text-center">
+                    <hr class="mt-5"/>
+                                <h2 class="d-none d-md-block mt-5">Learn for Free</h2>
+                                <p>No commitment required. Get enrolled to join our next free classes and see for yourself</p>
+                                <form method="post" action="signup">
+                                    <div class="form-row">
+                                        <div class="col-md-3 col-sm-12 mt-3">
+                                            <select name="User.Class" data-target="payment.class" class="form-control">
+                                                <option value="">Select Class</option>
+                                                {{ range $class := .classes }}
+                                                <option value="{{ $class.ID }}">{{ $class.Name }}</option>
+                                                {{ end }}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 mt-3">
+                                            <input name="User.FirstName" type="text" class="form-control" placeholder="First Name">
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 mt-3">
+                                            <input name="User.Email" type="text" class="form-control" placeholder="Email">
+                                        </div>
+                                        <div class="col-md-3 col-sm-12 mt-3">
+                                            <input name="User.Phone" type="text" class="form-control" placeholder="Phone Number">
+                                        </div>
+                                    </div>
+                                    <input type="submit" class="btb btn-danger btn-lg mt-3" value="Start Learning">
+                                </form>
+                            </div>
+            </div>
+            
+             <hr/>
+            <div class="row">
+                <div class="col-md-12">
+                    <div class="d-none d-md-block">
+                                <h1 class="text-center">Enjoy world class interactive class 
+                                from the <br/>comfort of your home</h1>
+                                <p>Imagine the serenity, convenience and the satisfaction your child will derive
+                                from learning at his/her pace in the comfort of your house. 
+                                The world has
+                                become a global village and your child may not need to be confined within the
+                                four walls of a school building anymore in order to learn. Remoteschool.com.ng has
+                                got the answer.</p>
+                            </div>
+                            <div class="d-none d-md-block">
+                                <h2 class="text-center">100% Teaching and Learnig website</h2>
+                                <p>
+                                    We bring this technology to your doorstep. Your child does not need the presence of a home teacher to learn.<br/>
+                                    Out platform provides a 100% remote learning environment that gives the same 
+                                    interactive experience available in a physical class.
+                                </p>
+
+                                <p class="text-center"><a href="#free-lessons" class="btn btn-primary">Get Started for Free</a></p>
+                            </div>
+                </div>
+            </div>
+        
+            <div class="row mt-5">
+        
+                <div class="col-lg-4 text-center">
+                    <img class="" src="{{ SiteAssetUrl "/images/Icon_The_Best_Tutors.png" }}" alt="Image of teachers" width="140" height="140">
+                    <h2 class="text-center">Our teachers</h2>
+                    <p class="text-center">
+                    Our teachers goes through a highly effective screening process.
+                    We selectively recruit experienced, qualified and ICT inclined teachers with not less
+                    5years of teaching experience.</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <img class="text-center" src="{{ SiteAssetUrl "/images/Icon_Personalized.png" }}" alt="Personalized experience" width="140" height="140">
+                    <h2 class="text-center">Personalized</h2>
+                    <p class="text-center">Every session give learner opportunity to learn and collaborate with other learners across the globe. There is no overcrowding of classes we maintain a maximum of five(5) students per class.</p>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <img class="text-center" src="{{ SiteAssetUrl "/images/Icon_Variety_of_Subjects.png" }}" alt="Variety of subjects" width="140" height="140">
+                    <h2 class="text-center">Variety of Subjects</h2>
+                    <p class="text-center">Our teaching/learning school cover nusery, primary, secondary and others with focus on basic certifcate examination such common entrance, WAEC, NECO, NABTEB etc)</p>
+                </div>
+            </div>
+
+            <div class="row mt-5">
+                <div class="col-sm-12">
+                    <h3 class="text-center">What do you want to learn? We've got you covered</h3>					
+                    <hr>
+                    <div class="row gotyou-covered">
+                        <div class="col-sm-4">
+                            <ul>
+                                <li class="category-link"><a href="/signup"><b>Upper Primary</b></a></li>
+                                <li><a href="/signup">Mathematics</a></li>
+                                <li><a href="/signup">Verbal/ Quantitive reasoning</a></li>
+                                <li><a href="/signup">English language</a></li>
+                                <li><a href="/signup">more...</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-4">
+                            <ul>
+                                <li class="category-link"><a href="/signup"><b>Junior secondary</b></a></li>
+                                <li><a href="/signup">Mathematics</a></li>
+                                <li><a href="/signup">Basic science</a></li>
+                                <li><a href="/signup">Basic Technology</a></li>
+                                <li><a href="/signup">more...</a></li>
+                            </ul>
+                        </div>
+                        <div class="col-sm-4">
+                            <ul>
+                                <li class="category-link"><a href="/subjects"><b>Senior secondary</b></a></li>
+                                <li><a href="/signup">Mathematics</a></li>
+                                <li><a href="/signup">Physics</a></li>
+                                <li><a href="/signup">Biology</a></li>
+                                <li><a href="/signup">More...</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+{{end}}
+{{define "js"}}
+
+{{end}}
+

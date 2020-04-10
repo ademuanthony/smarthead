@@ -29,13 +29,14 @@ func NewRepository(db *sqlx.DB, user *user.Repository, userAccount *user_account
 
 // SignupRequest contains information needed perform signup.
 type SignupRequest struct {
+	ClassID string        `json:"class_id"`
 	Account SignupAccount `json:"account" validate:"required"` // Account details.
 	User    SignupUser    `json:"user" validate:"required"`    // User details.
 }
 
 // SignupAccount defined the details needed for account.
 type SignupAccount struct {
-	ID		 string  `json:"-"`
+	ID       string  `json:"-"`
 	Name     string  `json:"name" validate:"required,unique" example:"Company {RANDOM_UUID}"`
 	Address1 string  `json:"address1" validate:"required" example:"221 Tatitlek Ave"`
 	Address2 string  `json:"address2" validate:"omitempty" example:"Box #1832"`
@@ -51,7 +52,7 @@ type SignupUser struct {
 	FirstName       string `json:"first_name" validate:"required" example:"Gabi"`
 	LastName        string `json:"last_name" validate:"required" example:"May"`
 	Email           string `json:"email" validate:"required,email,unique" example:"{RANDOM_EMAIL}"`
-	Phone			string  `json:"phone" validate:"required"`
+	Phone           string `json:"phone" validate:"required"`
 	Password        string `json:"password" validate:"required" example:"SecretString"`
 	PasswordConfirm string `json:"password_confirm" validate:"required,eqfield=Password" example:"SecretString"`
 }

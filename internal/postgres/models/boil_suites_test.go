@@ -161,6 +161,7 @@ func TestToOne(t *testing.T) {
 	t.Run("DepositToPeriodUsingPeriod", testDepositToOnePeriodUsingPeriod)
 	t.Run("DepositToStudentUsingStudent", testDepositToOneStudentUsingStudent)
 	t.Run("DepositToSubjectUsingSubject", testDepositToOneSubjectUsingSubject)
+	t.Run("StudentToClassUsingClass", testStudentToOneClassUsingClass)
 	t.Run("SubscriptionToClassUsingClass", testSubscriptionToOneClassUsingClass)
 	t.Run("SubscriptionToDepositUsingDeposit", testSubscriptionToOneDepositUsingDeposit)
 	t.Run("SubscriptionToPeriodUsingPeriod", testSubscriptionToOnePeriodUsingPeriod)
@@ -176,6 +177,7 @@ func TestOneToOne(t *testing.T) {}
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
 	t.Run("ClassToDeposits", testClassToManyDeposits)
+	t.Run("ClassToStudents", testClassToManyStudents)
 	t.Run("ClassToSubscriptions", testClassToManySubscriptions)
 	t.Run("DepositToSubscriptions", testDepositToManySubscriptions)
 	t.Run("PeriodToDeposits", testPeriodToManyDeposits)
@@ -203,6 +205,7 @@ func TestToOneSet(t *testing.T) {
 	t.Run("DepositToPeriodUsingDeposits", testDepositToOneSetOpPeriodUsingPeriod)
 	t.Run("DepositToStudentUsingDeposits", testDepositToOneSetOpStudentUsingStudent)
 	t.Run("DepositToSubjectUsingDeposits", testDepositToOneSetOpSubjectUsingSubject)
+	t.Run("StudentToClassUsingStudents", testStudentToOneSetOpClassUsingClass)
 	t.Run("SubscriptionToClassUsingSubscriptions", testSubscriptionToOneSetOpClassUsingClass)
 	t.Run("SubscriptionToDepositUsingSubscriptions", testSubscriptionToOneSetOpDepositUsingDeposit)
 	t.Run("SubscriptionToPeriodUsingSubscriptions", testSubscriptionToOneSetOpPeriodUsingPeriod)
@@ -229,6 +232,7 @@ func TestOneToOneRemove(t *testing.T) {}
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
 	t.Run("ClassToDeposits", testClassToManyAddOpDeposits)
+	t.Run("ClassToStudents", testClassToManyAddOpStudents)
 	t.Run("ClassToSubscriptions", testClassToManyAddOpSubscriptions)
 	t.Run("DepositToSubscriptions", testDepositToManyAddOpSubscriptions)
 	t.Run("PeriodToDeposits", testPeriodToManyAddOpDeposits)

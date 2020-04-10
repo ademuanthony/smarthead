@@ -203,7 +203,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register student management pages.
 	subscription := Subscriptions{
-		Repo:        appCtx.SubscriptionRepo, 
+		Repo:        appCtx.SubscriptionRepo,
 		StudentRepo: appCtx.StudentRepo,
 		Redis:       appCtx.Redis,
 		Renderer:    appCtx.Renderer,
@@ -225,7 +225,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("POST", "/payments/initiate", deposit.Initiate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("POST", "/payments/:deposit_id/update-status", deposit.UpdateStatus, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
-	// Register user management pages. 
+	// Register user management pages.
 	us := Users{
 		UserRepo:        appCtx.UserRepo,
 		UserAccountRepo: appCtx.UserAccountRepo,
@@ -292,12 +292,15 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register signup endpoints.
 	s := Signup{
-		AccountRepo: appCtx.AccountRepo,
-		SignupRepo:  appCtx.SignupRepo,
-		AuthRepo:    appCtx.AuthRepo,
-		GeoRepo:     appCtx.GeoRepo,
-		StudentRepo: appCtx.StudentRepo,
-		Renderer:    appCtx.Renderer,
+		AccountRepo:      appCtx.AccountRepo,
+		SignupRepo:       appCtx.SignupRepo,
+		AuthRepo:         appCtx.AuthRepo,
+		GeoRepo:          appCtx.GeoRepo,
+		StudentRepo:      appCtx.StudentRepo,
+		ClassRepo:        appCtx.ClassRepo,
+		SubjectRepo:      appCtx.SubjectRepo,
+		SubscriptionRepo: appCtx.SubscriptionRepo,
+		Renderer:         appCtx.Renderer,
 	}
 	// This route is not authenticated
 	app.Handle("POST", "/signup", s.Step1)

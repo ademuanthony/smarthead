@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"time"
 
+	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/postgres/models"
@@ -172,4 +173,18 @@ func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req Dele
 	}
 
 	return nil
+}
+
+func (repo *Repository) TrailPeriodID(ctx context.Context) (*period.Period, error) {
+	p, err := models.Periods(qm.Limit(1)).One(ctx, repo.DbConn)
+	if err != nil {
+		return nil, err
+	}
+
+	return period.FromModel(p), nil
+}
+
+func NextMonday(now time.Time) time.Time {
+	hoursLeft := ((8 - int(now.Weekday())) % 7) * 24
+	return now.Add(time.Hour * time.Duration(hoursLeft))
 }

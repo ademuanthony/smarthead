@@ -68,6 +68,9 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 
 	data := map[string]interface{}{}
 
+	r.ParseForm()
+	data["isNew"] = r.FormValue("s") == "new"
+	
 	currentStudent, err := h.StudentRepo.CurrentStudent(ctx, claims)
 	if err != nil {
 		return err
@@ -91,7 +94,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 
 
 	subjects, err := h.SubjectRepo.Find(ctx, claims, subject.FindRequest{
-		Order: []string{"name"},
+		Order: []string{"school_order", "name"},
 	})
 	if err != nil {
 		return err
@@ -119,7 +122,15 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 
 // indexDefault loads the root index page when a user has no authentication.
 func (h *Root) indexDefault(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
-	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "site-index.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
+	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
+		Order: []string{"school_order", "name"},
+	})
+	if err != nil {
+		return err
+	}
+	data := map[string]interface{}{}
+	data["classes"] = classes
+	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "site-default.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 // SitePage loads the page with the layout for site instead of the app base.

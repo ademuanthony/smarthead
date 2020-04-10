@@ -67,6 +67,28 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 	return FromModel(subjectModel), nil
 }
 
+func (repo *Repository) EnglishID(ctx context.Context) (*Subject, error) {
+	m, err := models.Subjects(
+		models.SubjectWhere.Name.EQ("English Language"),
+	).One(ctx, repo.DbConn)
+	if err != nil {
+		return nil, err
+	}
+
+	return FromModel(m), nil
+}
+
+func (repo *Repository) MathsID(ctx context.Context) (*Subject, error) {
+	m, err := models.Subjects(
+		models.SubjectWhere.Name.EQ("Mathematics"),
+	).One(ctx, repo.DbConn)
+	if err != nil {
+		return nil, err
+	}
+
+	return FromModel(m), nil
+}
+
 // Create inserts a new subject into the database.
 func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest) (*Subject, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.subject.Create")
