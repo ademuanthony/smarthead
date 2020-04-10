@@ -13,6 +13,7 @@ import (
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
@@ -77,7 +78,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	}
 
 	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
-		Order: []string{"name"},
+		Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
 	})
 	if err != nil {
 		return err
@@ -94,7 +95,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 
 
 	subjects, err := h.SubjectRepo.Find(ctx, claims, subject.FindRequest{
-		Order: []string{"school_order", "name"},
+		Order: []string{"name"},
 	})
 	if err != nil {
 		return err
