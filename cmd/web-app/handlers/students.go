@@ -40,8 +40,8 @@ func urlStudentsUpdate(subjectID string) string {
 	return fmt.Sprintf("/admin/students/%s/update", subjectID)
 }
 
-func urlStudentsDownload(subjectID string) string {
-	return fmt.Sprintf("/admin/students/download", subjectID)
+func urlStudentsDownload() string {
+	return fmt.Sprintf("/admin/students/download")
 }
 
 
@@ -142,6 +142,7 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 		"datatable":         dt.Response(),
 		"urlSubjectsCreate": urlSubjectsCreate(),
 		"urlSubjectsIndex":  urlSubjectsIndex(),
+		"urlStudentsDownload": urlStudentsDownload(),
 	}
 
 
