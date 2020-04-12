@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"strings"
@@ -9,6 +11,7 @@ import (
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/datatable"
 	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subscription"
 
@@ -34,6 +37,10 @@ func urlSubscriptionsView(subjectID string) string {
 
 func urlSubscriptionsUpdate(subjectID string) string {
 	return fmt.Sprintf("/admin/subscriptions/%s/update", subjectID)
+}
+
+func urlSubscriptionsDownload() string {
+	return fmt.Sprintf("/admin/subscriptions/download")
 }
 
 // Index handles listing all the subscriptions.
@@ -135,6 +142,7 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 	data := map[string]interface{}{
 		"datatable":             dt.Response(),
 		"urlSubscriptionsIndex": urlSubscriptionsIndex(),
+		"urlSubscriptionsDownload": urlSubscriptionsDownload(),
 	}
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subscriptions-index.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
@@ -264,4 +272,41 @@ func (h *Subscriptions) View(ctx context.Context, w http.ResponseWriter, r *http
 	data["urlSubscriptionsView"] = urlSubscriptionsView(studentID)
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subscriptions-view.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+}
+
+
+func (h *Subscriptions) Download(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	claims, err := auth.ClaimsFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	subs, err := h.Repo.Find(ctx, claims, subscription.FindRequest{
+		Order: []string{"name"},
+	})
+	if err != nil {
+		return err
+	}
+	b := &bytes.Buffer{}
+    csvWriter := csv.NewWriter(b)
+
+    if err := csvWriter.Write([]string{"Name", "Subject", "Period", "CLass", "Start Date", "End Date"}); err != nil {
+        weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
+    }
+
+	res := subs.Response(ctx)
+	for _, st := range res {
+		var records = []string{st.Student, st.Subject, st.Period, st.Class, st.StartDate.Date, st.EndDate.Date}
+		if err := csvWriter.Write(records); err != nil {
+			weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
+		}
+	}
+	 
+	csvWriter.Flush()
+
+    if err := csvWriter.Error(); err != nil {
+        return err
+	}
+	
+	return web.Respond(ctx, w, b.Bytes(), 200, "text/csv")
 }

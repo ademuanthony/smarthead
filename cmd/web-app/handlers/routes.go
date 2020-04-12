@@ -209,6 +209,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		Redis:       appCtx.Redis,
 		Renderer:    appCtx.Renderer,
 	}
+	app.Handle("GET", "/admin/subscriptions/download", subscription.Download, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/subscriptions/:subscription_id", subscription.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/subscriptions", subscription.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/subscriptions", subscription.My, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
