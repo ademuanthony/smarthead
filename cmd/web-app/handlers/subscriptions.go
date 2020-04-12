@@ -282,7 +282,7 @@ func (h *Subscriptions) Download(ctx context.Context, w http.ResponseWriter, r *
 	}
 
 	subs, err := h.Repo.Find(ctx, claims, subscription.FindRequest{
-		Order: []string{"name"},
+		Order: []string{},
 	})
 	if err != nil {
 		return err
