@@ -18,10 +18,12 @@
 {{ end }}
 {{ define "partials/datatable/style" }}
     <link href="{{ SiteAssetUrl "/assets/vendor/datatables/dataTables.bootstrap4.min.css" }}" rel="stylesheet">
+    <link href="https://cdn.datatables.net/buttons/1.6.1/css/buttons.dataTables.min.css" rel="stylesheet">
 {{ end }}
 {{ define "partials/datatable/js" }}
     <!-- This is data table -->
     <script src="{{ SiteAssetUrl "/assets/vendor/datatables/jquery.dataTables.min.js" }}"></script>
+    
     <script>
         $(document).ready(function() {
             var dtbl = $('#dataTable').DataTable( {
