@@ -47,7 +47,7 @@ func FromModel(rec *models.Student) *Student {
 		AccountBalance: rec.AccountBalance,
 		Age:            rec.Age,
 		CreatedAt:      rec.CreatedAt,
-		ClassID:        rec.ClassID,
+		ClassID:        rec.ClassID.String,
 		ParentEmail:    rec.ParentEmail,
 		ParentPhone:    rec.ParentPhone,
 		UpdatedAt:      rec.UpdatedAt,

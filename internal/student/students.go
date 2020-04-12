@@ -10,6 +10,7 @@ import (
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
@@ -100,7 +101,7 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 		ID:          uuid.NewRandom().String(),
 		Name:        req.Name,
 		Age:         req.Age,
-		ClassID:     req.ClassID,
+		ClassID:     null.StringFrom(req.ClassID),
 		ParentEmail: req.ParentEmail,
 		ParentPhone: req.ParentPhone,
 		Username:    req.Username,
@@ -116,7 +117,7 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 		ID:          m.ID,
 		Name:        m.Name,
 		Age:         m.Age,
-		ClassID:     m.ClassID,
+		ClassID:     m.ClassID.String,
 		ParentEmail: m.ParentEmail,
 		ParentPhone: m.ParentPhone,
 		Username:    m.Username,
