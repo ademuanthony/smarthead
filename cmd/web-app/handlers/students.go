@@ -1,7 +1,9 @@
 package handlers
 
 import (
+	"bytes"
 	"context"
+	"encoding/csv"
 	"fmt"
 	"net/http"
 	"strings"
@@ -37,6 +39,12 @@ func urlStudentsView(subjectID string) string {
 func urlStudentsUpdate(subjectID string) string {
 	return fmt.Sprintf("/admin/students/%s/update", subjectID)
 }
+
+func urlStudentsDownload(subjectID string) string {
+	return fmt.Sprintf("/admin/students/download", subjectID)
+}
+
+
 
 // Index handles listing all the students for the current account.
 func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
@@ -136,7 +144,44 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 		"urlSubjectsIndex":  urlSubjectsIndex(),
 	}
 
+
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-students-index.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+}
+
+func (h *Students) Download(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	claims, err := auth.ClaimsFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	res, err := h.Repo.Find(ctx, claims, student.FindRequest{
+		Order: []string{"name"},
+	})
+	if err != nil {
+		return err
+	}
+	b := &bytes.Buffer{}
+    csvWriter := csv.NewWriter(b)
+
+    if err := csvWriter.Write([]string{"Name", "Email", "Phone", "CLass"}); err != nil {
+        weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
+    }
+
+	
+	for _, st := range res {
+		var records = []string{st.Name, st.ParentEmail, st.ParentPhone, st.CurrentClass}
+		if err := csvWriter.Write(records); err != nil {
+			weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
+		}
+	}
+	 
+	csvWriter.Flush()
+
+    if err := csvWriter.Error(); err != nil {
+        return err
+	}
+	
+	return web.Respond(ctx, w, b.Bytes(), 200, "text/csv")
 }
 
 // View handles displaying a subjects.
