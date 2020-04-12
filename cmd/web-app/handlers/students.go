@@ -74,7 +74,7 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 				v.Value = fmt.Sprintf("%d", q.Age)
 				v.Formatted = v.Value
 			case "current_class":
-				v.Value = fmt.Sprintf("%d", q.CurrentClass)
+				v.Value = q.CurrentClass
 				v.Formatted = v.Value
 			case "parent_phone":
 				v.Value = q.ParentPhone
