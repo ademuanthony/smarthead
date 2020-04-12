@@ -85,6 +85,28 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	}
 	data["classes"] = classes
 
+	// wget -qO- https://ubuntu.bigbluebutton.org/bbb-install.sh | bash -s platform.remoteschool.com.ng
+	// ./bbb-install.sh -v xenial-220 -s platform.remoteschool.com.ng -e ademuanthony@gmail.com
+	// nortwestsouthnigeriaafricaebulokoimankonig
+	// /etc/letsencrypt/live/turn.remoteschool.com.ng/fullchain.pem
+	// /etc/letsencrypt/live/turn.remoteschool.com.ng/privkey.pem
+	// "ECDH+AESGCM:ECDH+CHACHA20:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS"
+
+	// /etc/letsencrypt/live/app.remoteschool.com.ng/
+	/*
+	listen 443 ssl;
+	listen [::]:443 ssl;
+
+	ssl_certificate /etc/letsencrypt/live/app.remoteschool.com.ng/fullchain.pem;
+	ssl_certificate_key /etc/letsencrypt/live/app.remoteschool.com.ng/privkey.pem;
+	ssl_session_cache shared:SSL:10m;
+	ssl_session_timeout 10m;
+	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+	ssl_ciphers "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS:!AES256";
+	ssl_prefer_server_ciphers on;
+	ssl_dhparam /etc/nginx/ssl/dhp-4096.pem;
+	*/
+
 	periods, err := h.PeriodRepo.Find(ctx, claims, period.FindRequest{
 		Order: []string{"start_hour"},
 	})

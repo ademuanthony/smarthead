@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -23,17 +24,17 @@ import (
 
 // Student is an object representing the database table.
 type Student struct {
-	ID             string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name           string    `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Username       string    `boil:"username" json:"username" toml:"username" yaml:"username"`
-	Age            int       `boil:"age" json:"age" toml:"age" yaml:"age"`
-	AccountBalance int       `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
-	CurrentClass   int       `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
-	ParentPhone    string    `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
-	ParentEmail    string    `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
-	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	ClassID        string    `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
+	ID             string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name           string      `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Username       string      `boil:"username" json:"username" toml:"username" yaml:"username"`
+	Age            int         `boil:"age" json:"age" toml:"age" yaml:"age"`
+	AccountBalance int         `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
+	CurrentClass   int         `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	ParentPhone    string      `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
+	ParentEmail    string      `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
+	CreatedAt      time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt      time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ClassID        null.String `boil:"class_id" json:"class_id,omitempty" toml:"class_id" yaml:"class_id,omitempty"`
 
 	R *studentR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L studentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -78,7 +79,7 @@ var StudentWhere = struct {
 	ParentEmail    whereHelperstring
 	CreatedAt      whereHelpertime_Time
 	UpdatedAt      whereHelpertime_Time
-	ClassID        whereHelperstring
+	ClassID        whereHelpernull_String
 }{
 	ID:             whereHelperstring{field: "\"student\".\"id\""},
 	Name:           whereHelperstring{field: "\"student\".\"name\""},
@@ -90,7 +91,7 @@ var StudentWhere = struct {
 	ParentEmail:    whereHelperstring{field: "\"student\".\"parent_email\""},
 	CreatedAt:      whereHelpertime_Time{field: "\"student\".\"created_at\""},
 	UpdatedAt:      whereHelpertime_Time{field: "\"student\".\"updated_at\""},
-	ClassID:        whereHelperstring{field: "\"student\".\"class_id\""},
+	ClassID:        whereHelpernull_String{field: "\"student\".\"class_id\""},
 }
 
 // StudentRels is where relationship names are stored.
@@ -340,7 +341,9 @@ func (studentL) LoadClass(ctx context.Context, e boil.ContextExecutor, singular 
 		if object.R == nil {
 			object.R = &studentR{}
 		}
-		args = append(args, object.ClassID)
+		if !queries.IsNil(object.ClassID) {
+			args = append(args, object.ClassID)
+		}
 
 	} else {
 	Outer:
@@ -350,12 +353,14 @@ func (studentL) LoadClass(ctx context.Context, e boil.ContextExecutor, singular 
 			}
 
 			for _, a := range args {
-				if a == obj.ClassID {
+				if queries.Equal(a, obj.ClassID) {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.ClassID)
+			if !queries.IsNil(obj.ClassID) {
+				args = append(args, obj.ClassID)
+			}
 
 		}
 	}
@@ -402,7 +407,7 @@ func (studentL) LoadClass(ctx context.Context, e boil.ContextExecutor, singular 
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.ClassID == foreign.ID {
+			if queries.Equal(local.ClassID, foreign.ID) {
 				local.R.Class = foreign
 				if foreign.R == nil {
 					foreign.R = &classR{}
@@ -835,7 +840,7 @@ func (o *Student) SetClass(ctx context.Context, exec boil.ContextExecutor, inser
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.ClassID = related.ID
+	queries.Assign(&o.ClassID, related.ID)
 	if o.R == nil {
 		o.R = &studentR{
 			Class: related,
@@ -852,6 +857,37 @@ func (o *Student) SetClass(ctx context.Context, exec boil.ContextExecutor, inser
 		related.R.Students = append(related.R.Students, o)
 	}
 
+	return nil
+}
+
+// RemoveClass relationship.
+// Sets o.R.Class to nil.
+// Removes o from all passed in related items' relationships struct (Optional).
+func (o *Student) RemoveClass(ctx context.Context, exec boil.ContextExecutor, related *Class) error {
+	var err error
+
+	queries.SetScanner(&o.ClassID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("class_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.R.Class = nil
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Students {
+		if queries.Equal(o.ClassID, ri.ClassID) {
+			continue
+		}
+
+		ln := len(related.R.Students)
+		if ln > 1 && i < ln-1 {
+			related.R.Students[i] = related.R.Students[ln-1]
+		}
+		related.R.Students = related.R.Students[:ln-1]
+		break
+	}
 	return nil
 }
 

@@ -1087,23 +1087,6 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
-		// Add school_order to classes table
-		{
-			ID: "20200410-05",
-			Migrate: func(tx *sql.Tx) error {
-				q1 := `ALTER TABLE classes
-				ADD school_order INT NOT NULL DEFAULT 0`
-				
-				if _, err := tx.Exec(q1); err != nil {
-					return errors.Wrapf(err, "Query failed %s", q1)
-				}
-
-				return nil
-			},
-			Rollback: func(tx *sql.Tx) error {
-				return nil
-			},
-		},
 	}
 }
 

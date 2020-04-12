@@ -1292,7 +1292,7 @@ func testStudentToOneClassUsingClass(t *testing.T) {
 	var foreign Class
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, studentDBTypes, false, studentColumnsWithDefault...); err != nil {
+	if err := randomize.Struct(seed, &local, studentDBTypes, true, studentColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Student struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, classDBTypes, false, classColumnsWithDefault...); err != nil {
@@ -1303,7 +1303,7 @@ func testStudentToOneClassUsingClass(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	local.ClassID = foreign.ID
+	queries.Assign(&local.ClassID, foreign.ID)
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -1313,7 +1313,7 @@ func testStudentToOneClassUsingClass(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if check.ID != foreign.ID {
+	if !queries.Equal(check.ID, foreign.ID) {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
@@ -1375,7 +1375,7 @@ func testStudentToOneSetOpClassUsingClass(t *testing.T) {
 		if x.R.Students[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.ClassID != x.ID {
+		if !queries.Equal(a.ClassID, x.ID) {
 			t.Error("foreign key was wrong value", a.ClassID)
 		}
 
@@ -1386,9 +1386,60 @@ func testStudentToOneSetOpClassUsingClass(t *testing.T) {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.ClassID != x.ID {
+		if !queries.Equal(a.ClassID, x.ID) {
 			t.Error("foreign key was wrong value", a.ClassID, x.ID)
 		}
+	}
+}
+
+func testStudentToOneRemoveOpClassUsingClass(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Student
+	var b Class
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, studentDBTypes, false, strmangle.SetComplement(studentPrimaryKeyColumns, studentColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, classDBTypes, false, strmangle.SetComplement(classPrimaryKeyColumns, classColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetClass(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveClass(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Class().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Class != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.ClassID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Students) != 0 {
+		t.Error("failed to remove a from b's relationships")
 	}
 }
 

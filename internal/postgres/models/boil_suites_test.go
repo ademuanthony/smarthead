@@ -218,6 +218,7 @@ func TestToOneSet(t *testing.T) {
 func TestToOneRemove(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUserAccounts", testAccountToOneRemoveOpUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUserAccounts", testAccountToOneRemoveOpUserUsingSignupUser)
+	t.Run("StudentToClassUsingStudents", testStudentToOneRemoveOpClassUsingClass)
 }
 
 // TestOneToOneSet tests cannot be run in parallel
@@ -254,6 +255,7 @@ func TestToManyAdd(t *testing.T) {
 // TestToManySet tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManySet(t *testing.T) {
+	t.Run("ClassToStudents", testClassToManySetOpStudents)
 	t.Run("PeriodToStudents", testPeriodToManySetOpStudents)
 	t.Run("StudentToPeriods", testStudentToManySetOpPeriods)
 	t.Run("StudentToSubjects", testStudentToManySetOpSubjects)
@@ -267,6 +269,7 @@ func TestToManySet(t *testing.T) {
 // TestToManyRemove tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyRemove(t *testing.T) {
+	t.Run("ClassToStudents", testClassToManyRemoveOpStudents)
 	t.Run("PeriodToStudents", testPeriodToManyRemoveOpStudents)
 	t.Run("StudentToPeriods", testStudentToManyRemoveOpPeriods)
 	t.Run("StudentToSubjects", testStudentToManyRemoveOpSubjects)
