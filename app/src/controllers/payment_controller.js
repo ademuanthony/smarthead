@@ -114,7 +114,7 @@ export default class extends Controller {
     this.cartTotal += (count * 5000)
 
     this.cartTotalTarget.textContent = this.cartTotal
-    let savings = (this.list.length * 8000) - this.cartTotal
+    let savings = (this.list.length * 5000) - this.cartTotal
     let savingsPercentage = 100 * savings / this.cartTotal
 
     this.savingsTarget.textContent = `${savings} (${savingsPercentage.toFixed(0)}%)`
