@@ -1087,6 +1087,30 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// make period id optional in subscription
+		{
+			ID: "20200413-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE subscription
+				DROP COLUMN period_id`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				q2 := `ALTER TABLE subscription
+				ADD period_id uuid REFERENCES period(id)`
+				
+				if _, err := tx.Exec(q2); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
 	}
 }
 

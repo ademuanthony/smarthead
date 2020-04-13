@@ -540,9 +540,8 @@ func testPeriodToManySubscriptions(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	b.PeriodID = a.ID
-	c.PeriodID = a.ID
-
+	queries.Assign(&b.PeriodID, a.ID)
+	queries.Assign(&c.PeriodID, a.ID)
 	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -557,10 +556,10 @@ func testPeriodToManySubscriptions(t *testing.T) {
 
 	bFound, cFound := false, false
 	for _, v := range check {
-		if v.PeriodID == b.PeriodID {
+		if queries.Equal(v.PeriodID, b.PeriodID) {
 			bFound = true
 		}
-		if v.PeriodID == c.PeriodID {
+		if queries.Equal(v.PeriodID, c.PeriodID) {
 			cFound = true
 		}
 	}
@@ -941,10 +940,10 @@ func testPeriodToManyAddOpSubscriptions(t *testing.T) {
 		first := x[0]
 		second := x[1]
 
-		if a.ID != first.PeriodID {
+		if !queries.Equal(a.ID, first.PeriodID) {
 			t.Error("foreign key was wrong value", a.ID, first.PeriodID)
 		}
-		if a.ID != second.PeriodID {
+		if !queries.Equal(a.ID, second.PeriodID) {
 			t.Error("foreign key was wrong value", a.ID, second.PeriodID)
 		}
 
@@ -969,6 +968,181 @@ func testPeriodToManyAddOpSubscriptions(t *testing.T) {
 		if want := int64((i + 1) * 2); count != want {
 			t.Error("want", want, "got", count)
 		}
+	}
+}
+
+func testPeriodToManySetOpSubscriptions(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Period
+	var b, c, d, e Subscription
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, periodDBTypes, false, strmangle.SetComplement(periodPrimaryKeyColumns, periodColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Subscription{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, subscriptionDBTypes, false, strmangle.SetComplement(subscriptionPrimaryKeyColumns, subscriptionColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetSubscriptions(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.Subscriptions().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetSubscriptions(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.Subscriptions().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.PeriodID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.PeriodID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.PeriodID) {
+		t.Error("foreign key was wrong value", a.ID, d.PeriodID)
+	}
+	if !queries.Equal(a.ID, e.PeriodID) {
+		t.Error("foreign key was wrong value", a.ID, e.PeriodID)
+	}
+
+	if b.R.Period != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Period != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Period != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Period != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.Subscriptions[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.Subscriptions[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testPeriodToManyRemoveOpSubscriptions(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Period
+	var b, c, d, e Subscription
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, periodDBTypes, false, strmangle.SetComplement(periodPrimaryKeyColumns, periodColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Subscription{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, subscriptionDBTypes, false, strmangle.SetComplement(subscriptionPrimaryKeyColumns, subscriptionColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddSubscriptions(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.Subscriptions().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveSubscriptions(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.Subscriptions().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.PeriodID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.PeriodID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.Period != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Period != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Period != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.Period != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.Subscriptions) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.Subscriptions[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.Subscriptions[0] != &e {
+		t.Error("relationship to e should have been preserved")
 	}
 }
 

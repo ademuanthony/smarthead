@@ -46,14 +46,13 @@ export default class extends Controller {
 
   addToList () {
     const subjectID = this.subjectTarget.value
-    const periodID = this.periodTarget.value
     const classID = this.classTarget.value
-    if (subjectID === '' || periodID === '' || classID === '') {
+    if (subjectID === '' || classID === '') {
       window.alert('Subject, period amd class are required')
       return
     }
 
-    let id = subjectID + periodID + classID
+    let id = subjectID + classID
     if (_.find(this.list, function (item) {
       return item.id === id
     })) {
@@ -68,10 +67,8 @@ export default class extends Controller {
     this.list.push({
       id: id,
       subject_id: subjectID,
-      period_id: periodID,
       class_id: classID,
       subject: this.subjectTarget.options[this.subjectTarget.selectedIndex].innerText,
-      period: this.periodTarget.options[this.periodTarget.selectedIndex].innerText,
       className: this.classTarget.options[this.classTarget.selectedIndex].innerText
     })
 
@@ -98,8 +95,7 @@ export default class extends Controller {
       fields[0].innerText = i + 1
       fields[1].innerText = item.className
       fields[2].innerText = item.subject
-      fields[3].innerHTML = item.period
-      fields[4].innerHTML = `<button data-action="click->payment#removeFromList" data-id="${item.id}">Remove</button>`
+      fields[3].innerHTML = `<button data-action="click->payment#removeFromList" data-id="${item.id}">Remove</button>`
 
       _this.listTblTarget.appendChild(exRow)
     })
@@ -141,8 +137,7 @@ export default class extends Controller {
     const req = {
       'count': this.list.length,
       'subject_id': this.list[0].subject_id,
-      'class_id': this.list[0].class_id,
-      'period_id': this.list[0].period_id
+      'class_id': this.list[0].class_id
     }
     const that = this
     const resp = await axios.post('/payments/initiate', req)
@@ -174,8 +169,7 @@ export default class extends Controller {
         for (let i = 0; i < that.list.length; i++) {
           items.push({
             'subject_id': that.list[i].subject_id,
-            'class_id': that.list[i].class_id,
-            'period_id': that.list[i].period_id
+            'class_id': that.list[i].class_id
           })
         }
         const resp = await axios.post(`/payments/${response.reference}/update-status`, { 'items': items })

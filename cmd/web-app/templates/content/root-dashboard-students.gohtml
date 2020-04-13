@@ -37,7 +37,7 @@
             <span class="naira">15,000</span> for five subjects per month
           </p>
           <div class="form-row">
-            <div class="col-md-3 col-sm-12 mt-3">
+            <div class="col-md-4 col-sm-12 mt-3">
               <select data-target="payment.class" class="form-control">
                 <option value="">Select Class</option>
                 {{ range $class := .classes }}
@@ -45,19 +45,11 @@
                 {{ end }}
               </select>
             </div>
-            <div class="col-md-3 col-sm-12 mt-3">
+            <div class="col-md-4 col-sm-12 mt-3">
               <select data-target="payment.subject" class="form-control">
                 <option value="">Select Subject</option>
                 {{ range $subject := .subjects }}
                 <option value="{{ $subject.ID }}">{{ $subject.Name }}</option>
-                {{ end }}
-              </select>
-            </div>
-            <div class="col-md-3 col-sm-12 mt-3">
-              <select data-target="payment.period" class="form-control">
-                <option value="">Select Period</option>
-                {{ range $period := .periods }}
-                <option value="{{ $period.ID }}">{{ $period }}</option>
                 {{ end }}
               </select>
             </div>
@@ -104,7 +96,6 @@
                 <td></td>
                 <td></td>
                 <td></td>
-                <td></td>
               </tr>
             </template>
             
@@ -128,7 +119,6 @@
             <th>End Date</th>
             <th>Subject</th>
             <th>Class</th>
-            <th>Period</th>
           </tr>
           {{range $sub := .subscriptions}}
           <tr>

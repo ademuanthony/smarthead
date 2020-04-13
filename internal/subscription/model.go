@@ -53,7 +53,7 @@ func FromModel(rec *models.Subscription) *Subscription {
 		DaysOfWeek: rec.DaysOfWeek,
 		EndDate:    rec.EndDate,
 		ClassID:    rec.ClassID,
-		PeriodID:   rec.PeriodID,
+		PeriodID:   rec.PeriodID.String,
 		StartDate:  rec.StartDate,
 		StudentID:  rec.StudentID,
 		SubjectID:  rec.SubjectID,

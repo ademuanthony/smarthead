@@ -12,6 +12,7 @@ import (
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
@@ -127,7 +128,7 @@ func (repo *Repository) CreateTx(ctx context.Context, tx *sql.Tx, claims auth.Cl
 		ID:         uuid.NewRandom().String(),
 		DaysOfWeek: req.DaysOfWeek,
 		EndDate:    req.EndDate,
-		PeriodID:   req.PeriodID,
+		PeriodID:   null.StringFrom(req.PeriodID),
 		ClassID:    req.ClassID,
 		DepositID:  req.DepositID,
 		StartDate:  req.StartDate,

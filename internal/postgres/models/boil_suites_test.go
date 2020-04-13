@@ -219,6 +219,7 @@ func TestToOneRemove(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUserAccounts", testAccountToOneRemoveOpUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUserAccounts", testAccountToOneRemoveOpUserUsingSignupUser)
 	t.Run("StudentToClassUsingStudents", testStudentToOneRemoveOpClassUsingClass)
+	t.Run("SubscriptionToPeriodUsingSubscriptions", testSubscriptionToOneRemoveOpPeriodUsingPeriod)
 }
 
 // TestOneToOneSet tests cannot be run in parallel
@@ -257,6 +258,7 @@ func TestToManyAdd(t *testing.T) {
 func TestToManySet(t *testing.T) {
 	t.Run("ClassToStudents", testClassToManySetOpStudents)
 	t.Run("PeriodToStudents", testPeriodToManySetOpStudents)
+	t.Run("PeriodToSubscriptions", testPeriodToManySetOpSubscriptions)
 	t.Run("StudentToPeriods", testStudentToManySetOpPeriods)
 	t.Run("StudentToSubjects", testStudentToManySetOpSubjects)
 	t.Run("SubjectToTeachers", testSubjectToManySetOpTeachers)
@@ -271,6 +273,7 @@ func TestToManySet(t *testing.T) {
 func TestToManyRemove(t *testing.T) {
 	t.Run("ClassToStudents", testClassToManyRemoveOpStudents)
 	t.Run("PeriodToStudents", testPeriodToManyRemoveOpStudents)
+	t.Run("PeriodToSubscriptions", testPeriodToManyRemoveOpSubscriptions)
 	t.Run("StudentToPeriods", testStudentToManyRemoveOpPeriods)
 	t.Run("StudentToSubjects", testStudentToManyRemoveOpSubjects)
 	t.Run("SubjectToTeachers", testSubjectToManyRemoveOpTeachers)

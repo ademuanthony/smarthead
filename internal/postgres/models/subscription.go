@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -23,16 +24,16 @@ import (
 
 // Subscription is an object representing the database table.
 type Subscription struct {
-	ID         string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	StudentID  string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
-	SubjectID  string `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
-	PeriodID   string `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
-	DaysOfWeek int    `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
-	StartDate  int64  `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
-	EndDate    int64  `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
-	CreatedAt  int64  `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	ClassID    string `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
-	DepositID  string `boil:"deposit_id" json:"deposit_id" toml:"deposit_id" yaml:"deposit_id"`
+	ID         string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	StudentID  string      `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	SubjectID  string      `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	DaysOfWeek int         `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	StartDate  int64       `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
+	EndDate    int64       `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
+	CreatedAt  int64       `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	ClassID    string      `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
+	DepositID  string      `boil:"deposit_id" json:"deposit_id" toml:"deposit_id" yaml:"deposit_id"`
+	PeriodID   null.String `boil:"period_id" json:"period_id,omitempty" toml:"period_id" yaml:"period_id,omitempty"`
 
 	R *subscriptionR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L subscriptionL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -42,24 +43,24 @@ var SubscriptionColumns = struct {
 	ID         string
 	StudentID  string
 	SubjectID  string
-	PeriodID   string
 	DaysOfWeek string
 	StartDate  string
 	EndDate    string
 	CreatedAt  string
 	ClassID    string
 	DepositID  string
+	PeriodID   string
 }{
 	ID:         "id",
 	StudentID:  "student_id",
 	SubjectID:  "subject_id",
-	PeriodID:   "period_id",
 	DaysOfWeek: "days_of_week",
 	StartDate:  "start_date",
 	EndDate:    "end_date",
 	CreatedAt:  "created_at",
 	ClassID:    "class_id",
 	DepositID:  "deposit_id",
+	PeriodID:   "period_id",
 }
 
 // Generated where
@@ -84,24 +85,24 @@ var SubscriptionWhere = struct {
 	ID         whereHelperstring
 	StudentID  whereHelperstring
 	SubjectID  whereHelperstring
-	PeriodID   whereHelperstring
 	DaysOfWeek whereHelperint
 	StartDate  whereHelperint64
 	EndDate    whereHelperint64
 	CreatedAt  whereHelperint64
 	ClassID    whereHelperstring
 	DepositID  whereHelperstring
+	PeriodID   whereHelpernull_String
 }{
 	ID:         whereHelperstring{field: "\"subscription\".\"id\""},
 	StudentID:  whereHelperstring{field: "\"subscription\".\"student_id\""},
 	SubjectID:  whereHelperstring{field: "\"subscription\".\"subject_id\""},
-	PeriodID:   whereHelperstring{field: "\"subscription\".\"period_id\""},
 	DaysOfWeek: whereHelperint{field: "\"subscription\".\"days_of_week\""},
 	StartDate:  whereHelperint64{field: "\"subscription\".\"start_date\""},
 	EndDate:    whereHelperint64{field: "\"subscription\".\"end_date\""},
 	CreatedAt:  whereHelperint64{field: "\"subscription\".\"created_at\""},
 	ClassID:    whereHelperstring{field: "\"subscription\".\"class_id\""},
 	DepositID:  whereHelperstring{field: "\"subscription\".\"deposit_id\""},
+	PeriodID:   whereHelpernull_String{field: "\"subscription\".\"period_id\""},
 }
 
 // SubscriptionRels is where relationship names are stored.
@@ -137,8 +138,8 @@ func (*subscriptionR) NewStruct() *subscriptionR {
 type subscriptionL struct{}
 
 var (
-	subscriptionAllColumns            = []string{"id", "student_id", "subject_id", "period_id", "days_of_week", "start_date", "end_date", "created_at", "class_id", "deposit_id"}
-	subscriptionColumnsWithoutDefault = []string{"id", "student_id", "subject_id", "period_id", "days_of_week", "start_date", "end_date", "created_at", "class_id", "deposit_id"}
+	subscriptionAllColumns            = []string{"id", "student_id", "subject_id", "days_of_week", "start_date", "end_date", "created_at", "class_id", "deposit_id", "period_id"}
+	subscriptionColumnsWithoutDefault = []string{"id", "student_id", "subject_id", "days_of_week", "start_date", "end_date", "created_at", "class_id", "deposit_id", "period_id"}
 	subscriptionColumnsWithDefault    = []string{}
 	subscriptionPrimaryKeyColumns     = []string{"id"}
 )
@@ -507,7 +508,9 @@ func (subscriptionL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, sin
 		if object.R == nil {
 			object.R = &subscriptionR{}
 		}
-		args = append(args, object.PeriodID)
+		if !queries.IsNil(object.PeriodID) {
+			args = append(args, object.PeriodID)
+		}
 
 	} else {
 	Outer:
@@ -517,12 +520,14 @@ func (subscriptionL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, sin
 			}
 
 			for _, a := range args {
-				if a == obj.PeriodID {
+				if queries.Equal(a, obj.PeriodID) {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.PeriodID)
+			if !queries.IsNil(obj.PeriodID) {
+				args = append(args, obj.PeriodID)
+			}
 
 		}
 	}
@@ -569,7 +574,7 @@ func (subscriptionL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, sin
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.PeriodID == foreign.ID {
+			if queries.Equal(local.PeriodID, foreign.ID) {
 				local.R.Period = foreign
 				if foreign.R == nil {
 					foreign.R = &periodR{}
@@ -890,7 +895,7 @@ func (o *Subscription) SetPeriod(ctx context.Context, exec boil.ContextExecutor,
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.PeriodID = related.ID
+	queries.Assign(&o.PeriodID, related.ID)
 	if o.R == nil {
 		o.R = &subscriptionR{
 			Period: related,
@@ -907,6 +912,37 @@ func (o *Subscription) SetPeriod(ctx context.Context, exec boil.ContextExecutor,
 		related.R.Subscriptions = append(related.R.Subscriptions, o)
 	}
 
+	return nil
+}
+
+// RemovePeriod relationship.
+// Sets o.R.Period to nil.
+// Removes o from all passed in related items' relationships struct (Optional).
+func (o *Subscription) RemovePeriod(ctx context.Context, exec boil.ContextExecutor, related *Period) error {
+	var err error
+
+	queries.SetScanner(&o.PeriodID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("period_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.R.Period = nil
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Subscriptions {
+		if queries.Equal(o.PeriodID, ri.PeriodID) {
+			continue
+		}
+
+		ln := len(related.R.Subscriptions)
+		if ln > 1 && i < ln-1 {
+			related.R.Subscriptions[i] = related.R.Subscriptions[ln-1]
+		}
+		related.R.Subscriptions = related.R.Subscriptions[:ln-1]
+		break
+	}
 	return nil
 }
 
