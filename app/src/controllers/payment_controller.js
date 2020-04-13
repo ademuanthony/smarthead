@@ -61,6 +61,10 @@ export default class extends Controller {
       return
     }
 
+    this.subjectTarget.value = ''
+    this.periodTarget.value = ''
+    this.classTarget.value = ''
+
     this.list.push({
       id: id,
       subject_id: subjectID,
