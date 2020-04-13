@@ -145,6 +145,7 @@ export default class extends Controller {
     const result = resp.data
     if (result.error) {
       window.alert(result.error)
+      that.loading = false
       return
     }
     // eslint-disable-next-line no-undef
@@ -176,6 +177,7 @@ export default class extends Controller {
         const resp = await axios.post(`/payments/${response.reference}/update-status`, { 'items': items })
         const result = resp.data
         if (result.error) {
+          that.loading = false
           window.alert(result.error)
         }
         window.alert('Success. Subscription successful, check the subscription table for your lesson\' start date')
@@ -183,6 +185,7 @@ export default class extends Controller {
         window.location.reload()
       },
       onClose: function () {
+        that.loading = false
         window.alert('window closed')
       }
     })
