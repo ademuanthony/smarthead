@@ -216,10 +216,11 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register student management pages.
 	deposit := Deposits{
-		Repo:        appCtx.DepositRepo,
-		StudentRepo: appCtx.StudentRepo,
-		Redis:       appCtx.Redis,
-		Renderer:    appCtx.Renderer,
+		Repo:             appCtx.DepositRepo,
+		StudentRepo:      appCtx.StudentRepo,
+		SubscriptionRepo: appCtx.SubscriptionRepo,
+		Redis:            appCtx.Redis,
+		Renderer:         appCtx.Renderer,
 	}
 	app.Handle("POST", "/admin/deposits/:deposit_id", deposit.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/deposits/:deposit_id", deposit.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
