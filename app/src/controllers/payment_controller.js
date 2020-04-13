@@ -51,9 +51,6 @@ export default class extends Controller {
       return
     }
 
-    this.subjectTarget.value = ''
-    this.classTarget.value = ''
-
     this.list.push({
       id: id,
       subject_id: subjectID,
@@ -63,6 +60,9 @@ export default class extends Controller {
     })
 
     this.displayList()
+
+    this.subjectTarget.value = ''
+    this.classTarget.value = ''
   }
 
   removeFromList (evt) {
