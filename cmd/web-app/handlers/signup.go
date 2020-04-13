@@ -62,21 +62,23 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 			decoder := schema.NewDecoder()
 			if err := decoder.Decode(req, r.PostForm); err != nil {
-				return false, err
+				return false, err 
 			}
 
 			var isFirst bool
-			if req.Account.Name == "" {
+			if req.Account.Name == "" {  
 				id, err := h.AccountRepo.First(ctx)
 				if err != nil {
 					isFirst = true
+					status := account.AccountStatus_Active
 					acc, err := h.AccountRepo.Create(ctx, claims, account.AccountCreateRequest{
 						Name: "Main Account",
+						Status: &status,
 					}, ctxValues.Now)
 					if err != nil {
 						return false, err
 					}
-					id = &acc.ID
+					id = &acc.ID 
 				}
 				req.Account.ID = *id
 			}

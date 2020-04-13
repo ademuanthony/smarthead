@@ -31,6 +31,7 @@ require (
 	github.com/kat-co/vala v0.0.0-20170210184112-42e1d8b61f12
 	github.com/kelseyhightower/envconfig v1.4.0
 	github.com/lib/pq v1.3.0
+	github.com/mailgun/mailgun-go/v3 v3.6.4
 	github.com/mailru/easyjson v0.0.0-20190626092158-b2ccc519800e // indirect
 	github.com/mitchellh/mapstructure v1.2.2
 	github.com/nfnt/resize v0.0.0-20180221191011-83c6a9932646

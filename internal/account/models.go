@@ -130,12 +130,12 @@ func (m *Accounts) Response(ctx context.Context) []*AccountResponse {
 // AccountCreateRequest contains information needed to create a new Account.
 type AccountCreateRequest struct {
 	Name          string         `json:"name" validate:"required,unique" example:"Company Name"`
-	Address1      string         `json:"address1" validate:"required" example:"221 Tatitlek Ave"`
+	Address1      string         `json:"address1" example:"221 Tatitlek Ave"`
 	Address2      string         `json:"address2" validate:"omitempty" example:"Box #1832"`
-	City          string         `json:"city" validate:"required" example:"Valdez"`
-	Region        string         `json:"region" validate:"required" example:"AK"`
-	Country       string         `json:"country" validate:"required" example:"USA"`
-	Zipcode       string         `json:"zipcode" validate:"required" example:"99686"`
+	City          string         `json:"city" example:"Valdez"`
+	Region        string         `json:"region" example:"AK"`
+	Country       string         `json:"country" example:"USA"`
+	Zipcode       string         `json:"zipcode" example:"99686"`
 	Status        *AccountStatus `json:"status,omitempty" validate:"omitempty,oneof=active pending disabled" swaggertype:"string" enums:"active,pending,disabled" example:"active"`
 	Timezone      *string        `json:"timezone,omitempty" validate:"omitempty" example:"America/Anchorage"`
 	SignupUserID  *string        `json:"signup_user_id,omitempty" validate:"omitempty,uuid" swaggertype:"string" example:"d69bdef7-173f-4d29-b52c-3edc60baf6a2"`

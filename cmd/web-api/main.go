@@ -112,7 +112,7 @@ func main() {
 			SharedTemplateDir string `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
 			SharedSecretKey   string `default:"" envconfig:"SHARED_SECRET_KEY"`
 			EmailSender       string `default:"test@example.saasstartupkit.com" envconfig:"EMAIL_SENDER"`
-			WebAppBaseUrl     string `default:"http://127.0.0.1:3000" envconfig:"WEB_APP_BASE_URL" example:"www.example.saasstartupkit.com"`
+			WebAppBaseUrl     string `default:"http://www.remoteschool.com.ng" envconfig:"WEB_APP_BASE_URL" example:"www.example.saasstartupkit.com"`
 		}
 		Redis struct {
 			Host            string        `default:":6379" envconfig:"HOST"`

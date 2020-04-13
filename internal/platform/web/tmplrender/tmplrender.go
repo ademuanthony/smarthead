@@ -420,10 +420,14 @@ func (r *TemplateRenderer) Render(ctx context.Context, w http.ResponseWriter, re
 					continue
 				}
 				// TODO: implement custom flash
-				// flashes = append(flashes, msg)
+				flashes = append(flashes, msg)
 			}
 
 			renderData["flashes"] = flashes
+			delete(sess.Values, webcontext.FlashType_Success)
+			delete(sess.Values, webcontext.FlashType_Info)
+			delete(sess.Values, webcontext.FlashType_Warning)
+			delete(sess.Values, webcontext.FlashType_Error)
 		}
 
 		// Save the session before writing to the response for the session cookie to be sent to the client.

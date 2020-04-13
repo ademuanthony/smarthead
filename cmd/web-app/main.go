@@ -96,10 +96,10 @@ func main() {
 			Host         string        `default:"0.0.0.0:3100" envconfig:"HOST"`
 			ReadTimeout  time.Duration `default:"5s" envconfig:"READ_TIMEOUT"`
 			WriteTimeout time.Duration `default:"5s" envconfig:"WRITE_TIMEOUT"`
-		}
+		} 
 		Service struct {
 			Name        string   `default:"web-app" envconfig:"SERVICE_NAME"`
-			BaseUrl     string   `default:"" envconfig:"BASE_URL"  example:"http://example.saasstartupkit.com"`
+			BaseUrl     string   `default:"http://www.remoteschool.com.ng" envconfig:"BASE_URL"  example:"http://example.saasstartupkit.com"`
 			HostNames   []string `envconfig:"HOST_NAMES" example:"www.example.saasstartupkit.com"`
 			EnableHTTPS bool     `default:"false" envconfig:"ENABLE_HTTPS"`
 			TemplateDir string   `default:"./templates" envconfig:"TEMPLATE_DIR"`
@@ -118,9 +118,11 @@ func main() {
 		}
 		Project struct {
 			Name              string `default:"" envconfig:"PROJECT_NAME"`
+			MailgunDomain     string `default:"mg.betterlifeglobal.org" envconfig:"MAILGUN_DOMAIN"`
+			MailgunKey        string `default:"" envconfig:"MAILGUN_KEY"`
 			SharedTemplateDir string `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
 			SharedSecretKey   string `default:"" envconfig:"SHARED_SECRET_KEY"`
-			EmailSender       string `default:"test@example.saasstartupkit.com" envconfig:"EMAIL_SENDER"`
+			EmailSender       string `default:"Remote School <media@remoteschool.com.ng>" envconfig:"EMAIL_SENDER"`
 			WebApiBaseUrl     string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
 			PaystackSecret    string `envconfig:"PAYSTACK_SECRET"`
 			PaystackPublicKey string `envconfig:"PAYSTACK_PUBLIC_KEY"`
@@ -430,7 +432,11 @@ func main() {
 			}
 		}
 	} else {
-		notifyEmail = notify.NewEmailDisabled()
+		notifyEmail, err = notify.NewEmailMailgun(cfg.Project.MailgunDomain, cfg.Project.MailgunKey,
+			cfg.Project.SharedTemplateDir, cfg.Project.EmailSender)
+		if err != nil {
+			log.Fatalf("Cannot creat email sender: %+v", err)
+		}
 	}
 
 	// =========================================================================

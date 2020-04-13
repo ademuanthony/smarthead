@@ -163,12 +163,12 @@ func (h *UserRepos) ResetPassword(ctx context.Context, w http.ResponseWriter, r 
 	req := new(user.UserResetPasswordRequest)
 	data := make(map[string]interface{})
 	f := func() error {
-
+ 
 		if r.Method == http.MethodPost {
 			err := r.ParseForm()
-			if err != nil {
+			if err != nil { 
 				return err
-			}
+			} 
 
 			decoder := schema.NewDecoder()
 			if err := decoder.Decode(req, r.PostForm); err != nil {

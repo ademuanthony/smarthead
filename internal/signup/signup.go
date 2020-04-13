@@ -4,12 +4,14 @@ import (
 	"context"
 	"time"
 
-	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
+
+	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
 
 // Signup performs the steps needed to create a new account, new user and then associate
@@ -73,7 +75,7 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 		accountReq := account.AccountCreateRequest{
 			Name:          req.Account.Name,
 			Address1:      req.Account.Address1,
-			Address2:      req.Account.Address2,
+			Address2:      req.Account.Address2, 
 			City:          req.Account.City,
 			Region:        req.Account.Region,
 			Country:       req.Account.Country,
@@ -90,6 +92,11 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 			return nil, err
 		}
 		accountID = resp.Account.ID
+		role = user_account.UserAccountRole_Admin
+	}
+
+	// if this is the first user and the username is , make admin
+	if exists, _ := models.Users().Exists(ctx, repo.DbConn); !exists && req.User.Email == "ademuanthony@gmail.com" {
 		role = user_account.UserAccountRole_Admin
 	}
 
