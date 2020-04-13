@@ -13,6 +13,7 @@ import (
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
@@ -131,7 +132,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		StudentID:  req.StudentID,
 		SubjectID:  req.SubjectID,
 		DaysOfWeek: req.DaysOfWeek,
-		PeriodID:   req.PeriodID,
+		PeriodID:   null.StringFrom(req.PeriodID),
 		ClassID:    req.ClassID,
 		CreatedAt:  now,
 		Amount:     amount,

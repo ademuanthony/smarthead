@@ -566,7 +566,7 @@ func testDepositToOnePeriodUsingPeriod(t *testing.T) {
 	var foreign Period
 
 	seed := randomize.NewSeed()
-	if err := randomize.Struct(seed, &local, depositDBTypes, false, depositColumnsWithDefault...); err != nil {
+	if err := randomize.Struct(seed, &local, depositDBTypes, true, depositColumnsWithDefault...); err != nil {
 		t.Errorf("Unable to randomize Deposit struct: %s", err)
 	}
 	if err := randomize.Struct(seed, &foreign, periodDBTypes, false, periodColumnsWithDefault...); err != nil {
@@ -577,7 +577,7 @@ func testDepositToOnePeriodUsingPeriod(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	local.PeriodID = foreign.ID
+	queries.Assign(&local.PeriodID, foreign.ID)
 	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
 		t.Fatal(err)
 	}
@@ -587,7 +587,7 @@ func testDepositToOnePeriodUsingPeriod(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if check.ID != foreign.ID {
+	if !queries.Equal(check.ID, foreign.ID) {
 		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
 	}
 
@@ -808,7 +808,7 @@ func testDepositToOneSetOpPeriodUsingPeriod(t *testing.T) {
 		if x.R.Deposits[0] != &a {
 			t.Error("failed to append to foreign relationship struct")
 		}
-		if a.PeriodID != x.ID {
+		if !queries.Equal(a.PeriodID, x.ID) {
 			t.Error("foreign key was wrong value", a.PeriodID)
 		}
 
@@ -819,11 +819,63 @@ func testDepositToOneSetOpPeriodUsingPeriod(t *testing.T) {
 			t.Fatal("failed to reload", err)
 		}
 
-		if a.PeriodID != x.ID {
+		if !queries.Equal(a.PeriodID, x.ID) {
 			t.Error("foreign key was wrong value", a.PeriodID, x.ID)
 		}
 	}
 }
+
+func testDepositToOneRemoveOpPeriodUsingPeriod(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Deposit
+	var b Period
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, depositDBTypes, false, strmangle.SetComplement(depositPrimaryKeyColumns, depositColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, periodDBTypes, false, strmangle.SetComplement(periodPrimaryKeyColumns, periodColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetPeriod(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemovePeriod(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Period().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Period != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.PeriodID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Deposits) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testDepositToOneSetOpStudentUsingStudent(t *testing.T) {
 	var err error
 
@@ -1013,7 +1065,7 @@ func testDepositsSelect(t *testing.T) {
 }
 
 var (
-	depositDBTypes = map[string]string{`ID`: `uuid`, `StudentID`: `uuid`, `Amount`: `integer`, `Ref`: `character varying`, `Status`: `character varying`, `Channel`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SubjectID`: `uuid`, `PeriodID`: `uuid`, `DaysOfWeek`: `integer`, `ClassID`: `uuid`, `PaymentRef`: `character varying`}
+	depositDBTypes = map[string]string{`ID`: `uuid`, `StudentID`: `uuid`, `Amount`: `integer`, `Ref`: `character varying`, `Status`: `character varying`, `Channel`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SubjectID`: `uuid`, `DaysOfWeek`: `integer`, `ClassID`: `uuid`, `PaymentRef`: `character varying`, `PeriodID`: `uuid`}
 	_              = bytes.MinRead
 )
 

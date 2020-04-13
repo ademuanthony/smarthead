@@ -218,6 +218,7 @@ func TestToOneSet(t *testing.T) {
 func TestToOneRemove(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUserAccounts", testAccountToOneRemoveOpUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUserAccounts", testAccountToOneRemoveOpUserUsingSignupUser)
+	t.Run("DepositToPeriodUsingDeposits", testDepositToOneRemoveOpPeriodUsingPeriod)
 	t.Run("StudentToClassUsingStudents", testStudentToOneRemoveOpClassUsingClass)
 	t.Run("SubscriptionToPeriodUsingSubscriptions", testSubscriptionToOneRemoveOpPeriodUsingPeriod)
 }
@@ -257,6 +258,7 @@ func TestToManyAdd(t *testing.T) {
 // or deadlocks can occur.
 func TestToManySet(t *testing.T) {
 	t.Run("ClassToStudents", testClassToManySetOpStudents)
+	t.Run("PeriodToDeposits", testPeriodToManySetOpDeposits)
 	t.Run("PeriodToStudents", testPeriodToManySetOpStudents)
 	t.Run("PeriodToSubscriptions", testPeriodToManySetOpSubscriptions)
 	t.Run("StudentToPeriods", testStudentToManySetOpPeriods)
@@ -272,6 +274,7 @@ func TestToManySet(t *testing.T) {
 // or deadlocks can occur.
 func TestToManyRemove(t *testing.T) {
 	t.Run("ClassToStudents", testClassToManyRemoveOpStudents)
+	t.Run("PeriodToDeposits", testPeriodToManyRemoveOpDeposits)
 	t.Run("PeriodToStudents", testPeriodToManyRemoveOpStudents)
 	t.Run("PeriodToSubscriptions", testPeriodToManyRemoveOpSubscriptions)
 	t.Run("StudentToPeriods", testStudentToManyRemoveOpPeriods)

@@ -94,6 +94,8 @@ type Response struct {
 
 	Subject string `json:"subject"`
 	Student string `json:"student"`
+	Email string `json:"email"`
+	Phone string `json:"phone"`
 	Period  string `json:"period"`
 	Class   string `json:"_class"`
 }
@@ -120,6 +122,8 @@ func (m *Subscription) Response(ctx context.Context) *Response {
 
 	if m.Student != nil {
 		r.Student = m.Student.Name
+		r.Email = m.Student.ParentEmail
+		r.Phone = m.Student.ParentPhone
 	}
 
 	if m.Subject != nil {

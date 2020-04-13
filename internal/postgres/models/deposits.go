@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -23,19 +24,19 @@ import (
 
 // Deposit is an object representing the database table.
 type Deposit struct {
-	ID         string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	StudentID  string    `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
-	Amount     int       `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
-	Ref        string    `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
-	Status     string    `boil:"status" json:"status" toml:"status" yaml:"status"`
-	Channel    string    `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
-	CreatedAt  time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt  time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
-	SubjectID  string    `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
-	PeriodID   string    `boil:"period_id" json:"period_id" toml:"period_id" yaml:"period_id"`
-	DaysOfWeek int       `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
-	ClassID    string    `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
-	PaymentRef string    `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
+	ID         string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	StudentID  string      `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	Amount     int         `boil:"amount" json:"amount" toml:"amount" yaml:"amount"`
+	Ref        string      `boil:"ref" json:"ref" toml:"ref" yaml:"ref"`
+	Status     string      `boil:"status" json:"status" toml:"status" yaml:"status"`
+	Channel    string      `boil:"channel" json:"channel" toml:"channel" yaml:"channel"`
+	CreatedAt  time.Time   `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt  time.Time   `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	SubjectID  string      `boil:"subject_id" json:"subject_id" toml:"subject_id" yaml:"subject_id"`
+	DaysOfWeek int         `boil:"days_of_week" json:"days_of_week" toml:"days_of_week" yaml:"days_of_week"`
+	ClassID    string      `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
+	PaymentRef string      `boil:"payment_ref" json:"payment_ref" toml:"payment_ref" yaml:"payment_ref"`
+	PeriodID   null.String `boil:"period_id" json:"period_id,omitempty" toml:"period_id" yaml:"period_id,omitempty"`
 
 	R *depositR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L depositL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -51,10 +52,10 @@ var DepositColumns = struct {
 	CreatedAt  string
 	UpdatedAt  string
 	SubjectID  string
-	PeriodID   string
 	DaysOfWeek string
 	ClassID    string
 	PaymentRef string
+	PeriodID   string
 }{
 	ID:         "id",
 	StudentID:  "student_id",
@@ -65,10 +66,10 @@ var DepositColumns = struct {
 	CreatedAt:  "created_at",
 	UpdatedAt:  "updated_at",
 	SubjectID:  "subject_id",
-	PeriodID:   "period_id",
 	DaysOfWeek: "days_of_week",
 	ClassID:    "class_id",
 	PaymentRef: "payment_ref",
+	PeriodID:   "period_id",
 }
 
 // Generated where
@@ -83,10 +84,10 @@ var DepositWhere = struct {
 	CreatedAt  whereHelpertime_Time
 	UpdatedAt  whereHelpertime_Time
 	SubjectID  whereHelperstring
-	PeriodID   whereHelperstring
 	DaysOfWeek whereHelperint
 	ClassID    whereHelperstring
 	PaymentRef whereHelperstring
+	PeriodID   whereHelpernull_String
 }{
 	ID:         whereHelperstring{field: "\"deposits\".\"id\""},
 	StudentID:  whereHelperstring{field: "\"deposits\".\"student_id\""},
@@ -97,10 +98,10 @@ var DepositWhere = struct {
 	CreatedAt:  whereHelpertime_Time{field: "\"deposits\".\"created_at\""},
 	UpdatedAt:  whereHelpertime_Time{field: "\"deposits\".\"updated_at\""},
 	SubjectID:  whereHelperstring{field: "\"deposits\".\"subject_id\""},
-	PeriodID:   whereHelperstring{field: "\"deposits\".\"period_id\""},
 	DaysOfWeek: whereHelperint{field: "\"deposits\".\"days_of_week\""},
 	ClassID:    whereHelperstring{field: "\"deposits\".\"class_id\""},
 	PaymentRef: whereHelperstring{field: "\"deposits\".\"payment_ref\""},
+	PeriodID:   whereHelpernull_String{field: "\"deposits\".\"period_id\""},
 }
 
 // DepositRels is where relationship names are stored.
@@ -136,8 +137,8 @@ func (*depositR) NewStruct() *depositR {
 type depositL struct{}
 
 var (
-	depositAllColumns            = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week", "class_id", "payment_ref"}
-	depositColumnsWithoutDefault = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "period_id", "days_of_week", "class_id"}
+	depositAllColumns            = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "days_of_week", "class_id", "payment_ref", "period_id"}
+	depositColumnsWithoutDefault = []string{"id", "student_id", "amount", "ref", "status", "channel", "created_at", "updated_at", "subject_id", "days_of_week", "class_id", "period_id"}
 	depositColumnsWithDefault    = []string{"payment_ref"}
 	depositPrimaryKeyColumns     = []string{"id"}
 )
@@ -420,7 +421,9 @@ func (depositL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, singular
 		if object.R == nil {
 			object.R = &depositR{}
 		}
-		args = append(args, object.PeriodID)
+		if !queries.IsNil(object.PeriodID) {
+			args = append(args, object.PeriodID)
+		}
 
 	} else {
 	Outer:
@@ -430,12 +433,14 @@ func (depositL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, singular
 			}
 
 			for _, a := range args {
-				if a == obj.PeriodID {
+				if queries.Equal(a, obj.PeriodID) {
 					continue Outer
 				}
 			}
 
-			args = append(args, obj.PeriodID)
+			if !queries.IsNil(obj.PeriodID) {
+				args = append(args, obj.PeriodID)
+			}
 
 		}
 	}
@@ -482,7 +487,7 @@ func (depositL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, singular
 
 	for _, local := range slice {
 		for _, foreign := range resultSlice {
-			if local.PeriodID == foreign.ID {
+			if queries.Equal(local.PeriodID, foreign.ID) {
 				local.R.Period = foreign
 				if foreign.R == nil {
 					foreign.R = &periodR{}
@@ -844,7 +849,7 @@ func (o *Deposit) SetPeriod(ctx context.Context, exec boil.ContextExecutor, inse
 		return errors.Wrap(err, "failed to update local table")
 	}
 
-	o.PeriodID = related.ID
+	queries.Assign(&o.PeriodID, related.ID)
 	if o.R == nil {
 		o.R = &depositR{
 			Period: related,
@@ -861,6 +866,37 @@ func (o *Deposit) SetPeriod(ctx context.Context, exec boil.ContextExecutor, inse
 		related.R.Deposits = append(related.R.Deposits, o)
 	}
 
+	return nil
+}
+
+// RemovePeriod relationship.
+// Sets o.R.Period to nil.
+// Removes o from all passed in related items' relationships struct (Optional).
+func (o *Deposit) RemovePeriod(ctx context.Context, exec boil.ContextExecutor, related *Period) error {
+	var err error
+
+	queries.SetScanner(&o.PeriodID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("period_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.R.Period = nil
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.Deposits {
+		if queries.Equal(o.PeriodID, ri.PeriodID) {
+			continue
+		}
+
+		ln := len(related.R.Deposits)
+		if ln > 1 && i < ln-1 {
+			related.R.Deposits[i] = related.R.Deposits[ln-1]
+		}
+		related.R.Deposits = related.R.Deposits[:ln-1]
+		break
+	}
 	return nil
 }
 

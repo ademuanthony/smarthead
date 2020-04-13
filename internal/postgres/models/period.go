@@ -287,7 +287,7 @@ func (periodL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singula
 			}
 
 			for _, a := range args {
-				if a == obj.ID {
+				if queries.Equal(a, obj.ID) {
 					continue Outer
 				}
 			}
@@ -335,7 +335,7 @@ func (periodL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singula
 
 	for _, foreign := range resultSlice {
 		for _, local := range slice {
-			if local.ID == foreign.PeriodID {
+			if queries.Equal(local.ID, foreign.PeriodID) {
 				local.R.Deposits = append(local.R.Deposits, foreign)
 				if foreign.R == nil {
 					foreign.R = &depositR{}
@@ -553,7 +553,7 @@ func (o *Period) AddDeposits(ctx context.Context, exec boil.ContextExecutor, ins
 	var err error
 	for _, rel := range related {
 		if insert {
-			rel.PeriodID = o.ID
+			queries.Assign(&rel.PeriodID, o.ID)
 			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
 				return errors.Wrap(err, "failed to insert into foreign table")
 			}
@@ -574,7 +574,7 @@ func (o *Period) AddDeposits(ctx context.Context, exec boil.ContextExecutor, ins
 				return errors.Wrap(err, "failed to update foreign table")
 			}
 
-			rel.PeriodID = o.ID
+			queries.Assign(&rel.PeriodID, o.ID)
 		}
 	}
 
@@ -595,6 +595,76 @@ func (o *Period) AddDeposits(ctx context.Context, exec boil.ContextExecutor, ins
 			rel.R.Period = o
 		}
 	}
+	return nil
+}
+
+// SetDeposits removes all previously related items of the
+// period replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Period's Deposits accordingly.
+// Replaces o.R.Deposits with related.
+// Sets related.R.Period's Deposits accordingly.
+func (o *Period) SetDeposits(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Deposit) error {
+	query := "update \"deposits\" set \"period_id\" = null where \"period_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.Deposits {
+			queries.SetScanner(&rel.PeriodID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Period = nil
+		}
+
+		o.R.Deposits = nil
+	}
+	return o.AddDeposits(ctx, exec, insert, related...)
+}
+
+// RemoveDeposits relationships from objects passed in.
+// Removes related items from R.Deposits (uses pointer comparison, removal does not keep order)
+// Sets related.R.Period.
+func (o *Period) RemoveDeposits(ctx context.Context, exec boil.ContextExecutor, related ...*Deposit) error {
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.PeriodID, nil)
+		if rel.R != nil {
+			rel.R.Period = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("period_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Deposits {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Deposits)
+			if ln > 1 && i < ln-1 {
+				o.R.Deposits[i] = o.R.Deposits[ln-1]
+			}
+			o.R.Deposits = o.R.Deposits[:ln-1]
+			break
+		}
+	}
+
 	return nil
 }
 

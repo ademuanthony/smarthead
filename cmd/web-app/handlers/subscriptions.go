@@ -54,6 +54,8 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "", Visible: true, Searchable: true, },
 		{Field: "student_id", Title: "Student", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
+		{Field: "email", Title: "Email", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
+		{Field: "phone", Title: "Phone Number", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 		{Field: "subject_id", Title: "Subject", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Username"},
 		{Field: "period_id", Title: "Period", Visible: true, Searchable: true, Orderable: true, Filterable: true},
 		{Field: "class_id", Title: "Class", Visible: true, Searchable: true, Orderable: true, Filterable: true},
@@ -71,8 +73,14 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 				v.Value = q.ID
 				v.Formatted = fmt.Sprintf("<input type='checkbox' value='%s' class='form-control' data-target='subscription.selected'/>", q.ID)
 			case "student_id":
-				v.Value = q.StudentID
+				v.Value = q.Email
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlStudentsView(q.StudentID), q.Student)
+			case "email":
+				v.Value = q.Email
+				v.Formatted = v.Value
+			case "phone":
+				v.Value = q.Phone
+				v.Formatted = v.Value
 			case "subject_id":
 				v.Value = q.SubjectID
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlSubjectsView(q.SubjectID), q.Subject)
@@ -274,7 +282,6 @@ func (h *Subscriptions) View(ctx context.Context, w http.ResponseWriter, r *http
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subscriptions-view.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
-
 func (h *Subscriptions) Download(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
@@ -290,13 +297,13 @@ func (h *Subscriptions) Download(ctx context.Context, w http.ResponseWriter, r *
 	b := &bytes.Buffer{}
     csvWriter := csv.NewWriter(b)
 
-    if err := csvWriter.Write([]string{"Name", "Subject", "Period", "CLass", "Start Date", "End Date"}); err != nil {
+    if err := csvWriter.Write([]string{"Name", "Email", "Phone Number", "Subject", "Period", "CLass", "Start Date", "End Date"}); err != nil {
         weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
     }
 
 	res := subs.Response(ctx)
 	for _, st := range res {
-		var records = []string{st.Student, st.Subject, st.Period, st.Class, st.StartDate.Date, st.EndDate.Date}
+		var records = []string{st.Student, st.Email, st.Phone, st.Subject, st.Period, st.Class, st.StartDate.Date, st.EndDate.Date}
 		if err := csvWriter.Write(records); err != nil {
 			weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
 		}

@@ -59,7 +59,7 @@ func FromModel(rec *models.Deposit) *Deposit {
 		ID:         rec.ID,
 		StudentID:  rec.StudentID,
 		SubjectID:  rec.SubjectID,
-		PeriodID:   rec.PeriodID,
+		PeriodID:   rec.PeriodID.String,
 		ClassID:    rec.ClassID,
 		DaysOfWeek: rec.DaysOfWeek,
 		Amount:     rec.Amount,
