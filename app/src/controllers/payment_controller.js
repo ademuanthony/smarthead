@@ -5,29 +5,20 @@ import _ from 'lodash-es'
 
 export default class extends Controller {
   list
-  periods
   subjects
   classes
 
   static get targets () {
     return [
-      'class', 'subject', 'period', 'cartItemDiv', 'listTbl', 'itemTemplate', 'cartTotal', 'savings'
+      'class', 'subject', 'cartItemDiv', 'listTbl', 'itemTemplate', 'cartTotal', 'savings'
     ]
   }
 
   connect () {
     this.list = []
-    this.periods = []
     this.classes = []
     this.subjects = []
     const that = this
-    Array.prototype.forEach.call(this.periodTarget.options, function (opt) {
-      if (opt.value === '') return
-      that.periods.push({
-        id: opt.value,
-        label: opt.innerText
-      })
-    })
     Array.prototype.forEach.call(this.subjectTarget.options, function (opt) {
       if (opt.value === '') return
       that.subjects.push({
@@ -61,7 +52,6 @@ export default class extends Controller {
     }
 
     this.subjectTarget.value = ''
-    this.periodTarget.value = ''
     this.classTarget.value = ''
 
     this.list.push({
