@@ -13,8 +13,9 @@ import (
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subscription"
 
-	"github.com/pkg/errors" 
+	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
 )
 
@@ -22,6 +23,7 @@ import (
 type Deposits struct {
 	Repo        *deposit.Repository
 	StudentRepo *student.Repository
+	SubscriptionRepo *subscription.Repository
 	Redis       *redis.Client
 	Renderer    web.Renderer
 }
@@ -146,6 +148,11 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
+
+	period, err := h.SubscriptionRepo.TrailPeriodID(ctx)
+	if err != nil {
+		return err
+	}
  
 	depositReq := new(deposit.CreateRequest)
 	if err := web.Decode(ctx, r, &depositReq); err != nil {
@@ -157,6 +164,7 @@ func (h *Deposits) Initiate(ctx context.Context, w http.ResponseWriter, r *http.
 
 	depositReq.Channel = "Paystack"
 	depositReq.Status = deposit.StatusPending
+	depositReq.PeriodID = period.ID
 	depositReq.StudentID = currentStudent.ID
 
 	depo, err := h.Repo.Create(ctx, claims, *depositReq, ctxValues.Now)

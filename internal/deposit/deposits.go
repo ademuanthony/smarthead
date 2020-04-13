@@ -239,12 +239,21 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 	// 	return nil, errors.New("Wrong amount received. Please contact the admin for help")
 	// }
 
+
+	period, err := repo.SubscriptionRepo.TrailPeriodID(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	startDate := subscription.NextMonday(now)
 	endDate := startDate.Add(30 * 24 * time.Hour)
 
 	var subs []*subscription.Subscription
 
 	for _, item := range req.Items {
+		if item.PeriodID == "" {
+			item.PeriodID = period.ID
+		}
 		subReq := subscription.CreateRequest {
 			StudentID:  depositModel.StudentID,
 			StartDate:  startDate.Unix(),
