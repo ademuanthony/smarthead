@@ -93,7 +93,7 @@ func main() {
 			WriteTimeout time.Duration `default:"10s" envconfig:"WRITE_TIMEOUT"`
 		}
 		HTTPS struct {
-			Host         string        `envconfig:"HOST"`
+			Host         string        `default:"0.0.0.0:3100" envconfig:"HOST"`
 			ReadTimeout  time.Duration `default:"5s" envconfig:"READ_TIMEOUT"`
 			WriteTimeout time.Duration `default:"5s" envconfig:"WRITE_TIMEOUT"`
 		} 
