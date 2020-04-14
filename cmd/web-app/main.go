@@ -1144,17 +1144,19 @@ func main() {
 
 		certRoot := "/etc/letsencrypt/live/remoteschool.com.ng/"
 		if fileExists(certRoot + "cert.pem") {
-			content, err := ioutil.ReadFile(certRoot + "cert.pem")
-			if err != nil {
-				log.Fatal(err)
-			}
-			cert = string(content)
+			cert = certRoot + "cert.pem"
+			privKey = certRoot + "privkey.pem"
+			// content, err := ioutil.ReadFile(certRoot + "cert.pem")
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			// cert = string(content)
 
-			content, err = ioutil.ReadFile(certRoot + "privkey.pem")
-			if err != nil {
-				log.Fatal(err)
-			}
-			privKey = string(content)
+			// content, err = ioutil.ReadFile(certRoot + "privkey.pem")
+			// if err != nil {
+			// 	log.Fatal(err)
+			// }
+			// privKey = string(content)
 		}
 		// /etc/letsencrypt/live/remoteschool.com.ng/
 		// cert.pem  chain.pem  fullchain.pem  privkey.pem
