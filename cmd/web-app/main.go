@@ -7,6 +7,7 @@ import (
 	"expvar"
 	"fmt"
 	"html/template"
+	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
@@ -99,7 +100,7 @@ func main() {
 		} 
 		Service struct {
 			Name        string   `default:"web-app" envconfig:"SERVICE_NAME"`
-			BaseUrl     string   `default:"http://www.remoteschool.com.ng" envconfig:"BASE_URL"  example:"http://example.saasstartupkit.com"`
+			BaseUrl     string   `default:"http://localhost" envconfig:"BASE_URL"  example:"http://example.saasstartupkit.com"`
 			HostNames   []string `envconfig:"HOST_NAMES" example:"www.example.saasstartupkit.com"`
 			EnableHTTPS bool     `default:"false" envconfig:"ENABLE_HTTPS"`
 			TemplateDir string   `default:"./templates" envconfig:"TEMPLATE_DIR"`
@@ -1130,31 +1131,31 @@ func main() {
 
 		httpServers = append(httpServers, api)
 
-		// fileExists := func (filename string) bool {
-		// 	info, err := os.Stat(filename)
-		// 	if os.IsNotExist(err) {
-		// 		return false
-		// 	}
-		// 	return !info.IsDir()
-		// }
+		fileExists := func (filename string) bool {
+			info, err := os.Stat(filename)
+			if os.IsNotExist(err) {
+				return false
+			}
+			return !info.IsDir()
+		}
 
 		var cert string = ""
 		var privKey string = ""
 
-		// certRoot := "/etc/letsencrypt/live/remoteschool.com.ng/"
-		// if fileExists(certRoot + "cert.pem") {
-		// 	content, err := ioutil.ReadFile(certRoot + "cert.pem")
-		// 	if err != nil {
-		// 		log.Fatal(err)
-		// 	}
-		// 	cert = string(content)
+		certRoot := "/etc/letsencrypt/live/remoteschool.com.ng/"
+		if fileExists(certRoot + "cert.pem") {
+			content, err := ioutil.ReadFile(certRoot + "cert.pem")
+			if err != nil {
+				log.Fatal(err)
+			}
+			cert = string(content)
 
-		// 	content, err = ioutil.ReadFile(certRoot + "privkey.pem")
-		// 	if err != nil {
-		// 		log.Fatal(err)
-		// 	}
-		// 	privKey = string(content)
-		// }
+			content, err = ioutil.ReadFile(certRoot + "privkey.pem")
+			if err != nil {
+				log.Fatal(err)
+			}
+			privKey = string(content)
+		}
 		// /etc/letsencrypt/live/remoteschool.com.ng/
 		// cert.pem  chain.pem  fullchain.pem  privkey.pem
 
