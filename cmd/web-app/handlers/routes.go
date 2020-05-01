@@ -39,7 +39,7 @@ import (
 
 const (
 	TmplLayoutBase          = "base.gohtml"
-	tmplLayoutSite          = "site.gohtml"
+	tmplLayoutSite          = "dtox.html"
 	TmplContentErrorGeneric = "error-generic.gohtml"
 )
 
@@ -340,13 +340,14 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		Sitemap:          sm,
 	}
 	app.Handle("GET", "/api", r.SitePage)
-	app.Handle("GET", "/pricing", r.SitePage)
-	app.Handle("GET", "/support", r.SitePage)
+	app.Handle("GET", "/about", r.SitePage)
+	app.Handle("GET", "/contact", r.SitePage)
 	app.Handle("GET", "/legal/privacy", r.SitePage)
 	app.Handle("GET", "/legal/terms", r.SitePage)
 	app.Handle("GET", "/", r.Index, mid.AuthenticateSessionOptional(appCtx.Authenticator))
 	app.Handle("GET", "/index.html", r.IndexHtml)
 	app.Handle("GET", "/robots.txt", r.RobotTxt)
+	app.Handle("GET", "/google6058e3992c01a0e3.html", r.SearchConsoleVerificationPage)
 	app.Handle("GET", "/sitemap.xml", r.SitemapXml)
 
 	// Register health check endpoint. This route is not authenticated.
@@ -359,9 +360,9 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("GET", "/ping", check.Ping)
 
 	// Add sitemap entries for Root.
-	smLocAddModified(stm.URL{{"loc", "/"}, {"changefreq", "weekly"}, {"mobile", true}, {"priority", 0.9}}, "site-index.gohtml")
-	smLocAddModified(stm.URL{{"loc", "/pricing"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.8}}, "site-pricing.gohtml")
-	smLocAddModified(stm.URL{{"loc", "/support"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.8}}, "site-support.gohtml")
+	smLocAddModified(stm.URL{{"loc", "/"}, {"changefreq", "weekly"}, {"mobile", true}, {"priority", 0.9}}, "dtox-index.html")
+	smLocAddModified(stm.URL{{"loc", "/about"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.8}}, "dtox-about.html")
+	smLocAddModified(stm.URL{{"loc", "/contact"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.8}}, "dtox-contact.html")
 	smLocAddModified(stm.URL{{"loc", "/api"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.7}}, "site-api.gohtml")
 	smLocAddModified(stm.URL{{"loc", "/legal/privacy"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.5}}, "legal-privacy.gohtml")
 	smLocAddModified(stm.URL{{"loc", "/legal/terms"}, {"changefreq", "monthly"}, {"mobile", true}, {"priority", 0.5}}, "legal-terms.gohtml")

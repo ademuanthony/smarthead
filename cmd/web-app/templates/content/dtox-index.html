@@ -1,0 +1,382 @@
+{{ template "../layouts/dtox.html" .}}
+{{define "title"}}Online interactive learning platform{{end}}
+{{define "description"}}Cloud-based learning platform that offers safe and
+affordable interactive online private teaching and learning.{{end}}
+{{define "homeActive"}}active{{end}}
+{{define "style"}}
+
+{{end}}
+{{ define "content" }}
+
+<!-- hero area -->
+<section class="hero-section" data-background="" style="background-image: url({{ SiteAssetUrl "/dtox/images/hero-area/banner-bg.png" }});">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h1 class="mb-3">Enjoy world class interactive online classes from the comfort of your home</h1>
+        <p class="mb-4">
+            Remote School uses advancement in technology to bring Real Classes to Real Students from Real Teachers
+        </p>
+      </div>
+    </div>
+
+    <div id="free-lessons" class="row">
+      <div class="col-md-12 text-center">
+          <hr class="mt-5"/>
+                      <h2 class="d-none d-md-block mt-5">Register For Our Free Lessons</h2>
+                      <p>No commitment required. Get enrolled to join our next free classes and see for yourself</p>
+                      <form method="post" action="/get-started">
+                          <div class="form-row">
+                              <div class="col-md-3 col-sm-12 mt-3">
+                                  <select name="class" required class="form-control">
+                                      <option value="">Select Class</option>
+                                      {{ range $class := .classes }}
+                                      <option value="{{ $class }}">{{ $class }}</option>
+                                      {{ end }}
+                                  </select>
+                              </div>
+                              <div class="col-md-3 col-sm-12 mt-3">
+                                  <input name="name" required type="text" class="form-control" placeholder="Full Name">
+                              </div>
+                              <div class="col-md-3 col-sm-12 mt-3">
+                                  <input name="email" required type="email" class="form-control" placeholder="Email">
+                              </div>
+                              <div class="col-md-3 col-sm-12 mt-3">
+                                  <input name="phone" required type="text" class="form-control" placeholder="Phone Number">
+                              </div>
+                          </div>
+                          <input type="submit" class="btb btn-danger btn-lg mt-3" value="Register">
+                      </form>
+                  </div>
+  </div>
+
+  </div>
+</section>
+<!-- /hero-area -->
+
+<!-- marketing -->
+<section class="section-lg seo">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6">
+        <img class="img-fluid" src="{{ SiteAssetUrl "/images/Online-learning-banner.jpg" }}" alt="form-img">
+      </div>
+      <div class="col-md-5">
+        <h2 class="section-title">100% Teaching and Learning website!</h2>
+        <p>There is no need for your child to meet the teacher physically. 
+            Our platform creates an online learning environment
+           that gives the same experience as physical classroom.</p>
+        <p>We bring this technology to your doorstep. Your child 
+            does not need the presence of a home teacher to learn.<br/>
+            Out platform provides a 100% remote learning environment that 
+            gives the same interactive experience available in a physical class.
+        </p>
+      </div>
+    </div>
+  </div>
+  <!-- background image -->
+  <img class="img-fluid seo-bg" src="{{ SiteAssetUrl "/dtox/images/backgrounds/seo-bg.png" }}" alt="seo-bg">
+  <!-- background-shape -->
+  <img class="seo-bg-shape-1" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-1.png" }}" alt="bg-shape">
+  <img class="seo-bg-shape-2" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-half-cycle.png" }}" alt="bg-shape">
+  <img class="seo-bg-shape-3" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-2.png" }}" alt="bg-shape">
+</section>
+<!-- /marketing -->
+
+<!-- service -->
+<section class="section-lg service">
+  <div class="container">
+    <div class="row">
+      <div class="col-md-6 order-2 order-md-1">
+        <h2 class="section-title">Real teachers, real engagement</h2>
+        <p class="mb-4">Students who are not engaged or stretched by their lessons in the classroom – 
+            and those who must learn away from the classroom, may not make sufficient progress with 
+            traditional online resources.</p>
+
+            <p>Remote School has a different approach. Our team of qualified, 
+                experienced teachers deliver high-quality lessons, live online via the 
+                innovative Remote School Cloud Learning platform.</p>
+            
+            <p>They work closely with your teachers to plan the additional support that will be 
+                right for the learning needs of each student.</p>
+      </div>
+      <div class="col-md-6 order-1 order-md-2 tx-center">
+        <img class="img-fluid" src="{{ SiteAssetUrl "/images/remote-school-teacher-ben.jpeg" }}" style="height: 400px;" alt="service">
+      </div>
+    </div>
+  </div>
+  <!-- background image -->
+  <img class="img-fluid service-bg" src="{{ SiteAssetUrl "/dtox/images/backgrounds/service-bg.png" }}" alt="service-bg">
+  <!-- background shapes -->
+  <img class="service-bg-shape-1" src="{{ SiteAssetUrl "/dtox/images/background-shape/service-half-cycle.png" }}" alt="background-shape">
+  <img class="service-bg-shape-2" src="{{ SiteAssetUrl "/dtox/images/background-shape/feature-bg-2.png" }}" alt="background-shape">
+</section>
+<!-- /service -->
+
+<!-- feature -->
+<section class="section feature mb-0" id="feature">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-title">Meet Remote School</h2>
+        <p class="mb-100">
+            Remote School is built to give students the same experience that is associated with 
+            physical classes.<br>To achieve this, we abide by the following principles</p>
+      </div>
+      <!-- feature item -->
+      <div class="col-md-6 mb-80">
+        <div class="d-flex feature-item">
+          <div>
+            <i class="ti-star feature-icon mr-4"></i>
+          </div>
+          <div>
+            <h4>Professionalism</h4>
+            <p>Remote School gives great interest and attention to the KNOWLEDGE, 
+                SKILL and PRACTICES that teachers must have in order to be effective educators.</p>
+          </div>
+        </div>
+      </div>
+      <!-- feature item -->
+      <div class="col-md-6 mb-80">
+        <div class="d-flex feature-item">
+          <div>
+            <i class="ti-medall-alt feature-icon mr-4"></i>
+          </div>
+          <div>
+            <h4>Integrity</h4>
+            <p>
+                We always follow our MORAL and ETHICAL convictions in doing the right thing at all times. 
+                We do what we say and only say what we will do.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- feature item -->
+      <div class="col-md-6 mb-80">
+        <div class="d-flex feature-item">
+          <div>
+            <i class="ti-crown feature-icon mr-4"></i>
+          </div>
+          <div>
+            <h4>Loyalty</h4>
+            <p>
+                In Remote School, we pledge ALLEGIANCE to our students for their academic success no matter the cost. 
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- feature item -->
+      <div class="col-md-6 mb-80">
+        <div class="d-flex feature-item">
+          <div>
+            <i class="ti-layers-alt feature-icon mr-4"></i>
+          </div>
+          <div>
+            <h4>Excellence</h4>
+            <p>
+                We believe that good is not enough so we go the extra mile to exceed expectation in order to be OUTSTANDING.
+            </p>
+          </div>
+        </div>
+      </div>
+      <!-- feature item -->
+      <div class="col-md-6 mb-80">
+        <div class="d-flex feature-item">
+          <div>
+            <i class="ti-cup feature-icon mr-4"></i>
+          </div>
+          <div>
+            <h4>Customer satisfaction</h4>
+            <p>
+                It is a deliberate and conscious decision, ensuring that our customers get ANSWERS to their QUESTIONS,
+                SOLUTIONS to their PROBLEMS and VALUE for their MONEY at all times.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <img class="feature-bg-1" src="{{ SiteAssetUrl "/dtox/images/background-shape/feature-bg-1.png" }}" alt="bg-shape">
+  <img class="feature-bg-2" src="{{ SiteAssetUrl "/dtox/images/background-shape/feature-bg-2.png" }}" alt="bg-shape">
+</section>
+<!-- /feature -->
+
+
+<!-- team -->
+<section class="section-lg team" id="team">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-title">Our Team</h2>
+        <p class="mb-100">Remote School is built on a solid foundation by a team of highly committed partners</p>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="team-slider">
+        <!-- team-member Anthony-->
+        <div class="team-member">
+            <div class="d-flex mb-4">
+              <div class="mr-3">
+                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-Anthony.jpg" }}" alt="team-member">
+              </div>
+              <div class="align-self-center">
+                <h4>Ademu Anthony</h4>
+                <h6 class="text-color">Director of IT & Innovation</h6>
+              </div>
+            </div>
+            <p style="text-align: justify;">
+              A seasoned Software Engineer who has been consistently praised by clients as competent, 
+              committed & hardworking.
+              An addicted/perpetual learner with an unquenchable thirst for innovation and technology.
+            </p>
+          </div>
+
+        <!-- team-member Abakpa-->
+        <div class="team-member">
+          <div class="d-flex mb-4">
+            <div class="mr-3">
+              <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-Abakpa.jpg" }}" alt="team-member">
+            </div>
+            <div class="align-self-center">
+              <h4>Abakpa Joseph Elachi</h4>
+              <h6 class="text-color">Managing Director</h6>
+            </div>
+          </div>
+          <p style="text-align: justify;">
+            Mr Abakpa has a Bachelor of Science Honors degree in Physics
+            from the University of Agriculture Makurdi Benue State, Nigeria in 2012.
+            He has a Diploma in Software Engineering from Global Techs Institute Lagos.
+            
+          </p>
+        </div>
+        
+        <!-- team-member Afanabere-->
+        <div class="team-member">
+            <div class="d-flex mb-4">
+              <div class="mr-3">
+                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-Afanabere.jpg" }}" alt="team-member">
+              </div>
+              <div class="align-self-center">
+                <h4>Afanabere Bernard</h4>
+                <h6 class="text-color">Director Of Education</h6>
+              </div>
+            </div>
+            <p style="text-align: justify;">
+              Afanabere Bernard Akoshi is a trained educationist with more than a decade of working with students. 
+              He is a prolific writer, a teacher, a life coach, and a guest to many seminars and conferences.
+            </p>
+          </div>
+           
+        
+          <!-- team-member Raph-->
+        <div class="team-member">
+            <div class="d-flex mb-4">
+              <div class="mr-3">
+                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team-raphael-xs.jpg" }}" alt="team-member">
+              </div>
+              <div class="align-self-center">
+                <h4>Ikediashi Raphael</h4>
+                <h6 class="text-color">Director Of Sales & Marketing</h6>
+              </div>
+            </div>
+            <p style="text-align: justify;">
+              I'm Raphael, a software engineer based in Lagos, Nigeria. I enjoy creating things that live on the internet, 
+              whether that be websites, applications, or anything in between.        
+            </p>
+          </div>
+
+           <!-- team-member Onoja-->
+        
+           <div class="team-member">
+            <div class="d-flex mb-4">
+              <div class="mr-3">
+                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-onoja.jpg" }}" alt="team-member">
+              </div>
+              <div class="align-self-center">
+                <h4>Onoja Emmanuel</h4>
+                <h6 class="text-color">Director of Cloud Platform</h6>
+              </div>
+            </div>
+            <p style="text-align: justify;">
+              An expert in cloud base technologies with MS, MCTS & MCITP in Microsoft Office 365.
+              An experience teacher of Information Technology, Computer Science & Data Processing
+          </p>
+          </div>
+          
+      </div>
+    </div>
+  </div>
+  <!-- backgound image -->
+  <img src="{{ SiteAssetUrl "/dtox/images/backgrounds/team-bg.png" }}" alt="team-bg" class="img-fluid team-bg">
+  <!-- background shapes -->
+  <img class="team-bg-shape-1" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-1.png" }}" alt="background-shape">
+  <img class="team-bg-shape-2" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-1.png" }}" alt="background-shape">
+  <img class="team-bg-shape-3" src="{{ SiteAssetUrl "/dtox/images/background-shape/team-bg-triangle.png" }}" alt="background-shape">
+  <img class="team-bg-shape-4 img-fluid" src="{{ SiteAssetUrl "/dtox/images/background-shape/team-bg-dots.png" }}" alt="background-shape">
+</section>
+<!-- /team -->
+
+<!-- pricing -->
+<section class="section-lg pb-0 pricing" id="pricing">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-12 text-center">
+        <h2 class="section-title">Our Pricing</h2>
+        <p class="mb-50">Our price is very affordable for online learning.<br/>
+            Pay for any of the plans below and send the subject(s) of your choice to 
+            <a href="mailto:media@remoteschool.com.ng">media@remoteschool.com.ng</a>
+        </p>
+      </div>
+      <div class="col-lg-10 mx-auto">
+        <div class="row justify-content-center">
+          <!-- pricing table -->
+          <div class="col-md-6 col-lg-4 mb-5 mb-lg-0">
+            <div class="rounded text-center pricing-table table-1">
+              <h3>One Subject</h3>
+              <h1><span>₦</span>5,000</h1>
+              <p>Access to our interactive class
+                Access to past video lectures
+                Email support
+                Whatsapp support
+              </p>
+              <a href="https://paystack.com/pay/remoteschool-1-subject" class="btn pricing-btn">Pay</a>
+            </div>
+          </div>
+          <!-- pricing table -->
+          <div class="col-md-6 col-lg-4 mb-5 mb-lg-0">
+            <div class="rounded text-center pricing-table table-2">
+              <h3>Three Subjects</h3>
+              <h1><span>₦</span>12,000</h1>
+              <p>Access to our interactive class
+                Access to past video lectures
+                Email support
+                Whatsapp support
+              </p>
+              <a href="https://paystack.com/pay/remoteschool-3-subject" class="btn pricing-btn">Pay</a>
+            </div>
+          </div>
+          <!-- pricing table -->
+          <div class="col-md-6 col-lg-4 mb-5 mb-lg-0">
+            <div class="rounded text-center pricing-table table-3">
+              <h3>Five Subject</h3>
+              <h1><span>₦</span>15,000</h1>
+              <p>Access to our interactive class
+                Access to past video lectures
+                Email support
+                Whatsapp support
+              </p>
+              <a href="https://paystack.com/pay/remoteschool-5-subject" class="btn pricing-btn">Pay</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- background shapes -->
+  <img class="pricing-bg-shape-1" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-1.png" }}" alt="background-shape">
+  <img class="pricing-bg-shape-2" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-half-cycle.png" }}" alt="background-shape">
+  <img class="pricing-bg-shape-3" src="{{ SiteAssetUrl "/dtox/images/background-shape/team-bg-triangle.png" }}" alt="background-shape">
+</section>
+<!-- /pricing -->
+
+{{ end }}

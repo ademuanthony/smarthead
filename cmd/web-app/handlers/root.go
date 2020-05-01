@@ -153,7 +153,7 @@ func (h *Root) indexDefault(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 	data := map[string]interface{}{}
 	data["classes"] = classes
-	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "site-default.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-index.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 // SitePage loads the page with the layout for site instead of the app base.
@@ -161,10 +161,10 @@ func (h *Root) SitePage(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 	data := make(map[string]interface{})
 
-	var tmpName string
+	var tmpName string 
 	switch r.RequestURI {
 	case "/":
-		tmpName = "site-index.gohtml"
+		tmpName = "dtox-index.html"
 	case "/api":
 		tmpName = "site-api.gohtml"
 
@@ -208,14 +208,16 @@ func (h *Root) SitePage(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		data["urlApiBaseUri"] = h.WebRoute.WebApiUrl(doc.BasePath)
 		data["urlApiDocs"] = h.WebRoute.ApiDocs()
 
-	case "/pricing":
-		tmpName = "site-pricing.gohtml"
-	case "/support":
-		tmpName = "site-support.gohtml"
+	case "/about":
+		tmpName = "dtox-about.html"
+	case "/thank-you":
+		tmpName = "dtox-thank-you.html"
+	case "/contact": 
+		tmpName = "dtox-contact.html"
 	case "/legal/privacy":
-		tmpName = "legal-privacy.gohtml"
+		tmpName = "dtox-privacy.gohtml"
 	case "/legal/terms":
-		tmpName = "legal-terms.gohtml"
+		tmpName = "dtox-terms.gohtml"
 	default:
 		return web.Redirect(ctx, w, r, "/", http.StatusFound)
 	}
@@ -239,6 +241,11 @@ func (h *Root) RobotTxt(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 	txt := fmt.Sprintf("User-agent: *\nDisallow: /ping\nDisallow: /status\nDisallow: /debug/\nSitemap: %s", sitemapUrl)
 	return web.RespondText(ctx, w, txt, http.StatusOK)
+}
+
+func (h *Root) SearchConsoleVerificationPage(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	fmt.Fprint(w, "google-site-verification: google6058e3992c01a0e3.html")
+	return nil
 }
 
 type SiteMap struct {

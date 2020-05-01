@@ -1,0 +1,91 @@
+{{ template "../layouts/site.tpl" .}}
+{{define "title"}}Pricing{{end}}
+{{define "description"}}Price of online teaching and learning platform.{{end}}
+{{define "pricingActive"}}active{{end}}
+{{define "style"}}
+
+{{end}}
+{{ define "content" }}
+    <div class="container" id="page-content">
+
+        <h1 class="h1 mt-5 mb-3 text-dark text-center">Pricing</h1>
+
+        <p class="lead mb-5 text-center">
+            Our price is very affordable for online learning.<br/>
+            Pay for any of the plans below and send the subject(s) of your choice to 
+            <a href="mailto:media@remoteschool.com.ng">media@remoteschool.com.ng</a>
+         </p>
+
+        <!-- Start the Pricing Cards -->
+        <div class="card-deck mb-3 text-center">
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">One Subject</h4>
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title pricing-card-title">₦5,000 <small class="text-muted">/ mo</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li>Access to our interactive class</li>
+                        <li>Access to past video lectures</li>
+                        <li>Email support</li>
+                        <li>Whatsapp support</li>
+                    </ul>
+                    <a class="btn btn-lg btn-block btn-primary" href="https://paystack.com/pay/remoteschool-1-subject">Make Payment</a>
+                </div>
+            </div>
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">Three Subjects <small style="font-size:10px; color:red">(Recommended)</small></h4>
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title pricing-card-title">₦12,000 <small class="text-muted">/ mo</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li>Access to our interactive class</li>
+                        <li>Access to past video lectures</li>
+                        <li>Email support</li>
+                        <li>Whatsapp support</li>
+                    </ul>
+                    <a class="btn btn-lg btn-block btn-danger" 
+                    href="https://paystack.com/pay/remoteschool-3-subject">Make Payment</a>
+                </div>
+            </div>
+
+            <div class="card mb-4 shadow-sm">
+                <div class="card-header">
+                    <h4 class="my-0 font-weight-normal">Five Subject</h4>
+                </div>
+                <div class="card-body">
+                    <h1 class="card-title pricing-card-title">₦15,000 <small class="text-muted">/ mo</small></h1>
+                    <ul class="list-unstyled mt-3 mb-4">
+                        <li>Access to our interactive class</li>
+                        <li>Access to past video lectures</li>
+                        <li>Email support</li>
+                        <li>Whatsapp support</li>
+                    </ul>
+                    <a class="btn btn-lg btn-block btn-primary" href="https://paystack.com/pay/remoteschool-5-subject">Make Payment</a>
+                </div>
+            </div>
+        
+        </div>
+        <!-- /End the Pricing Cards -->
+    </div>
+
+    <!-- Start the Signup Container -->
+    <div class="container ">
+        <div class="row pt-5">
+            <div class="col-sm-8">
+                <h3 class="h2 text-success">Interested in our Service?</h3>
+                <p>Start learning any of our subjects from the comfort of your home!</p>
+            </div>
+            <div class="col-sm-4 text-right">
+                <a class="btn btn-info" href="https://forms.gle/hnXFyFMem68JJujj8" target="_blank">Register for free</a>
+            </div>
+        </div>
+    </div>
+    <!-- /End the Featurettes -->
+
+{{end}}
+{{define "js"}}
+
+{{end}}
+

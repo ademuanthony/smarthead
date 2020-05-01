@@ -1,0 +1,178 @@
+{{ define "base"}}
+<!DOCTYPE html>
+<html lang="en_US">
+
+<head>
+  <meta charset="utf-8">
+  <title>Remote School - {{block "title" .}}{{end}}</title>
+
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+  <meta name="description" content="{{block "description" .}}{{end}} ">
+  <meta name="author" content="Merry World - Ademu Anthony">
+
+  <!-- mobile responsive meta -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+  
+  <!-- ** Plugins Needed for the Project ** -->
+  <!-- Bootstrap -->
+  <link rel="stylesheet" href="{{ SiteAssetUrl "/dtox/plugins/bootstrap/bootstrap.min.css" }}">
+  <!-- themefy-icon -->
+  <link media="print" onload="this.media='all'" rel="stylesheet" href="{{ SiteAssetUrl "/dtox/plugins/themify-icons/themify-icons.css" }}">
+  <!-- slick slider -->
+  <link media="print" onload="this.media='all'" rel="stylesheet" href="{{ SiteAssetUrl "/dtox/plugins/slick/slick.css" }}">
+  <!-- venobox popup -->
+  <link media="print" onload="this.media='all'" rel="stylesheet" href="{{ SiteAssetUrl "/dtox/plugins/Venobox/venobox.css" }}">
+
+  <!-- Main Stylesheet -->
+  <link href="{{ SiteAssetUrl "/dtox/css/style.css" }}" rel="stylesheet">
+  
+  <!--Favicon-->
+  <link rel="shortcut icon" type="image/png" href="{{ SiteAssetUrl "/images/remote-school-icon.png" }}">
+  <link rel="icon" type="image/png" href="{{ SiteAssetUrl "/images/remote-school-icon.png" }}">
+
+   <!-- Global site tag (gtag.js) - Google Analytics -->
+   <script async src="https://www.googletagmanager.com/gtag/js?id=UA-158909227-2"></script>
+   <script>
+   window.dataLayer = window.dataLayer || [];
+   function gtag(){dataLayer.push(arguments);}
+   gtag('js', new Date());
+
+   gtag('config', 'UA-158909227-2');
+   </script>
+
+   <!-- Facebook Pixel Code -->
+   <script>
+    !function(f,b,e,v,n,t,s)
+    {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+    n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+    if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+    n.queue=[];t=b.createElement(e);t.async=!0;
+    t.src=v;s=b.getElementsByTagName(e)[0];
+    s.parentNode.insertBefore(t,s)}(window, document,'script',
+    'https://connect.facebook.net/en_US/fbevents.js');
+    fbq('init', '2460738700903328');
+    fbq('track', 'PageView');
+  </script>
+  <noscript><img height="1" width="1" style="display:none"
+    src="https://www.facebook.com/tr?id=2460738700903328&ev=PageView&noscript=1"
+  /></noscript>
+  <!-- End Facebook Pixel Code -->
+</head>
+
+<body>
+  
+
+<!-- navigation -->
+<section class="fixed-top navigation">
+  <div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light">
+      <a class="navbar-brand" href="/"><img src="{{ SiteAssetUrl "/images/Remote-school-logo-light.png" }}" alt="Remote School" style="height: 64px;"></a>
+      <button class="navbar-toggler border-0" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar"
+        aria-expanded="false" aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <!-- navbar -->
+      <div class="collapse navbar-collapse text-center" id="navbar">
+        <ul class="navbar-nav ml-auto">
+          <li class="nav-item">
+            <a class="nav-link {{block "homeActive" .}}{{end}}" href="/">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{block "aboutActive" .}}{{end}}" href="/about">About</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link page-scroll" href="/#team">Team</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link page-scroll" href="/#pricing">Pricing</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {{block "contactActive" .}}{{end}}" href="/contact">Contact</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="https://forms.gle/xgnAREA3fByZYKuc6" target="_blank">Career</a></li>
+          <li class="nav-item">
+            <a class="nav-link" href="/user/login">Login</a></li>
+
+        </ul>
+        <a href="/#free-lessons" class="btn btn-primary ml-lg-3 primary-shadow">Try Free</a>
+      </div>
+    </nav>
+  </div>
+</section>
+<!-- /navigation -->
+
+{{ template "content" . }}
+
+<!-- footer -->
+<footer class="section-lg footer pb-100" style="background-image: url({{ SiteAssetUrl "/dtox/images/backgrounds/footer-bg.png" }});">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-4 text-center text-lg-left mb-4 mb-lg-0">
+        <!-- logo -->
+        <a href="/">
+          <img class="img-fluid" src="{{ SiteAssetUrl "/images/Remote-school-logo-dark.png" }}" alt="Remote School" style="height: 64px;">
+        </a>
+      </div>
+      <!-- footer menu -->
+      <nav class="col-lg-8 align-self-center mb-5">
+        <ul class="list-inline text-lg-right text-center footer-menu">
+          <li class="list-inline-item {{block "homeActive" .}}{{end}}"><a href="/">Home</a></li>
+          <li class="list-inline-item {{block "aboutActive" .}}{{end}}"><a href="/about">About</a></li>
+          <li class="list-inline-item"><a class="page-scroll" href="/#team">Team</a></li>
+          <li class="list-inline-item"><a class="page-scroll" href="/#pricing">Pricing</a></li>
+          <li class="list-inline-item {{block "contactActive" .}}{{end}}"><a href="/contact">Contact</a></li>
+          <li class="list-inline-item {{block "contactActive" .}}{{end}}"><a href="/login">Login</a></li>
+          <li class="list-inline-item {{block "contactActive" .}}{{end}}">
+            <a href="https://forms.gle/xgnAREA3fByZYKuc6" target="_blank">Apply as Teacher</a></li>
+        </ul>
+      </nav>
+      <!-- footer social icon -->
+      <nav class="col-12">
+        <ul class="list-inline text-lg-right text-center social-icon">
+            <li class="list-inline-item">
+              <a class="facebook" href="https://web.facebook.com/onlineremoteschool/"><i class="ti-facebook"></i></a>
+            </li>
+          <li class="list-inline-item">
+            <a class="twitter" href="#"><i class="ti-twitter-alt"></i></a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+  </div>
+</footer>
+<!-- /footer -->
+
+<!-- jQuery -->
+<script src="{{ SiteAssetUrl "/dtox/plugins/jQuery/jquery.min.js" }}"></script>
+<!-- Bootstrap JS -->
+<script src="{{ SiteAssetUrl "/dtox/plugins/bootstrap/bootstrap.min.js" }}"></script>
+<!-- slick slider -->
+<script src="{{ SiteAssetUrl "/dtox/plugins/slick/slick.min.js" }}"></script>
+<!-- venobox -->
+<script src="{{ SiteAssetUrl "/dtox/plugins/Venobox/venobox.min.js" }}"></script>
+
+<!-- Main Script -->
+<script src="{{ SiteAssetUrl "/dtox/js/script.js" }}"></script>
+{{block "js" .}} {{end}}
+
+<!--Start of Tawk.to Script-->
+<script type="text/javascript">
+    var Tawk_API=Tawk_API||{}, Tawk_LoadStart=new Date();
+    (function(){
+    var s1=document.createElement("script"),s0=document.getElementsByTagName("script")[0];
+    s1.async=true;
+    s1.src='https://embed.tawk.to/5e83343d35bcbb0c9aac3887/default';
+    s1.charset='UTF-8';
+    s1.setAttribute('crossorigin','*');
+    s0.parentNode.insertBefore(s1,s0);
+    })();
+</script>
+<!--End of Tawk.to Script-->
+</body>
+
+</html>
+{{ end }}

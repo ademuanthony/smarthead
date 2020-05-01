@@ -54,6 +54,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+	"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
@@ -77,6 +78,11 @@ var service = "WEB_APP"
 
 func main() {
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+	
 	// =========================================================================
 	// Logging
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
