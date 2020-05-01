@@ -55,7 +55,7 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 		FirstName:       req.User.FirstName,
 		LastName:        req.User.LastName,
 		Email:           req.User.Email,
-		Phone: 			 req.User.Phone,
+		Phone:           req.User.Phone,
 		Password:        req.User.Password,
 		PasswordConfirm: req.User.PasswordConfirm,
 		Timezone:        req.Account.Timezone,
@@ -75,7 +75,7 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 		accountReq := account.AccountCreateRequest{
 			Name:          req.Account.Name,
 			Address1:      req.Account.Address1,
-			Address2:      req.Account.Address2, 
+			Address2:      req.Account.Address2,
 			City:          req.Account.City,
 			Region:        req.Account.Region,
 			Country:       req.Account.Country,
@@ -100,7 +100,6 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 		role = user_account.UserAccountRole_Admin
 	}
 
-
 	// Associate the created user with the new account. The first user for the account will
 	// always have the role of admin.
 	ua := user_account.UserAccountCreateRequest{
@@ -118,3 +117,63 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 	return &resp, nil
 }
 
+func (repo *Repository) CreateDefaultAdmin(ctx context.Context, claims auth.Claims, now time.Time) error {
+	adminName := "ademuanthony@gmail.com"
+	if exist, _ := models.Users(models.UserWhere.Email.EQ(adminName)).Exists(ctx, repo.DbConn); exist {
+		return nil
+	}
+
+	// UserCreateRequest contains information needed to create a new User.
+	userReq := user.UserCreateRequest{
+		FirstName:       "Admin",
+		LastName:        "Admin",
+		Email:           adminName,
+		Phone:           "08035146243",
+		Password:        "0000",
+		PasswordConfirm: "0000",
+		Timezone:        nil,
+	}
+
+	// Execute user creation.
+	user, err := repo.User.Create(ctx, claims, userReq, now)
+	if err != nil {
+		return err
+	}
+
+	// Default account
+	accountStatus := account.AccountStatus_Active
+	accountReq := account.AccountCreateRequest{
+		Name:          "Remote School",
+		Address1:      "50 Orile Raod",
+		City:          "Agege",
+		Region:        "Lagos",
+		Country:       "Nigeria",
+		Zipcode:       "910210",
+		Status:        &accountStatus,
+		SignupUserID:  &user.ID,
+		BillingUserID: &user.ID,
+	}
+
+	// Execute account creation.
+	account, err := repo.Account.Create(ctx, claims, accountReq, now)
+	if err != nil {
+		return err
+	}
+	accountID := account.ID
+	role := user_account.UserAccountRole_Admin
+	// Associate the created user with the new account. The first user for the account will
+	// always have the role of admin.
+	ua := user_account.UserAccountCreateRequest{
+		UserID:    user.ID,
+		AccountID: accountID,
+		Roles:     []user_account.UserAccountRole{role},
+		//Status:  Use default value
+	}
+
+	_, err = repo.UserAccount.Create(ctx, claims, ua, now)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}

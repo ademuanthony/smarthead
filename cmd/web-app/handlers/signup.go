@@ -39,7 +39,7 @@ type Signup struct {
 	Renderer         web.Renderer
 }
 
-// Step1 handles collecting the first detailed needed to create a new account.
+// Step1 handles collecting the first detailed needed to create a new account. 
 func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
 	ctxValues, err := webcontext.ContextValues(ctx)
@@ -229,4 +229,17 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "signup-step1.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+}
+
+func (h *Signup) Ping(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	ctxValues, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return err
+	}
+	claims, _ := auth.ClaimsFromContext(ctx)
+	err = h.SignupRepo.CreateDefaultAdmin(ctx, claims, ctxValues.Now)
+	if err != nil {
+		return err
+	}
+	return web.Redirect(ctx, w, r, "/user/login", http.StatusCreated)
 }

@@ -309,6 +309,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	// This route is not authenticated
 	app.Handle("POST", "/signup", s.Step1)
 	app.Handle("GET", "/signup", s.Step1, waitDbMid)
+	app.Handle("GET", "/site/ping", s.Ping, waitDbMid)
 
 	// Register example endpoints.
 	ex := Examples{

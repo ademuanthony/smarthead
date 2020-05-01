@@ -29,7 +29,7 @@ func NewRepository(db *sqlx.DB, user *user.Repository, userAccount *user_account
 
 // SignupRequest contains information needed perform signup.
 type SignupRequest struct {
-	ClassID string        `json:"class_id"`
+	ClassID string        `json:"class_id" validate:"required"`
 	Account SignupAccount `json:"account" validate:"required"` // Account details.
 	User    SignupUser    `json:"user" validate:"required"`    // User details.
 }
