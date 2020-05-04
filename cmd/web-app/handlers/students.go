@@ -58,6 +58,7 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
 		{Field: "name", Title: "Name", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 		{Field: "username", Title: "Username", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Username"},
+		{Field: "reg_no", Title: "Registration Number", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Registration Number"},
 		{Field: "age", Title: "Age", Visible: true, Searchable: true, Orderable: true},
 		{Field: "current_class", Title: "Current Class", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
 		{Field: "parent_phone", Title: "Parent Phone", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Phone"},
@@ -77,6 +78,9 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlStudentsView(q.ID), v.Value)
 			case "username":
 				v.Value = q.Name
+				v.Formatted = v.Value
+			case "reg_no":
+				v.Value = q.RegNo
 				v.Formatted = v.Value
 			case "age":
 				v.Value = fmt.Sprintf("%d", q.Age)
@@ -164,13 +168,13 @@ func (h *Students) Download(ctx context.Context, w http.ResponseWriter, r *http.
 	b := &bytes.Buffer{}
     csvWriter := csv.NewWriter(b)
 
-    if err := csvWriter.Write([]string{"Name", "Email", "Phone", "CLass"}); err != nil {
+    if err := csvWriter.Write([]string{"Name", "Registration Number", "Email", "Phone", "CLass"}); err != nil {
         weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
     }
 
 	
 	for _, st := range res {
-		var records = []string{st.Name, st.ParentEmail, st.ParentPhone, st.CurrentClass}
+		var records = []string{st.Name, st.RegNo, st.ParentEmail, st.ParentPhone, st.CurrentClass}
 		if err := csvWriter.Write(records); err != nil {
 			weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
 		}

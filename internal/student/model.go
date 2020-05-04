@@ -28,6 +28,7 @@ type Student struct {
 	ID             string    `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name           string    `boil:"name" json:"name" toml:"name" yaml:"name"`
 	Username       string    `boil:"username" json:"username" toml:"username" yaml:"username"`
+	RegNo          string    `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
 	Age            int       `boil:"age" json:"age" toml:"age" yaml:"age"`
 	AccountBalance int       `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	CurrentClass   string    `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
@@ -46,6 +47,7 @@ func FromModel(rec *models.Student) *Student {
 		Name:           rec.Name,
 		AccountBalance: rec.AccountBalance,
 		Age:            rec.Age,
+		RegNo: 			rec.RegNo,
 		CreatedAt:      rec.CreatedAt,
 		ClassID:        rec.ClassID.String,
 		ParentEmail:    rec.ParentEmail,
@@ -68,6 +70,7 @@ type Response struct {
 	ID             string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name           string           `boil:"name" json:"name" toml:"name" yaml:"name"`
 	Username       string           `boil:"username" json:"username" toml:"username" yaml:"username"`
+	RegNo          string    `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
 	Age            int              `boil:"age" json:"age" toml:"age" yaml:"age"`
 	AccountBalance int              `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	ClassID        string           `json:"class_id"`
@@ -89,6 +92,7 @@ func (m *Student) Response(ctx context.Context) *Response {
 		ID:             m.ID,
 		Name:           m.Name,
 		Username:       m.Username,
+		RegNo: 			m.RegNo,
 		Age:            m.Age,
 		AccountBalance: m.AccountBalance,
 		ClassID:        m.ClassID,

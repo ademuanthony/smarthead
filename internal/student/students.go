@@ -2,6 +2,8 @@ package student
 
 import (
 	"context"
+	"math/rand"
+	"strconv"
 	"time"
 
 	"remoteschool/smarthead/internal/platform/auth"
@@ -96,6 +98,7 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 	}
 
 	now = now.UTC().Truncate(time.Millisecond)
+	regNo, err := repo.generateRegNo(ctx)
 
 	m := models.Student{
 		ID:          uuid.NewRandom().String(),
@@ -104,6 +107,7 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 		ClassID:     null.StringFrom(req.ClassID),
 		ParentEmail: req.ParentEmail,
 		ParentPhone: req.ParentPhone,
+		RegNo: 		 regNo,
 		Username:    req.Username,
 		CreatedAt:   now,
 		UpdatedAt:   now,
@@ -121,9 +125,26 @@ func (repo *Repository) Create(ctx context.Context, req CreateRequest, now time.
 		ParentEmail: m.ParentEmail,
 		ParentPhone: m.ParentPhone,
 		Username:    m.Username,
+		RegNo: 		 regNo,
 		CreatedAt:   now,
 		UpdatedAt:   now,
 	}, nil
+}
+
+func (repo *Repository) generateRegNo(ctx context.Context) (string, error) {
+	var regNo string
+	regNoExists := func (regNo string) (bool) {
+		e, _ := models.Students(models.StudentWhere.RegNo.EQ(regNo)).Exists(ctx, repo.DbConn)
+		return e
+	}
+	for regNo == "" || regNoExists(regNo) {
+		regNo = "RS"
+		rand.Seed(time.Now().UTC().UnixNano())
+		for i := 0; i < 6; i++ {
+			regNo += strconv.Itoa(rand.Intn(10))
+		}
+	}
+	return regNo, nil
 }
 
 // Update replaces an student in the database.
