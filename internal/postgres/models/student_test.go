@@ -431,6 +431,84 @@ func testStudentToManyDeposits(t *testing.T) {
 	}
 }
 
+func testStudentToManyLessonStudents(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Student
+	var b, c LessonStudent
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, studentDBTypes, true, studentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Student struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, lessonStudentDBTypes, false, lessonStudentColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, lessonStudentDBTypes, false, lessonStudentColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	b.StudentID = a.ID
+	c.StudentID = a.ID
+
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.LessonStudents().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if v.StudentID == b.StudentID {
+			bFound = true
+		}
+		if v.StudentID == c.StudentID {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := StudentSlice{&a}
+	if err = a.L.LoadLessonStudents(ctx, tx, false, (*[]*Student)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.LessonStudents); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.LessonStudents = nil
+	if err = a.L.LoadLessonStudents(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.LessonStudents); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testStudentToManyPeriods(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -744,6 +822,81 @@ func testStudentToManyAddOpDeposits(t *testing.T) {
 		}
 
 		count, err := a.Deposits().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+func testStudentToManyAddOpLessonStudents(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Student
+	var b, c, d, e LessonStudent
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, studentDBTypes, false, strmangle.SetComplement(studentPrimaryKeyColumns, studentColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*LessonStudent{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, lessonStudentDBTypes, false, strmangle.SetComplement(lessonStudentPrimaryKeyColumns, lessonStudentColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*LessonStudent{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddLessonStudents(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if a.ID != first.StudentID {
+			t.Error("foreign key was wrong value", a.ID, first.StudentID)
+		}
+		if a.ID != second.StudentID {
+			t.Error("foreign key was wrong value", a.ID, second.StudentID)
+		}
+
+		if first.R.Student != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Student != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.LessonStudents[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.LessonStudents[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.LessonStudents().Count(ctx, tx)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -1517,7 +1670,7 @@ func testStudentsSelect(t *testing.T) {
 }
 
 var (
-	studentDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `Username`: `character varying`, `Age`: `integer`, `AccountBalance`: `integer`, `CurrentClass`: `integer`, `ParentPhone`: `character varying`, `ParentEmail`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `ClassID`: `uuid`}
+	studentDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `Username`: `character varying`, `RegNo`: `character varying`, `Age`: `integer`, `AccountBalance`: `integer`, `CurrentClass`: `integer`, `ParentPhone`: `character varying`, `ParentEmail`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `ClassID`: `uuid`}
 	_              = bytes.MinRead
 )
 

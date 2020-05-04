@@ -167,7 +167,7 @@ func (repo *Repository) CreateDefaultAdmin(ctx context.Context, claims auth.Clai
 		UserID:    user.ID,
 		AccountID: accountID,
 		Roles:     []user_account.UserAccountRole{role},
-		//Status:  Use default value
+		// Status:  Use default value
 	}
 
 	_, err = repo.UserAccount.Create(ctx, claims, ua, now)

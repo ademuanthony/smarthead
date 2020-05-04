@@ -13,6 +13,9 @@ import (
 const (
 	RoleAdmin = "admin"
 	RoleUser  = "user"
+	RoleTeacher = "teacher"
+	RoleStudent = "student"
+	RoleFinance = "finance"
 )
 
 // ctxKey represents the type of value for the context key.

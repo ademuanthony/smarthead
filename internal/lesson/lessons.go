@@ -1,4 +1,4 @@
-package class
+package lesson
 
 import (
 	"context"
@@ -23,7 +23,7 @@ var (
 )
 
 // Find gets all the classes from the database based on the request params.
-func (repo *Repository) Find(ctx context.Context, req FindRequest) (Classes, error) {
+func (repo *Repository) Find(ctx context.Context, req FindRequest) (Lessons, error) {
 	var queries []QueryMod
 
 	if req.Where != "" {
@@ -51,7 +51,7 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Classes, err
 		return nil, err
 	}
 
-	var result Classes
+	var result Lessons
 	for _, rec := range classSlice {
 		result = append(result, FromModel(rec))
 	}
@@ -60,7 +60,7 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Classes, err
 }
 
 // ReadByID gets the specified class by ID from the database.
-func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Class, error) {
+func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Lesson, error) {
 	classModel, err := models.FindClass(ctx, repo.DbConn, id)
 	if err != nil {
 		return nil, err
@@ -70,7 +70,7 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 }
 
 // Create inserts a new class into the database.
-func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest) (*Class, error) {
+func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest) (*Lesson, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.class.Create")
 	defer span.Finish()
 	if claims.Audience == "" {
@@ -105,7 +105,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		return nil, errors.WithMessage(err, "Insert class failed")
 	}
 
-	return &Class{
+	return &Lesson{
 		ID:         m.ID,
 		Name:       m.Name,
 		SchoolOrder: m.SchoolOrder,

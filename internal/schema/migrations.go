@@ -104,7 +104,7 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 		{
 			ID: "20190522-02e",
 			Migrate: func(tx *sql.Tx) error {
-				if err := createTypeIfNotExists(tx, "user_account_role_t", "enum('admin', 'user')"); err != nil {
+				if err := createTypeIfNotExists(tx, "user_account_role_t", "enum('admin', 'user', 'teacher', 'student', 'finance')"); err != nil {
 					return err
 				}
 
@@ -805,6 +805,7 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 					id uuid NOT NULL,
 					name character varying(255) COLLATE pg_catalog."default" NOT NULL,
 					username character varying(255) COLLATE pg_catalog."default" NOT NULL,
+					reg_no character varying(32) NOT NULL,
 					age integer NOT NULL,
 					account_balance integer NOT NULL,
 					current_class integer NOT NULL,
@@ -1132,6 +1133,105 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
+		// create subclass table
+		{
+			ID: "2020504-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE subclass (
+					id uuid NOT NULL PRIMARY KEY,
+					name character varying(256) NOT NULL,
+					class_id uuid NOT NULL REFERENCES classes(id)
+				)`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table subclass`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// create timetable table
+		{
+			ID: "2020504-02",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE timetable (
+					id uuid NOT NULL PRIMARY KEY,
+					subclass_id uuid NOT NULL REFERENCES subclass(id),
+					subject_id uuid NOT NULL REFERENCES subject(id),
+					teacher_id char(36) NOT NULL REFERENCES users(id),
+					period_id uuid NOT NULL REFERENCES period(id),
+					day INT NOT NULL
+				)`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table timetable`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// create lesson table
+		{
+			ID: "2020504-03",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE lesson (
+					id uuid NOT NULL PRIMARY KEY,
+					timetable_id uuid NOT NULL REFERENCES timetable(id),
+					date INT8 NOT NULL
+				)`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table lesson`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+		},
+		// create lesson_student table
+		{
+			ID: "2020502-04",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `CREATE TABLE lesson_student (
+					id uuid NOT NULL PRIMARY KEY,
+					lesson_id uuid NOT NULL REFERENCES lesson(id),
+					student_id uuid NOT NULL REFERENCES student(id)
+				)`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				q1 := `drop table lesson_student`
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
 				return nil
 			},
 		},

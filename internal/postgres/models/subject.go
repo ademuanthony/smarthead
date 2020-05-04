@@ -64,11 +64,13 @@ var SubjectRels = struct {
 	Teachers      string
 	Students      string
 	Subscriptions string
+	Timetables    string
 }{
 	Deposits:      "Deposits",
 	Teachers:      "Teachers",
 	Students:      "Students",
 	Subscriptions: "Subscriptions",
+	Timetables:    "Timetables",
 }
 
 // subjectR is where relationships are stored.
@@ -77,6 +79,7 @@ type subjectR struct {
 	Teachers      TeacherSlice
 	Students      StudentSlice
 	Subscriptions SubscriptionSlice
+	Timetables    TimetableSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -266,6 +269,27 @@ func (o *Subject) Subscriptions(mods ...qm.QueryMod) subscriptionQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"subscription\".*"})
+	}
+
+	return query
+}
+
+// Timetables retrieves all the timetable's Timetables with an executor.
+func (o *Subject) Timetables(mods ...qm.QueryMod) timetableQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"timetable\".\"subject_id\"=?", o.ID),
+	)
+
+	query := Timetables(queryMods...)
+	queries.SetFrom(query.Query, "\"timetable\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"timetable\".*"})
 	}
 
 	return query
@@ -528,7 +552,7 @@ func (subjectL) LoadStudents(ctx context.Context, e boil.ContextExecutor, singul
 		one := new(Student)
 		var localJoinCol string
 
-		err = results.Scan(&one.ID, &one.Name, &one.Username, &one.Age, &one.AccountBalance, &one.CurrentClass, &one.ParentPhone, &one.ParentEmail, &one.CreatedAt, &one.UpdatedAt, &one.ClassID, &localJoinCol)
+		err = results.Scan(&one.ID, &one.Name, &one.Username, &one.RegNo, &one.Age, &one.AccountBalance, &one.CurrentClass, &one.ParentPhone, &one.ParentEmail, &one.CreatedAt, &one.UpdatedAt, &one.ClassID, &localJoinCol)
 		if err != nil {
 			return errors.Wrap(err, "failed to scan eager loaded results for student")
 		}
@@ -653,6 +677,94 @@ func (subjectL) LoadSubscriptions(ctx context.Context, e boil.ContextExecutor, s
 				local.R.Subscriptions = append(local.R.Subscriptions, foreign)
 				if foreign.R == nil {
 					foreign.R = &subscriptionR{}
+				}
+				foreign.R.Subject = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadTimetables allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (subjectL) LoadTimetables(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubject interface{}, mods queries.Applicator) error {
+	var slice []*Subject
+	var object *Subject
+
+	if singular {
+		object = maybeSubject.(*Subject)
+	} else {
+		slice = *maybeSubject.(*[]*Subject)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subjectR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subjectR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`timetable`), qm.WhereIn(`timetable.subject_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load timetable")
+	}
+
+	var resultSlice []*Timetable
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice timetable")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on timetable")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for timetable")
+	}
+
+	if singular {
+		object.R.Timetables = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &timetableR{}
+			}
+			foreign.R.Subject = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.SubjectID {
+				local.R.Timetables = append(local.R.Timetables, foreign)
+				if foreign.R == nil {
+					foreign.R = &timetableR{}
 				}
 				foreign.R.Subject = local
 				break
@@ -1040,6 +1152,59 @@ func (o *Subject) AddSubscriptions(ctx context.Context, exec boil.ContextExecuto
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &subscriptionR{
+				Subject: o,
+			}
+		} else {
+			rel.R.Subject = o
+		}
+	}
+	return nil
+}
+
+// AddTimetables adds the given related objects to the existing relationships
+// of the subject, optionally inserting them as new records.
+// Appends related to o.R.Timetables.
+// Sets related.R.Subject appropriately.
+func (o *Subject) AddTimetables(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Timetable) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.SubjectID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"timetable\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"subject_id"}),
+				strmangle.WhereClause("\"", "\"", 2, timetablePrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.SubjectID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &subjectR{
+			Timetables: related,
+		}
+	} else {
+		o.R.Timetables = append(o.R.Timetables, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &timetableR{
 				Subject: o,
 			}
 		} else {

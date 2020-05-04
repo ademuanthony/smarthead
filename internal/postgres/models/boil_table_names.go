@@ -7,6 +7,8 @@ var TableNames = struct {
 	Accounts         string
 	Classes          string
 	Deposits         string
+	Lesson           string
+	LessonStudent    string
 	Period           string
 	Specialization   string
 	Student          string
@@ -15,11 +17,14 @@ var TableNames = struct {
 	Subject          string
 	Subscription     string
 	Teacher          string
+	Timetable        string
 	Users            string
 }{
 	Accounts:         "accounts",
 	Classes:          "classes",
 	Deposits:         "deposits",
+	Lesson:           "lesson",
+	LessonStudent:    "lesson_student",
 	Period:           "period",
 	Specialization:   "specialization",
 	Student:          "student",
@@ -28,5 +33,6 @@ var TableNames = struct {
 	Subject:          "subject",
 	Subscription:     "subscription",
 	Teacher:          "teacher",
+	Timetable:        "timetable",
 	Users:            "users",
 }

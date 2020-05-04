@@ -420,7 +420,7 @@ func (r *TemplateRenderer) Render(ctx context.Context, w http.ResponseWriter, re
 					continue
 				}
 				// TODO: implement custom flash
-				flashes = append(flashes, msg)
+				// flashes = append(flashes, msg)
 			}
 
 			renderData["flashes"] = flashes

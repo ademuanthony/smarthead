@@ -1,9 +1,9 @@
 [psql]
-    dbname = "shared"
+    dbname = "smarthead"
     host = "localhost"
-    port = "5433"
+    port = "5432"
     user = "postgres"
-    pass = "postgres"
+    pass = "docker"
     sslmode = "disable"
     whitelist=[
             "accounts",
@@ -17,5 +17,9 @@
             "students_subjects",
             "deposits",
             "subscription",
-            "classes"
+            "classes",
+            "subsclass",
+            "timetable",
+            "lesson",
+            "lesson_student"
             ]

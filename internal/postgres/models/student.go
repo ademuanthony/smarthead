@@ -27,6 +27,7 @@ type Student struct {
 	ID             string      `boil:"id" json:"id" toml:"id" yaml:"id"`
 	Name           string      `boil:"name" json:"name" toml:"name" yaml:"name"`
 	Username       string      `boil:"username" json:"username" toml:"username" yaml:"username"`
+	RegNo          string      `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
 	Age            int         `boil:"age" json:"age" toml:"age" yaml:"age"`
 	AccountBalance int         `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	CurrentClass   int         `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
@@ -44,6 +45,7 @@ var StudentColumns = struct {
 	ID             string
 	Name           string
 	Username       string
+	RegNo          string
 	Age            string
 	AccountBalance string
 	CurrentClass   string
@@ -56,6 +58,7 @@ var StudentColumns = struct {
 	ID:             "id",
 	Name:           "name",
 	Username:       "username",
+	RegNo:          "reg_no",
 	Age:            "age",
 	AccountBalance: "account_balance",
 	CurrentClass:   "current_class",
@@ -72,6 +75,7 @@ var StudentWhere = struct {
 	ID             whereHelperstring
 	Name           whereHelperstring
 	Username       whereHelperstring
+	RegNo          whereHelperstring
 	Age            whereHelperint
 	AccountBalance whereHelperint
 	CurrentClass   whereHelperint
@@ -84,6 +88,7 @@ var StudentWhere = struct {
 	ID:             whereHelperstring{field: "\"student\".\"id\""},
 	Name:           whereHelperstring{field: "\"student\".\"name\""},
 	Username:       whereHelperstring{field: "\"student\".\"username\""},
+	RegNo:          whereHelperstring{field: "\"student\".\"reg_no\""},
 	Age:            whereHelperint{field: "\"student\".\"age\""},
 	AccountBalance: whereHelperint{field: "\"student\".\"account_balance\""},
 	CurrentClass:   whereHelperint{field: "\"student\".\"current_class\""},
@@ -96,26 +101,29 @@ var StudentWhere = struct {
 
 // StudentRels is where relationship names are stored.
 var StudentRels = struct {
-	Class         string
-	Deposits      string
-	Periods       string
-	Subjects      string
-	Subscriptions string
+	Class          string
+	Deposits       string
+	LessonStudents string
+	Periods        string
+	Subjects       string
+	Subscriptions  string
 }{
-	Class:         "Class",
-	Deposits:      "Deposits",
-	Periods:       "Periods",
-	Subjects:      "Subjects",
-	Subscriptions: "Subscriptions",
+	Class:          "Class",
+	Deposits:       "Deposits",
+	LessonStudents: "LessonStudents",
+	Periods:        "Periods",
+	Subjects:       "Subjects",
+	Subscriptions:  "Subscriptions",
 }
 
 // studentR is where relationships are stored.
 type studentR struct {
-	Class         *Class
-	Deposits      DepositSlice
-	Periods       PeriodSlice
-	Subjects      SubjectSlice
-	Subscriptions SubscriptionSlice
+	Class          *Class
+	Deposits       DepositSlice
+	LessonStudents LessonStudentSlice
+	Periods        PeriodSlice
+	Subjects       SubjectSlice
+	Subscriptions  SubscriptionSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -127,8 +135,8 @@ func (*studentR) NewStruct() *studentR {
 type studentL struct{}
 
 var (
-	studentAllColumns            = []string{"id", "name", "username", "age", "account_balance", "current_class", "parent_phone", "parent_email", "created_at", "updated_at", "class_id"}
-	studentColumnsWithoutDefault = []string{"id", "name", "username", "age", "account_balance", "current_class", "parent_phone", "parent_email", "created_at", "updated_at", "class_id"}
+	studentAllColumns            = []string{"id", "name", "username", "reg_no", "age", "account_balance", "current_class", "parent_phone", "parent_email", "created_at", "updated_at", "class_id"}
+	studentColumnsWithoutDefault = []string{"id", "name", "username", "reg_no", "age", "account_balance", "current_class", "parent_phone", "parent_email", "created_at", "updated_at", "class_id"}
 	studentColumnsWithDefault    = []string{}
 	studentPrimaryKeyColumns     = []string{"id"}
 )
@@ -254,6 +262,27 @@ func (o *Student) Deposits(mods ...qm.QueryMod) depositQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"deposits\".*"})
+	}
+
+	return query
+}
+
+// LessonStudents retrieves all the lesson_student's LessonStudents with an executor.
+func (o *Student) LessonStudents(mods ...qm.QueryMod) lessonStudentQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"lesson_student\".\"student_id\"=?", o.ID),
+	)
+
+	query := LessonStudents(queryMods...)
+	queries.SetFrom(query.Query, "\"lesson_student\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"lesson_student\".*"})
 	}
 
 	return query
@@ -499,6 +528,94 @@ func (studentL) LoadDeposits(ctx context.Context, e boil.ContextExecutor, singul
 				local.R.Deposits = append(local.R.Deposits, foreign)
 				if foreign.R == nil {
 					foreign.R = &depositR{}
+				}
+				foreign.R.Student = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadLessonStudents allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (studentL) LoadLessonStudents(ctx context.Context, e boil.ContextExecutor, singular bool, maybeStudent interface{}, mods queries.Applicator) error {
+	var slice []*Student
+	var object *Student
+
+	if singular {
+		object = maybeStudent.(*Student)
+	} else {
+		slice = *maybeStudent.(*[]*Student)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &studentR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &studentR{}
+			}
+
+			for _, a := range args {
+				if a == obj.ID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`lesson_student`), qm.WhereIn(`lesson_student.student_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load lesson_student")
+	}
+
+	var resultSlice []*LessonStudent
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice lesson_student")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on lesson_student")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for lesson_student")
+	}
+
+	if singular {
+		object.R.LessonStudents = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &lessonStudentR{}
+			}
+			foreign.R.Student = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if local.ID == foreign.StudentID {
+				local.R.LessonStudents = append(local.R.LessonStudents, foreign)
+				if foreign.R == nil {
+					foreign.R = &lessonStudentR{}
 				}
 				foreign.R.Student = local
 				break
@@ -935,6 +1052,59 @@ func (o *Student) AddDeposits(ctx context.Context, exec boil.ContextExecutor, in
 	for _, rel := range related {
 		if rel.R == nil {
 			rel.R = &depositR{
+				Student: o,
+			}
+		} else {
+			rel.R.Student = o
+		}
+	}
+	return nil
+}
+
+// AddLessonStudents adds the given related objects to the existing relationships
+// of the student, optionally inserting them as new records.
+// Appends related to o.R.LessonStudents.
+// Sets related.R.Student appropriately.
+func (o *Student) AddLessonStudents(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*LessonStudent) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			rel.StudentID = o.ID
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"lesson_student\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"student_id"}),
+				strmangle.WhereClause("\"", "\"", 2, lessonStudentPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			rel.StudentID = o.ID
+		}
+	}
+
+	if o.R == nil {
+		o.R = &studentR{
+			LessonStudents: related,
+		}
+	} else {
+		o.R.LessonStudents = append(o.R.LessonStudents, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &lessonStudentR{
 				Student: o,
 			}
 		} else {

@@ -30,7 +30,7 @@ type Root struct {
 	SubscriptionRepo *subscription.Repository
 	ClassRepo		 *class.Repository
 	SubjectRepo		 *subject.Repository
-	PeriodRepo		 *period.Repository
+	PeriodRepo		 *period.Repository 
 	Renderer         web.Renderer
 	Sitemap          *stm.Sitemap
 	WebRoute         webroute.WebRoute
@@ -81,7 +81,9 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
 	})
 	if err != nil {
-		return err
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
 	}
 	data["classes"] = classes
 
@@ -111,7 +113,9 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		Order: []string{"start_hour"},
 	})
 	if err != nil {
-		return err
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
 	} 
 	data["periods"] = periods
 
@@ -120,7 +124,9 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		Order: []string{"name"},
 	})
 	if err != nil {
-		return err
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
 	}
 	data["subjects"] = subjects
 
@@ -149,9 +155,11 @@ func (h *Root) indexDefault(ctx context.Context, w http.ResponseWriter, r *http.
 		Order: []string{"school_order", "name"},
 	})
 	if err != nil {
-		return err
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
 	}
-	data := map[string]interface{}{}
+	data := map[string]interface{}{} 
 	data["classes"] = classes
 	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-index.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }

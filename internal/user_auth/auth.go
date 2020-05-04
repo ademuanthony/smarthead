@@ -71,7 +71,7 @@ func (repo *Repository) Authenticate(ctx context.Context, req AuthenticateReques
 	// invalid password.
 	if err := bcrypt.CompareHashAndPassword(u.PasswordHash, []byte(saltedPassword)); err != nil {
 		err = errors.WithStack(ErrAuthenticationFailure)
-		// return Token{}, err
+		return Token{}, err
 	}
 
 	// The user is successfully authenticated with the supplied email and password.

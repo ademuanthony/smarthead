@@ -237,12 +237,21 @@ const (
 	// privileges for accessing an account. This role provies a user with the most
 	// limited access to an account.
 	UserAccountRole_User UserAccountRole = auth.RoleUser
+
+	UserAccountRole_Teacher UserAccountRole = auth.RoleTeacher
+
+	UserAccountRole_Student UserAccountRole = auth.RoleStudent
+
+	UserAccountRole_Finance UserAccountRole = auth.RoleFinance
 )
 
 // UserAccountRole_Values provides list of valid UserAccountRole values.
 var UserAccountRole_Values = []UserAccountRole{
 	UserAccountRole_Admin,
 	UserAccountRole_User,
+	UserAccountRole_Teacher,
+	UserAccountRole_Student,
+	UserAccountRole_Finance,
 }
 
 // UserAccountRole_ValuesInterface returns the UserAccountRole options as a slice interface.

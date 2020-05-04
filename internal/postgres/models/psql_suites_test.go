@@ -12,6 +12,10 @@ func TestUpsert(t *testing.T) {
 
 	t.Run("Deposits", testDepositsUpsert)
 
+	t.Run("Lessons", testLessonsUpsert)
+
+	t.Run("LessonStudents", testLessonStudentsUpsert)
+
 	t.Run("Periods", testPeriodsUpsert)
 
 	t.Run("Students", testStudentsUpsert)
@@ -21,6 +25,8 @@ func TestUpsert(t *testing.T) {
 	t.Run("Subscriptions", testSubscriptionsUpsert)
 
 	t.Run("Teachers", testTeachersUpsert)
+
+	t.Run("Timetables", testTimetablesUpsert)
 
 	t.Run("Users", testUsersUpsert)
 }
