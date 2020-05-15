@@ -9,7 +9,7 @@ affordable interactive online private teaching and learning.{{end}}
 {{ define "content" }}
 
 <!-- hero area -->
-<section class="hero-section" data-background="" style="background-image: url({{ SiteAssetUrl "/dtox/images/hero-area/banner-bg.png" }});">
+<section class="hero-section" data-background="" style='background-image: url({{ SiteAssetUrl "/dtox/images/hero-area/banner-bg.png" }});'>
   <div class="container">
     <div class="row">
       <div class="col-lg-12 text-center">
@@ -31,7 +31,7 @@ affordable interactive online private teaching and learning.{{end}}
                                   <select name="class" required class="form-control">
                                       <option value="">Select Class</option>
                                       {{ range $class := .classes }}
-                                      <option value="{{ $class }}">{{ $class }}</option>
+                                      <option value="{{ $class.Name }}">{{ $class.Name }}</option>
                                       {{ end }}
                                   </select>
                               </div>
