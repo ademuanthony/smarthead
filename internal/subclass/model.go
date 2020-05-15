@@ -25,7 +25,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 type Subclass struct {
 	ID          string `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name        string `boil:"name" json:"name" toml:"name" yaml:"name"`
-	ClassID     int    `json:"class_id"`
+	ClassID     string    `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
 
 	Class *class.Class `json:"_class"`
