@@ -52,7 +52,7 @@ func FromModel(rec *models.Subclass) *Subclass {
 type Response struct {
 	ID          string `json:"id" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name        string `json:"name" example:"Rocket Launch"`
-	ClassID     int    `json:"class_id"`
+	ClassID     string    `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
 	Class       string `json:"_class"`
 }

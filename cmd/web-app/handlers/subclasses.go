@@ -12,6 +12,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/subclass"
 
 	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/schema"
@@ -52,7 +53,7 @@ func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.R
 		{Field: "school_order", Title: "School Order", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter School"},
 	}
 
-	mapFunc := func(q *class.Class, cols []datatable.DisplayField) (resp []datatable.ColumnValue, err error) {
+	mapFunc := func(q *subclass.Response, cols []datatable.DisplayField) (resp []datatable.ColumnValue, err error) {
 		for i := 0; i < len(cols); i++ {
 			col := cols[i]
 			var v datatable.ColumnValue
