@@ -1143,7 +1143,8 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				q1 := `CREATE TABLE subclass (
 					id uuid NOT NULL PRIMARY KEY,
 					name character varying(256) NOT NULL,
-					class_id uuid NOT NULL REFERENCES classes(id)
+					class_id uuid NOT NULL REFERENCES classes(id),
+					school_order int NOT NULL
 				)`
 				
 				if _, err := tx.Exec(q1); err != nil {
