@@ -78,11 +78,11 @@ func (m *Subclass) Response(ctx context.Context) *Response {
 	return r
 }
 
-// Classes a list of Classes.
-type Classes []*Subclass
+// Subclasses a list of Subclasses.
+type Subclasses []*Subclass
 
 // Response transforms a list of Branches to a list of Responses.
-func (m *Classes) Response(ctx context.Context) []*Response {
+func (m *Subclasses) Response(ctx context.Context) []*Response {
 	var l []*Response
 	if m != nil && len(*m) > 0 {
 		for _, n := range *m {

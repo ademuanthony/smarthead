@@ -20,8 +20,8 @@ import (
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
 )
 
-// Sublasses represents the Sublasses API method handler set.
-type Sublasses struct {
+// Subclasses represents the Subclasses API method handler set.
+type Subclasses struct {
 	Repo     *subclass.Repository
 	Redis    *redis.Client
 	Renderer web.Renderer
@@ -79,13 +79,14 @@ func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.R
 	}
 
 	loadFunc := func(ctx context.Context, sorting string, fields []datatable.DisplayField) (resp [][]datatable.ColumnValue, err error) {
-		res, err := h.Repo.Find(ctx, class.FindRequest{
+		result, err := h.Repo.Find(ctx, subclass.FindRequest{
 			Order: strings.Split(sorting, ","),
 		})
 		if err != nil {
 			return resp, err
 		}
 
+		res := result.Response(ctx)
 		for _, a := range res {
 			l, err := mapFunc(a, fields)
 			if err != nil {
@@ -132,7 +133,7 @@ func (h *Subclasses) Create(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	//
-	req := new(class.CreateRequest)
+	req := new(subclass.CreateRequest)
 	data := make(map[string]interface{})
 	f := func() (bool, error) {
 		if r.Method == http.MethodPost {
@@ -191,7 +192,7 @@ func (h *Subclasses) Create(ctx context.Context, w http.ResponseWriter, r *http.
 }
 
 // View handles displaying a classes.
-func (h *Classes) View(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
 	classID := params["class_id"]
 
@@ -210,7 +211,7 @@ func (h *Classes) View(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 			switch r.PostForm.Get("action") {
 			case "archive":
-				err = h.Repo.Delete(ctx, claims, class.DeleteRequest{
+				err = h.Repo.Delete(ctx, claims, subclass.DeleteRequest{
 					ID: classID,
 				})
 				if err != nil {
@@ -248,9 +249,9 @@ func (h *Classes) View(ctx context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 // Update handles updating a class.
-func (h *Classes) Update(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+func (h *Subclasses) Update(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
-	classID := params["class_id"]
+	classID := params["subclass_id"]
 
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
@@ -258,7 +259,7 @@ func (h *Classes) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 	}
 
 	//
-	req := new(class.UpdateRequest)
+	req := new(subclass.UpdateRequest)
 	data := make(map[string]interface{})
 	f := func() (bool, error) {
 		if r.Method == http.MethodPost {
@@ -324,5 +325,5 @@ func (h *Classes) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 		data["validationDefaults"] = verr.(*weberror.Error)
 	}
 
-	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-classes-update.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subclasses-update.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
