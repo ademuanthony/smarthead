@@ -51,7 +51,7 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, 
 		return nil, err
 	}
 
-	var result Subclass
+	var result Subclasses
 	for _, rec := range classSlice {
 		result = append(result, FromModel(rec))
 	}
@@ -98,7 +98,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	m := models.Subclass {
 		ID:        uuid.NewRandom().String(),
 		Name:      req.Name,
-		ClassID:   req.Subclass,
+		ClassID:   req.ClassID,
 		SchoolOrder: req.SchoolOrder,
 	}
 
@@ -110,7 +110,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		ID:         m.ID,
 		Name:       m.Name,
 		SchoolOrder: m.SchoolOrder,
-		Subclass: m.Subclass,
+		ClassID: m.ClassID,
 	}, nil
 }
 

@@ -7,3 +7,4 @@ tmp
 .devops.json
 docker-compose.yml
 *.env
+tools/schema/.env

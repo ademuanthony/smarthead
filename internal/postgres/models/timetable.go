@@ -70,23 +70,26 @@ var TimetableWhere = struct {
 
 // TimetableRels is where relationship names are stored.
 var TimetableRels = struct {
-	Period  string
-	Subject string
-	Teacher string
-	Lessons string
+	Period   string
+	Subclass string
+	Subject  string
+	Teacher  string
+	Lessons  string
 }{
-	Period:  "Period",
-	Subject: "Subject",
-	Teacher: "Teacher",
-	Lessons: "Lessons",
+	Period:   "Period",
+	Subclass: "Subclass",
+	Subject:  "Subject",
+	Teacher:  "Teacher",
+	Lessons:  "Lessons",
 }
 
 // timetableR is where relationships are stored.
 type timetableR struct {
-	Period  *Period
-	Subject *Subject
-	Teacher *User
-	Lessons LessonSlice
+	Period   *Period
+	Subclass *Subclass
+	Subject  *Subject
+	Teacher  *User
+	Lessons  LessonSlice
 }
 
 // NewStruct creates a new relationship struct
@@ -205,6 +208,20 @@ func (o *Timetable) Period(mods ...qm.QueryMod) periodQuery {
 
 	query := Periods(queryMods...)
 	queries.SetFrom(query.Query, "\"period\"")
+
+	return query
+}
+
+// Subclass pointed to by the foreign key.
+func (o *Timetable) Subclass(mods ...qm.QueryMod) subclassQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.SubclassID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Subclasses(queryMods...)
+	queries.SetFrom(query.Query, "\"subclass\"")
 
 	return query
 }
@@ -341,6 +358,99 @@ func (timetableL) LoadPeriod(ctx context.Context, e boil.ContextExecutor, singul
 				local.R.Period = foreign
 				if foreign.R == nil {
 					foreign.R = &periodR{}
+				}
+				foreign.R.Timetables = append(foreign.R.Timetables, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadSubclass allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (timetableL) LoadSubclass(ctx context.Context, e boil.ContextExecutor, singular bool, maybeTimetable interface{}, mods queries.Applicator) error {
+	var slice []*Timetable
+	var object *Timetable
+
+	if singular {
+		object = maybeTimetable.(*Timetable)
+	} else {
+		slice = *maybeTimetable.(*[]*Timetable)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &timetableR{}
+		}
+		args = append(args, object.SubclassID)
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &timetableR{}
+			}
+
+			for _, a := range args {
+				if a == obj.SubclassID {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.SubclassID)
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`subclass`), qm.WhereIn(`subclass.id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load Subclass")
+	}
+
+	var resultSlice []*Subclass
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice Subclass")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for subclass")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for subclass")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Subclass = foreign
+		if foreign.R == nil {
+			foreign.R = &subclassR{}
+		}
+		foreign.R.Timetables = append(foreign.R.Timetables, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if local.SubclassID == foreign.ID {
+				local.R.Subclass = foreign
+				if foreign.R == nil {
+					foreign.R = &subclassR{}
 				}
 				foreign.R.Timetables = append(foreign.R.Timetables, local)
 				break
@@ -663,6 +773,53 @@ func (o *Timetable) SetPeriod(ctx context.Context, exec boil.ContextExecutor, in
 
 	if related.R == nil {
 		related.R = &periodR{
+			Timetables: TimetableSlice{o},
+		}
+	} else {
+		related.R.Timetables = append(related.R.Timetables, o)
+	}
+
+	return nil
+}
+
+// SetSubclass of the timetable to the related item.
+// Sets o.R.Subclass to related.
+// Adds o to related.R.Timetables.
+func (o *Timetable) SetSubclass(ctx context.Context, exec boil.ContextExecutor, insert bool, related *Subclass) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"timetable\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"subclass_id"}),
+		strmangle.WhereClause("\"", "\"", 2, timetablePrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	o.SubclassID = related.ID
+	if o.R == nil {
+		o.R = &timetableR{
+			Subclass: related,
+		}
+	} else {
+		o.R.Subclass = related
+	}
+
+	if related.R == nil {
+		related.R = &subclassR{
 			Timetables: TimetableSlice{o},
 		}
 	} else {
