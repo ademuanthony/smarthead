@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"math/rand"
 	"net/http"
 	"time"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/gorilla/schema"
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
+	"gopkg.in/go-playground/validator.v9"
 )
 
 // Signup represents the Signup API method handler set.
@@ -34,12 +36,12 @@ type Signup struct {
 	ClassRepo        *class.Repository
 	SubscriptionRepo *subscription.Repository
 	SubjectRepo      *subject.Repository
-	DepositRepo		 *deposit.Repository
+	DepositRepo      *deposit.Repository
 	MasterDB         *sqlx.DB
 	Renderer         web.Renderer
 }
 
-// Step1 handles collecting the first detailed needed to create a new account. 
+// Step1 handles collecting the first detailed needed to create a new account.
 func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
 	ctxValues, err := webcontext.ContextValues(ctx)
@@ -62,23 +64,23 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 			decoder := schema.NewDecoder()
 			if err := decoder.Decode(req, r.PostForm); err != nil {
-				return false, err 
+				return false, err
 			}
 
 			var isFirst bool
-			if req.Account.Name == "" {  
+			if req.Account.Name == "" {
 				id, err := h.AccountRepo.First(ctx)
 				if err != nil {
 					isFirst = true
 					status := account.AccountStatus_Active
 					acc, err := h.AccountRepo.Create(ctx, claims, account.AccountCreateRequest{
-						Name: "Main Account",
+						Name:   "Main Account",
 						Status: &status,
 					}, ctxValues.Now)
 					if err != nil {
 						return false, err
 					}
-					id = &acc.ID 
+					id = &acc.ID
 				}
 				req.Account.ID = *id
 			}
@@ -132,7 +134,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				}
 
 				// Eng trail
-				subReq := subscription.CreateRequest{ 
+				subReq := subscription.CreateRequest{
 					StudentID: s.ID,
 					StartDate: startDate.Unix(),
 					EndDate:   endDate.Unix(),
@@ -229,6 +231,134 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	}
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "signup-step1.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+}
+
+func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	v, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Claims are optional as authentication is not required ATM for this method.
+	claims, _ := auth.ClaimsFromContext(ctx)
+
+	var req struct {
+		ClassID string `json:"class_id"`
+		Name    string `json:"name"`
+		Email   string `json:"email"`
+		Phone   string `json:"phone"`
+	}
+
+	if err := web.Decode(ctx, r, &req); err != nil {
+		if _, ok := errors.Cause(err).(*weberror.Error); !ok {
+			err = weberror.NewError(ctx, err, http.StatusBadRequest)
+		}
+		return web.RespondJsonError(ctx, w, err)
+	}
+
+	pass := randomPassword()
+	regReq := signup.SignupRequest{
+		ClassID: req.ClassID,
+		User: signup.SignupUser{
+			Email:           req.Email,
+			Phone:           req.Phone,
+			FirstName:       req.Name,
+			Password:        pass,
+			PasswordConfirm: pass,
+		},
+	}
+	id, err := h.AccountRepo.First(ctx)
+	if err != nil {
+		status := account.AccountStatus_Active
+		acc, err := h.AccountRepo.Create(ctx, claims, account.AccountCreateRequest{
+			Name:   "Main Account",
+			Status: &status,
+		}, v.Now)
+		if err != nil {
+			return err
+		}
+		id = &acc.ID
+	}
+	regReq.Account.ID = *id
+	res, err := h.SignupRepo.Signup(ctx, claims, regReq, v.Now)
+	if err != nil {
+		switch errors.Cause(err) {
+		case account.ErrForbidden:
+			return web.RespondJsonError(ctx, w, weberror.NewError(ctx, err, http.StatusForbidden))
+		default:
+			_, ok := err.(validator.ValidationErrors)
+			if ok {
+				return web.RespondJsonError(ctx, w, weberror.NewError(ctx, err, http.StatusBadRequest))
+			}
+
+			return errors.Wrapf(err, "Signup: %+v", &req)
+		}
+	}
+
+	claims.Audience = res.User.ID
+
+	// create the student account
+	s, err := h.StudentRepo.Create(ctx, student.CreateRequest{
+		Name:        req.Name,
+		ParentEmail: req.Email,
+		ParentPhone: req.Phone,
+		Username:    req.Email,
+		ClassID:     req.ClassID,
+	}, v.Now)
+	if err != nil {
+		return err
+	}
+
+	// create the one week trail lesson
+	startDate := subscription.NextMonday(v.Now)
+	endDate := startDate.Add(7 * 24 * time.Hour)
+
+	period, err := h.SubscriptionRepo.TrailPeriodID(ctx)
+	if err != nil {
+		return err
+	}
+	trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
+	if err != nil {
+		return err
+	}
+
+	maths, err := h.SubjectRepo.MathsID(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Maths trail
+	subReq := subscription.CreateRequest{
+		StudentID: s.ID,
+		StartDate: startDate.Unix(),
+		EndDate:   endDate.Unix(),
+		PeriodID:  period.ID,
+		SubjectID: maths.ID,
+		ClassID:   s.ClassID,
+		DepositID: trailDeposit.ID,
+	}
+
+	_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, v.Now)
+
+	if err != nil {
+		return errors.New("Unable to create free trial for your new account. Please contact the admin")
+	}
+
+	return web.RespondJson(ctx, w, res.Response(ctx), http.StatusCreated)
+}
+
+func (h *Signup) ThankYou(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-thank-you.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
+}
+
+func randomPassword () string {
+	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
+	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+	b := make([]byte, 10)
+	for i := range b {
+		b[i] = charset[seededRand.Intn(len(charset))]
+	}
+	return string(b)
 }
 
 func (h *Signup) Ping(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {

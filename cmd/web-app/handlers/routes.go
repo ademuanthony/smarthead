@@ -310,6 +310,8 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("POST", "/signup", s.Step1)
 	app.Handle("GET", "/signup", s.Step1, waitDbMid)
 	app.Handle("GET", "/site/ping", s.Ping, waitDbMid)
+	app.Handle("GET", "/api/v1/get-started", s.GetStarted, waitDbMid)
+	app.Handle("GET", "/thank-you", s.ThankYou)
 
 	// Register example endpoints.
 	ex := Examples{
