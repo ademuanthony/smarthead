@@ -1,0 +1,102 @@
+<link
+  href="https://fonts.googleapis.com/css?family=Poppins|Roboto"
+  rel="stylesheet"
+/>
+<style>
+  body {
+    font-family: "Roboto", monospace;
+    font-size: 12px;
+    background: #ccc;
+    color: #333;
+    padding: 0 0 0 0;
+    margin: 0 0 0 0;
+  }
+</style>
+<div style="padding: 0% 10% 10% 10%;">
+  <div
+    style="
+      padding: 10% 10% 10% 10%;
+      background: white;
+      word-wrap: break-word;
+      border-radius: 10px 10px 10px 10px;
+    "
+  >
+    <p>Dear {{ .Name }}.</p>
+    <p>
+      Thank you for signing up on
+      <a href="https://www.remoteschool.com.ng" target="_blank">Remote School</a
+      >. Here are your login details<br />
+      <b>Email</b>: {{ .Email }} <b>Password</b>: {{ .Password }}
+    </p>
+
+    <p>
+      You have been scheduled to take two free lessons as follows
+    </p>
+    <ul>
+        <ol>{{ .Subject1 }}: {{ .Lesson1Date }}</ol>
+        <ol>{{ .Subject2 }}: {{ .Lesson2Date }}</ol>
+    </ul>
+    <p>
+      Use the following link to join the class<br />
+      https://bit.ly/remoteschool-free-maths
+    </p>
+
+    <h6>How to join the class</h6>
+    <p>
+      You can join the class using a computer, tablet or mobile phone. See
+      instruction below
+    </p>
+
+    <b>MOBILE PHONES/TABLETS:</b><br />
+
+    <ul>
+      <ol>
+        Download Microsoft Teams from Playstore  and install on your phone
+      </ol>
+      <ol>
+        Open the link in your in email with  Teams downloaded
+      </ol>
+      <ol>
+        Click Join as a Guest
+      </ol>
+      <ol>
+        Enter your Name and click Join
+      </ol>
+    </ul>
+    <p>
+      You will see a message that says “someone in  the meeting will let you in
+      soon”. At this point wait patiently.
+    </p>
+
+    <b>LAPTOP OR DESKTOP COMPUTER:</b><br />
+    <ul>
+      <ol>
+        Download Google Chrome browser and install (if not already installed) or
+        installed Microsoft Teams  on your
+        computer(from https://www.microsoft.com/en-us/microsoft-365/microsoft-teams/download-app
+      </ol>
+      <ol>
+        Open the link in your email with any of the downloaded software.
+      </ol>
+      <ol>
+        Click on  use web app instead
+      </ol>
+      <ol>
+        Enter your name and click join
+      </ol>
+    </ul>
+    <p>
+      You will see a message that says “someone in the meeting will let you in
+      soon”. At this point wait patiently.
+    </p>
+    <br />
+    <p>
+      NOTE: Practice to ensure that you reach this point (someone in the meeting
+      will let you in soon) before the actual time for the lesson. If you
+      encounter any issue, call 08034282143 before the lesson starts. Thanks
+    </p>
+
+    <p><a href="{{ .Url }}" target="_blank">{{ .Url }}</a></p>
+    <p>&nbsp;<br />- Remote School</p>
+  </div>
+</div>

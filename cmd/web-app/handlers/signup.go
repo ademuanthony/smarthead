@@ -11,6 +11,7 @@ import (
 	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/notify"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
@@ -39,6 +40,7 @@ type Signup struct {
 	DepositRepo      *deposit.Repository
 	MasterDB         *sqlx.DB
 	Renderer         web.Renderer
+	EmailNotifier	 notify.Email
 }
 
 // Step1 handles collecting the first detailed needed to create a new account.
@@ -344,6 +346,16 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		return errors.New("Unable to create free trial for your new account. Please contact the admin")
 	}
 
+	data := map[string]interface{}{
+		"Name": req.Name,
+		"Email": req.Email,
+		"Password": pass,
+		"Lesson1Date": "Monday, 8:00 AM",
+		"Lesson2Date": "Wednesday, 8:00 AM",
+		"Subject1": maths.Name,
+		"Subject2": maths.Name,
+	}
+	err = h.EmailNotifier.Send(ctx, req.Email, "Welcome to Remote School", "welcome_email", data)
 	return web.RespondJson(ctx, w, res.Response(ctx), http.StatusCreated)
 }
 
