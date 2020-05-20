@@ -28,21 +28,21 @@ affordable interactive online private teaching and learning.{{end}}
                       <form method="post" data-action="submit->root#getStarted">
                           <div class="form-row">
                               <div class="col-md-3 col-sm-12 mt-3">
-                                  <select name="class" required class="form-control">
+                                  <select name="class" required class="form-control" data-target="root.class">
                                       <option value="">Select Class</option>
                                       {{ range $class := .classes }}
-                                      <option value="{{ $class.Name }}">{{ $class.Name }}</option>
+                                      <option value="{{ $class.ID }}">{{ $class.Name }}</option>
                                       {{ end }}
                                   </select>
                               </div>
                               <div class="col-md-3 col-sm-12 mt-3">
-                                  <input name="name" required type="text" class="form-control" placeholder="Full Name">
+                                  <input data-target="root.name" name="name" required type="text" class="form-control" placeholder="Full Name">
                               </div>
                               <div class="col-md-3 col-sm-12 mt-3">
-                                  <input name="email" required type="email" class="form-control" placeholder="Email">
+                                  <input data-target="root.email" name="email" required type="email" class="form-control" placeholder="Email">
                               </div>
                               <div class="col-md-3 col-sm-12 mt-3">
-                                  <input name="phone" required type="text" class="form-control" placeholder="Phone Number">
+                                  <input data-target="root.phone" name="phone" required type="text" class="form-control" placeholder="Phone Number">
                               </div>
                           </div>
                           <input type="submit" class="btb btn-danger btn-lg mt-3" value="Register">

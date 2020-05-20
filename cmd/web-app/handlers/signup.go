@@ -4,6 +4,7 @@ import (
 	"context"
 	"math/rand"
 	"net/http"
+	"strings"
 	"time"
 
 	"remoteschool/smarthead/internal/account"
@@ -259,12 +260,16 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	pass := randomPassword()
+	names := strings.Split(req.Name, " ")
+	firstName := names[0]
+	lastName := names[len(names) - 1]
 	regReq := signup.SignupRequest{
 		ClassID: req.ClassID,
 		User: signup.SignupUser{
 			Email:           req.Email,
 			Phone:           req.Phone,
-			FirstName:       req.Name,
+			FirstName:       firstName,
+			LastName: 		 lastName,
 			Password:        pass,
 			PasswordConfirm: pass,
 		},
@@ -356,6 +361,9 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		"Subject2": maths.Name,
 	}
 	err = h.EmailNotifier.Send(ctx, req.Email, "Welcome to Remote School", "welcome_email", data)
+	if err != nil {
+		return err
+	}
 	return web.RespondJson(ctx, w, res.Response(ctx), http.StatusCreated)
 }
 

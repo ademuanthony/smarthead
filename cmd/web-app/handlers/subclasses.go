@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"net/http"
 	"strings"
@@ -14,7 +15,6 @@ import (
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/subclass"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
@@ -22,9 +22,10 @@ import (
 
 // Subclasses represents the Subclasses API method handler set.
 type Subclasses struct {
-	Repo     *subclass.Repository
-	Redis    *redis.Client
-	Renderer web.Renderer
+	Repo      *subclass.Repository
+	ClassRepo *class.Repository
+	Redis     *redis.Client
+	Renderer  web.Renderer
 }
 
 func urlSubclassesIndex() string {
@@ -41,15 +42,15 @@ func urlSubclassesView(classID string) string {
 
 func urlSubclassesUpdate(classID string) string {
 	return fmt.Sprintf("/admin/subclasses/%s/update", classID)
-}
+} 
 
 // Index handles listing all the classes for the current account.
 func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
-		{Field: "subclass", Title: "Subclass", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 		{Field: "class", Title: "Class", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
+		{Field: "name", Title: "Subclass", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 		{Field: "school_order", Title: "School Order", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter School"},
 	}
 
@@ -81,6 +82,7 @@ func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.R
 	loadFunc := func(ctx context.Context, sorting string, fields []datatable.DisplayField) (resp [][]datatable.ColumnValue, err error) {
 		result, err := h.Repo.Find(ctx, subclass.FindRequest{
 			Order: strings.Split(sorting, ","),
+			IncludeClass: true,
 		})
 		if err != nil {
 			return resp, err
@@ -116,7 +118,7 @@ func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.R
 	}
 
 	data := map[string]interface{}{
-		"datatable":        dt.Response(),
+		"datatable":           dt.Response(),
 		"urlSubclassesCreate": urlSubclassesCreate(),
 		"urlSubclassesIndex":  urlSubclassesIndex(),
 	}
@@ -129,7 +131,7 @@ func (h *Subclasses) Create(ctx context.Context, w http.ResponseWriter, r *http.
 
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
-		return err 
+		return err
 	}
 
 	//
@@ -167,7 +169,7 @@ func (h *Subclasses) Create(ctx context.Context, w http.ResponseWriter, r *http.
 				"Class Created",
 				"Class successfully created.")
 
-			return true, web.Redirect(ctx, w, r, urlClassesView(sub.ID), http.StatusFound)
+			return true, web.Redirect(ctx, w, r, urlSubclassesView(sub.ID), http.StatusFound)
 		}
 
 		return false, nil
@@ -181,20 +183,28 @@ func (h *Subclasses) Create(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	data["form"] = req
-	data["urlClassesIndex"] = urlClassesIndex()
-	spew.Dump(req)
+	data["urlSubclassesIndex"] = urlSubclassesIndex()
+	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
+		Order: []string{"school_order", "name"},
+	})
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["classes"] = classes
 
 	if verr, ok := weberror.NewValidationError(ctx, webcontext.Validator().Struct(class.CreateRequest{})); ok {
 		data["validationDefaults"] = verr.(*weberror.Error)
 	}
 
-	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-classes-create.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subclasses-create.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 // View handles displaying a classes.
 func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
-	classID := params["class_id"]
+	classID := params["subclass_id"]
 
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
@@ -241,11 +251,11 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return err
 	}
 	data["class"] = sub.Response(ctx)
-	data["urlClassesIndex"] = urlClassesIndex()
-	data["urlClassesView"] = urlClassesView(classID)
-	data["urlClassesUpdate"] = urlClassesUpdate(classID)
+	data["urlSubclassesIndex"] = urlSubclassesIndex()
+	data["urlSubclassesView"] = urlSubclassesView(classID)
+	data["urlSubclassesUpdate"] = urlSubclassesUpdate(classID)
 
-	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-classes-view.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subclasses-view.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 // Update handles updating a class.
@@ -294,7 +304,7 @@ func (h *Subclasses) Update(ctx context.Context, w http.ResponseWriter, r *http.
 				"Class Updated",
 				"Class successfully updated.")
 
-			return true, web.Redirect(ctx, w, r, urlClassesView(req.ID), http.StatusFound)
+			return true, web.Redirect(ctx, w, r, urlSubclassesView(req.ID), http.StatusFound)
 		}
 
 		return false, nil
@@ -313,13 +323,25 @@ func (h *Subclasses) Update(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 	data["class"] = sub.Response(ctx)
 
-	data["urlClassesIndex"] = urlClassesIndex()
-	data["urlClassesView"] = urlClassesView(classID)
+	data["urlSubclassesIndex"] = urlSubclassesIndex()
+	data["urlSubclassesView"] = urlSubclassesView(classID)
 
 	if req.ID == "" {
 		req.Name = &sub.Name
+		req.ClassID = &sub.ClassID
+		req.SchoolOrder = &sub.SchoolOrder
 	}
 	data["form"] = req
+
+	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
+		Order: []string{"school_order", "name"},
+	})
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["classes"] = classes
 
 	if verr, ok := weberror.NewValidationError(ctx, webcontext.Validator().Struct(class.UpdateRequest{})); ok {
 		data["validationDefaults"] = verr.(*weberror.Error)

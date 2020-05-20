@@ -1487,6 +1487,57 @@ func testStudentToOneClassUsingClass(t *testing.T) {
 	}
 }
 
+func testStudentToOneSubclassUsingSubclass(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Student
+	var foreign Subclass
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, studentDBTypes, true, studentColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Student struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, subclassDBTypes, false, subclassColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Subclass struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.SubclassID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Subclass().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := StudentSlice{&local}
+	if err = local.L.LoadSubclass(ctx, tx, false, (*[]*Student)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Subclass == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Subclass = nil
+	if err = local.L.LoadSubclass(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Subclass == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testStudentToOneSetOpClassUsingClass(t *testing.T) {
 	var err error
 
@@ -1596,6 +1647,115 @@ func testStudentToOneRemoveOpClassUsingClass(t *testing.T) {
 	}
 }
 
+func testStudentToOneSetOpSubclassUsingSubclass(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Student
+	var b, c Subclass
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, studentDBTypes, false, strmangle.SetComplement(studentPrimaryKeyColumns, studentColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, subclassDBTypes, false, strmangle.SetComplement(subclassPrimaryKeyColumns, subclassColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, subclassDBTypes, false, strmangle.SetComplement(subclassPrimaryKeyColumns, subclassColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*Subclass{&b, &c} {
+		err = a.SetSubclass(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Subclass != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.Students[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.SubclassID, x.ID) {
+			t.Error("foreign key was wrong value", a.SubclassID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.SubclassID))
+		reflect.Indirect(reflect.ValueOf(&a.SubclassID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.SubclassID, x.ID) {
+			t.Error("foreign key was wrong value", a.SubclassID, x.ID)
+		}
+	}
+}
+
+func testStudentToOneRemoveOpSubclassUsingSubclass(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Student
+	var b Subclass
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, studentDBTypes, false, strmangle.SetComplement(studentPrimaryKeyColumns, studentColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, subclassDBTypes, false, strmangle.SetComplement(subclassPrimaryKeyColumns, subclassColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetSubclass(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveSubclass(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Subclass().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Subclass != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.SubclassID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.Students) != 0 {
+		t.Error("failed to remove a from b's relationships")
+	}
+}
+
 func testStudentsReload(t *testing.T) {
 	t.Parallel()
 
@@ -1670,7 +1830,7 @@ func testStudentsSelect(t *testing.T) {
 }
 
 var (
-	studentDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `Username`: `character varying`, `RegNo`: `character varying`, `Age`: `integer`, `AccountBalance`: `integer`, `CurrentClass`: `integer`, `ParentPhone`: `character varying`, `ParentEmail`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `ClassID`: `uuid`}
+	studentDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `Username`: `character varying`, `RegNo`: `character varying`, `Age`: `integer`, `AccountBalance`: `integer`, `CurrentClass`: `integer`, `ParentPhone`: `character varying`, `ParentEmail`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `ClassID`: `uuid`, `SubclassID`: `uuid`}
 	_              = bytes.MinRead
 )
 

@@ -23,6 +23,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/user"
@@ -65,6 +66,7 @@ type AppContext struct {
 	SubscriptionRepo  *subscription.Repository
 	DepositRepo       *deposit.Repository
 	ClassRepo         *class.Repository
+	SubClassRepo	  *subclass.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -188,7 +190,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("GET", "/admin/students/:student_id", stu.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/students", stu.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
-	// Register student management pages. /admin/students/download
+	// Register class management pages.
 	cla := Classes{
 		Repo:     appCtx.ClassRepo,
 		Redis:    appCtx.Redis,
@@ -201,6 +203,22 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("POST", "/admin/classes/create", cla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/classes/create", cla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/classes", cla.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+
+	// Register subclass management pages.
+	subcla := Subclasses{
+		Repo:     appCtx.SubClassRepo,
+		ClassRepo: appCtx.ClassRepo,
+		Redis:    appCtx.Redis,
+		Renderer: appCtx.Renderer,
+	}
+	app.Handle("POST", "/admin/subclasses/:subclass_id/update", subcla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subclasses/:subclass_id/update", subcla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("POST", "/admin/subclasses/:subclass_id", subcla.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subclasses/:subclass_id", subcla.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("POST", "/admin/subclasses/create", subcla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subclasses/create", subcla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
+	app.Handle("GET", "/admin/subclasses", subcla.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register student management pages.
 	subscription := Subscriptions{
@@ -305,12 +323,13 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		SubscriptionRepo: appCtx.SubscriptionRepo,
 		DepositRepo:      appCtx.DepositRepo,
 		Renderer:         appCtx.Renderer,
+		EmailNotifier: appCtx.InviteRepo.Notify,
 	}
 	// This route is not authenticated
 	app.Handle("POST", "/signup", s.Step1)
 	app.Handle("GET", "/signup", s.Step1, waitDbMid)
 	app.Handle("GET", "/site/ping", s.Ping, waitDbMid)
-	app.Handle("GET", "/api/v1/get-started", s.GetStarted, waitDbMid)
+	app.Handle("POST", "/api/v1/get-started", s.GetStarted, waitDbMid)
 	app.Handle("GET", "/thank-you", s.ThankYou)
 
 	// Register example endpoints.

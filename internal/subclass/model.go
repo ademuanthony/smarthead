@@ -25,7 +25,7 @@ func NewRepository(db *sqlx.DB) *Repository {
 type Subclass struct {
 	ID          string `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name        string `boil:"name" json:"name" toml:"name" yaml:"name"`
-	ClassID     string    `json:"class_id"`
+	ClassID     string `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
 
 	Class *class.Class `json:"_class"`
@@ -52,7 +52,7 @@ func FromModel(rec *models.Subclass) *Subclass {
 type Response struct {
 	ID          string `json:"id" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name        string `json:"name" example:"Rocket Launch"`
-	ClassID     string    `json:"class_id"`
+	ClassID     string `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
 	Class       string `json:"_class"`
 }
@@ -137,4 +137,5 @@ type FindRequest struct {
 	Limit           *uint         `json:"limit" example:"10"`
 	Offset          *uint         `json:"offset" example:"20"`
 	IncludeArchived bool          `json:"include-archived" example:"false"`
+	IncludeClass    bool          `json:"include-class" example:"false"`
 }

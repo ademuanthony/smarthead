@@ -61,15 +61,18 @@ var SubclassWhere = struct {
 // SubclassRels is where relationship names are stored.
 var SubclassRels = struct {
 	Class      string
+	Students   string
 	Timetables string
 }{
 	Class:      "Class",
+	Students:   "Students",
 	Timetables: "Timetables",
 }
 
 // subclassR is where relationships are stored.
 type subclassR struct {
 	Class      *Class
+	Students   StudentSlice
 	Timetables TimetableSlice
 }
 
@@ -193,6 +196,27 @@ func (o *Subclass) Class(mods ...qm.QueryMod) classQuery {
 	return query
 }
 
+// Students retrieves all the student's Students with an executor.
+func (o *Subclass) Students(mods ...qm.QueryMod) studentQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"student\".\"subclass_id\"=?", o.ID),
+	)
+
+	query := Students(queryMods...)
+	queries.SetFrom(query.Query, "\"student\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"student\".*"})
+	}
+
+	return query
+}
+
 // Timetables retrieves all the timetable's Timetables with an executor.
 func (o *Subclass) Timetables(mods ...qm.QueryMod) timetableQuery {
 	var queryMods []qm.QueryMod
@@ -299,6 +323,94 @@ func (subclassL) LoadClass(ctx context.Context, e boil.ContextExecutor, singular
 					foreign.R = &classR{}
 				}
 				foreign.R.Subclasses = append(foreign.R.Subclasses, local)
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadStudents allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (subclassL) LoadStudents(ctx context.Context, e boil.ContextExecutor, singular bool, maybeSubclass interface{}, mods queries.Applicator) error {
+	var slice []*Subclass
+	var object *Subclass
+
+	if singular {
+		object = maybeSubclass.(*Subclass)
+	} else {
+		slice = *maybeSubclass.(*[]*Subclass)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &subclassR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &subclassR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`student`), qm.WhereIn(`student.subclass_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load student")
+	}
+
+	var resultSlice []*Student
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice student")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on student")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for student")
+	}
+
+	if singular {
+		object.R.Students = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &studentR{}
+			}
+			foreign.R.Subclass = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.SubclassID) {
+				local.R.Students = append(local.R.Students, foreign)
+				if foreign.R == nil {
+					foreign.R = &studentR{}
+				}
+				foreign.R.Subclass = local
 				break
 			}
 		}
@@ -437,6 +549,129 @@ func (o *Subclass) SetClass(ctx context.Context, exec boil.ContextExecutor, inse
 		}
 	} else {
 		related.R.Subclasses = append(related.R.Subclasses, o)
+	}
+
+	return nil
+}
+
+// AddStudents adds the given related objects to the existing relationships
+// of the subclass, optionally inserting them as new records.
+// Appends related to o.R.Students.
+// Sets related.R.Subclass appropriately.
+func (o *Subclass) AddStudents(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Student) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.SubclassID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"student\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"subclass_id"}),
+				strmangle.WhereClause("\"", "\"", 2, studentPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.SubclassID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &subclassR{
+			Students: related,
+		}
+	} else {
+		o.R.Students = append(o.R.Students, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &studentR{
+				Subclass: o,
+			}
+		} else {
+			rel.R.Subclass = o
+		}
+	}
+	return nil
+}
+
+// SetStudents removes all previously related items of the
+// subclass replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Subclass's Students accordingly.
+// Replaces o.R.Students with related.
+// Sets related.R.Subclass's Students accordingly.
+func (o *Subclass) SetStudents(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Student) error {
+	query := "update \"student\" set \"subclass_id\" = null where \"subclass_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.Students {
+			queries.SetScanner(&rel.SubclassID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Subclass = nil
+		}
+
+		o.R.Students = nil
+	}
+	return o.AddStudents(ctx, exec, insert, related...)
+}
+
+// RemoveStudents relationships from objects passed in.
+// Removes related items from R.Students (uses pointer comparison, removal does not keep order)
+// Sets related.R.Subclass.
+func (o *Subclass) RemoveStudents(ctx context.Context, exec boil.ContextExecutor, related ...*Student) error {
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.SubclassID, nil)
+		if rel.R != nil {
+			rel.R.Subclass = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("subclass_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.Students {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.Students)
+			if ln > 1 && i < ln-1 {
+				o.R.Students[i] = o.R.Students[ln-1]
+			}
+			o.R.Students = o.R.Students[:ln-1]
+			break
+		}
 	}
 
 	return nil

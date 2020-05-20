@@ -39,6 +39,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/signup"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/user"
@@ -481,6 +482,7 @@ func main() {
 	subscriptionRepo := subscription.NewRepository(masterDb)
 	depositRepo := deposit.NewRepository(masterDb, subscriptionRepo, cfg.Project.PaystackSecret)
 	classRepo := class.NewRepository(masterDb)
+	subClassRepo := subclass.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
 		Log:              log,
@@ -508,6 +510,7 @@ func main() {
 		SubscriptionRepo: subscriptionRepo,
 		DepositRepo:      depositRepo,
 		ClassRepo:        classRepo,
+		SubClassRepo:	  subClassRepo,
 	}
 
 	// =========================================================================
@@ -901,6 +904,12 @@ func main() {
 				return key
 			}
 			return res
+		},
+		"strEqPtr": func(s string, sPtr *string) bool {
+			if sPtr == nil {
+				return s == ""
+			}
+			return s == *sPtr
 		},
 	}
 

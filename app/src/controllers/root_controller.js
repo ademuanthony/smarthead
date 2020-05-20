@@ -27,13 +27,19 @@ export default class extends Controller {
       'email': this.emailTarget.value
     }
     const that = this
-    const resp = await axios.post('/api/v1/get-started', req)
-    const result = resp.data
-    if (result.error) {
-      window.alert(result.error)
-      that.loading = false
-      return
+    try {
+      const resp = await axios.post('/api/v1/get-started', req)
+      const result = resp.data
+      if (result.error) {
+        window.alert(result.error)
+        that.loading = false
+        return
+      }
+      window.location.href = '/thank-you'
+    } catch (error) {
+      console.log(error)
+      this.loading = false
+      window.alert(error)
     }
-    window.location.href = '/thank-you'
   }
 }

@@ -1,0 +1,76 @@
+{{define "title"}}Update SubcLass - {{ .class.Name }}{{end}}
+{{define "subclassesActive"}}active{{end}}
+{{define "style"}}
+
+{{end}}
+{{define "content"}}
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="/admin/subclasses">Subclasses</a></li>
+            <li class="breadcrumb-item"><a href="{{ .urlSubclassesView }}">{{ .form.Name }}</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Update</li>
+        </ol>
+    </nav>
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Update Subclass</h1>
+    </div>
+
+    <form class="user" method="post" novalidate>
+        <div class="card shadow mb-4">
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-12">
+
+                        <h4 class="card-title">Subclass Details</h4>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="inputName">Class</label>
+                            <select name="ClassID" required class="form-control" data-target="root.class">
+                                <option value="">Select Class</option>
+                                {{ $classID := .form.ClassID }}
+                                {{ range $class := .classes }}
+                                <option value="{{ $class.ID }}" {{ if strEqPtr $class.ID $classID}}selected{{ end }}>{{ $class.Name }}</option>
+                                {{ end }}
+                            </select>
+                            {{template "invalid-feedback" dict "fieldName" "ClassID" "validationDefaults" $.validationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="inputName">Name</label>
+                            <input type="text" id="inputName"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "Name" }}"
+                                   placeholder="enter name" name="Name" value="{{ .form.Name }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "Name" "validationDefaults" $.userValidationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="inputName">School Order</label>
+                            <input type="text" id="inputName"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "SchoolOrder" }}"
+                                   placeholder="enter school order" name="SchoolOrder" value="{{ .form.SchoolOrder }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "SchoolOrder" "validationDefaults" $.userValidationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <input id="btnSubmit" type="submit" name="action" value="Save" class="btn btn-primary"/>
+            </div>
+        </div>
+    </form>
+{{end}}
+{{define "js"}}
+
+{{end}}

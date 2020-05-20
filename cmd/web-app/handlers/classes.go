@@ -308,6 +308,7 @@ func (h *Classes) Update(ctx context.Context, w http.ResponseWriter, r *http.Req
 
 	if req.ID == "" {
 		req.Name = &sub.Name
+		req.SchoolOrder = &sub.SchoolOrder
 	}
 	data["form"] = req
 

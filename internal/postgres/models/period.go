@@ -434,7 +434,7 @@ func (periodL) LoadStudents(ctx context.Context, e boil.ContextExecutor, singula
 		one := new(Student)
 		var localJoinCol string
 
-		err = results.Scan(&one.ID, &one.Name, &one.Username, &one.RegNo, &one.Age, &one.AccountBalance, &one.CurrentClass, &one.ParentPhone, &one.ParentEmail, &one.CreatedAt, &one.UpdatedAt, &one.ClassID, &localJoinCol)
+		err = results.Scan(&one.ID, &one.Name, &one.Username, &one.RegNo, &one.Age, &one.AccountBalance, &one.CurrentClass, &one.ParentPhone, &one.ParentEmail, &one.CreatedAt, &one.UpdatedAt, &one.ClassID, &one.SubclassID, &localJoinCol)
 		if err != nil {
 			return errors.Wrap(err, "failed to scan eager loaded results for student")
 		}

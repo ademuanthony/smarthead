@@ -20,18 +20,18 @@
     <div class="card">
       <div class="card-body">
         <div class="jumbotron" data-controller="payment">
-          {{ if gt (len .subscriptions) 0 }}
+          {{ if eq (len .subscriptions) 0 }}
           <h1 class="display-4">Subscribe and start learning!</h1>
           <p class="lead">
             You do not have an active subscription. Subscribe now and start
             learning from the comfort of your home
           </p>
           {{ else }}
-          <h1 class="display-4">New Subscription</h1>
+          <h1 class="display-4">Create New Subscription</h1>
           {{ end }}
           <hr class="my-4" />
           <p>
-            Click on the button below to make payment. Subscription cost is
+            Select one or more subjects and click on the button below to make payment. Subscription cost is
             <span class="naira">5,000</span> for one subject,
             <span class="naira">12,000</span> for three subjects,
             <span class="naira">15,000</span> for five subjects per month
@@ -71,14 +71,13 @@
                   <th class="text-right">#</th>
                   <th>Class</th>
                   <th>Subject</th>
-                  <th>Period</th>
                   <th></th>
                 </tr>
               </thead>
               <tbody data-target="payment.listTbl"></tbody>
               <tfoot>
                 <tr>
-                  <th colspan="3" class="text-right font-weight">Total Amount</th>
+                  <th colspan="2" class="text-right font-weight">Total Amount</th>
                   <td class="text-right">
                     <span
                       class="font-weight-bolder"
@@ -126,7 +125,6 @@
             <td>{{ $sub.EndDate.LocalDate }}</td>
             <td>{{ $sub.Subject }}</td>
             <td>{{ $sub.Class }}</td>
-            <td>{{ $sub.Period }}</td>
           </tr>
           {{ end }}
         </table>

@@ -10,6 +10,7 @@ import (
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -26,6 +27,10 @@ var (
 func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, error) {
 	var queries []QueryMod
 
+	if req.IncludeClass {
+		queries = append(queries, qm.Load(models.SubclassRels.Class))
+	}
+	
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
 	}
@@ -61,7 +66,10 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, 
 
 // ReadByID gets the specified class by ID from the database.
 func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Subclass, error) {
-	classModel, err := models.FindSubclass(ctx, repo.DbConn, id)
+	classModel, err := models.Subclasses(
+		qm.Load(models.SubclassRels.Class), 
+		models.SubclassWhere.ID.EQ(id),
+	).One(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err
 	}

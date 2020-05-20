@@ -1,0 +1,3 @@
+Thank you registering for our service.
+Your username is {{ .Email }}, your password is {{ .Password }}.
+Please login to get started
