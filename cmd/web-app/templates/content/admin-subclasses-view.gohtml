@@ -88,6 +88,89 @@
                     </form>
                 </div>
             </div>
+
+            <div class="row mt-5">
+                <div class="col-md-12">
+                    <h4>Timetable</h4>
+                    <table class="table table-stripped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Day
+                                </th>
+                                <th>
+                                    Period
+                                </th>
+                                <th>
+                                    Subject
+                                </th>
+                                <th>
+                                    Teacher
+                                </th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ range $t := .timetables }}
+                            <tr>
+                                <td>{{ $t.Day }}</td>
+                                <td>{{ $t.Period }}</td>
+                                <td>{{ $t.Subject }}</td>
+                                <td>{{ $t.Teacher }}</td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                    <form method="POST" class="mt-3">
+                        <input type="hidden" name="action" value="add-timetable">
+                        <div class="row">
+
+                            <div class="col-md-3">
+                                <select name="Day" class="form-control">
+                                    <option>Select Day</option>
+                                    {{ range $i, $day := .days }}
+                                    <option value="{{ $i }}">{{ $day }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+
+                            <div class="col-md-3"> 
+                                <select name="PeriodID" class="form-control">
+                                    <option>Select Period</option>
+                                    {{ range $p := .periods }}
+                                    <option value="{{ $p.ID }}">{{ $p }}</option>
+                                    {{ end }}
+                                </select> 
+                            </div>
+
+                            <div class="col-md-3">
+                                <select name="SubjectID" class="form-control">
+                                    <option>Select Subject</option>
+                                    {{ range $s := .subjects }}
+                                    <option value="{{ $s.ID }}">{{ $s.Name }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+
+                            <div class="col-md-3">
+                                <select name="TeacherID" class="form-control">
+                                    <option>Select Teacher</option>
+                                    {{ range $t := .teachers }}
+                                    <option value="{{ $t.ID }}">{{ $t.FirstName }} {{ $t.LastName }}</option>
+                                    {{ end }}
+                                </select>
+                            </div>
+
+                            <div class="col-md-2 mt-2">
+                                <input type="submit" value="Submit" class="btn btn-primary"/>
+                            </div>
+
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+
         </div>
     </div>
 

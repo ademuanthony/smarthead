@@ -13,7 +13,7 @@ import (
 const (
 	RoleAdmin = "admin"
 	RoleUser  = "user"
-	RoleTeacher = "teacher"
+	RoleTeacher = "admin" // TODO: change to teacher
 	RoleStudent = "student"
 	RoleFinance = "finance"
 )

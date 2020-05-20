@@ -5,15 +5,18 @@ import (
 	"database/sql"
 	"time"
 
+	"remoteschool/smarthead/internal/platform/auth"
+	"remoteschool/smarthead/internal/platform/notify"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/postgres/models"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jmoiron/sqlx"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
-	"remoteschool/smarthead/internal/platform/auth"
-	"remoteschool/smarthead/internal/platform/notify"
-	"remoteschool/smarthead/internal/platform/web/webcontext"
 )
 
 const (
@@ -461,6 +464,25 @@ func (repo *Repository) Read(ctx context.Context, claims auth.Claims, req UserRe
 	u := res[0]
 
 	return u, nil
+}
+
+func (repo *Repository) FindTeachers(ctx context.Context) ([]*models.User, error) {
+	
+	accounts, err := models.UsersAccounts(
+		qm.Where("roles @> ARRAY['" + auth.RoleTeacher + "']::user_account_role_t[]"),
+		qm.Load(models.UsersAccountRels.User),
+	).All(ctx, repo.DbConn)
+	if err != nil {
+		if err.Error() == sql.ErrNoRows.Error() {
+			return []*models.User{}, nil
+		}
+	}
+
+	var result []*models.User
+	for _, ua := range accounts {
+		result = append(result, ua.R.User)
+	}
+	return result, nil
 }
 
 // ReadByEmail gets the specified user from the database.

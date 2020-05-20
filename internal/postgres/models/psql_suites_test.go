@@ -31,4 +31,6 @@ func TestUpsert(t *testing.T) {
 	t.Run("Timetables", testTimetablesUpsert)
 
 	t.Run("Users", testUsersUpsert)
+
+	t.Run("UsersAccounts", testUsersAccountsUpsert)
 }

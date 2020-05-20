@@ -25,6 +25,7 @@ func TestParent(t *testing.T) {
 	t.Run("Teachers", testTeachers)
 	t.Run("Timetables", testTimetables)
 	t.Run("Users", testUsers)
+	t.Run("UsersAccounts", testUsersAccounts)
 }
 
 func TestDelete(t *testing.T) {
@@ -41,6 +42,7 @@ func TestDelete(t *testing.T) {
 	t.Run("Teachers", testTeachersDelete)
 	t.Run("Timetables", testTimetablesDelete)
 	t.Run("Users", testUsersDelete)
+	t.Run("UsersAccounts", testUsersAccountsDelete)
 }
 
 func TestQueryDeleteAll(t *testing.T) {
@@ -57,6 +59,7 @@ func TestQueryDeleteAll(t *testing.T) {
 	t.Run("Teachers", testTeachersQueryDeleteAll)
 	t.Run("Timetables", testTimetablesQueryDeleteAll)
 	t.Run("Users", testUsersQueryDeleteAll)
+	t.Run("UsersAccounts", testUsersAccountsQueryDeleteAll)
 }
 
 func TestSliceDeleteAll(t *testing.T) {
@@ -73,6 +76,7 @@ func TestSliceDeleteAll(t *testing.T) {
 	t.Run("Teachers", testTeachersSliceDeleteAll)
 	t.Run("Timetables", testTimetablesSliceDeleteAll)
 	t.Run("Users", testUsersSliceDeleteAll)
+	t.Run("UsersAccounts", testUsersAccountsSliceDeleteAll)
 }
 
 func TestExists(t *testing.T) {
@@ -89,6 +93,7 @@ func TestExists(t *testing.T) {
 	t.Run("Teachers", testTeachersExists)
 	t.Run("Timetables", testTimetablesExists)
 	t.Run("Users", testUsersExists)
+	t.Run("UsersAccounts", testUsersAccountsExists)
 }
 
 func TestFind(t *testing.T) {
@@ -105,6 +110,7 @@ func TestFind(t *testing.T) {
 	t.Run("Teachers", testTeachersFind)
 	t.Run("Timetables", testTimetablesFind)
 	t.Run("Users", testUsersFind)
+	t.Run("UsersAccounts", testUsersAccountsFind)
 }
 
 func TestBind(t *testing.T) {
@@ -121,6 +127,7 @@ func TestBind(t *testing.T) {
 	t.Run("Teachers", testTeachersBind)
 	t.Run("Timetables", testTimetablesBind)
 	t.Run("Users", testUsersBind)
+	t.Run("UsersAccounts", testUsersAccountsBind)
 }
 
 func TestOne(t *testing.T) {
@@ -137,6 +144,7 @@ func TestOne(t *testing.T) {
 	t.Run("Teachers", testTeachersOne)
 	t.Run("Timetables", testTimetablesOne)
 	t.Run("Users", testUsersOne)
+	t.Run("UsersAccounts", testUsersAccountsOne)
 }
 
 func TestAll(t *testing.T) {
@@ -153,6 +161,7 @@ func TestAll(t *testing.T) {
 	t.Run("Teachers", testTeachersAll)
 	t.Run("Timetables", testTimetablesAll)
 	t.Run("Users", testUsersAll)
+	t.Run("UsersAccounts", testUsersAccountsAll)
 }
 
 func TestCount(t *testing.T) {
@@ -169,6 +178,7 @@ func TestCount(t *testing.T) {
 	t.Run("Teachers", testTeachersCount)
 	t.Run("Timetables", testTimetablesCount)
 	t.Run("Users", testUsersCount)
+	t.Run("UsersAccounts", testUsersAccountsCount)
 }
 
 func TestInsert(t *testing.T) {
@@ -198,6 +208,8 @@ func TestInsert(t *testing.T) {
 	t.Run("Timetables", testTimetablesInsertWhitelist)
 	t.Run("Users", testUsersInsert)
 	t.Run("Users", testUsersInsertWhitelist)
+	t.Run("UsersAccounts", testUsersAccountsInsert)
+	t.Run("UsersAccounts", testUsersAccountsInsertWhitelist)
 }
 
 // TestToOne tests cannot be run in parallel
@@ -224,6 +236,8 @@ func TestToOne(t *testing.T) {
 	t.Run("TimetableToSubclassUsingSubclass", testTimetableToOneSubclassUsingSubclass)
 	t.Run("TimetableToSubjectUsingSubject", testTimetableToOneSubjectUsingSubject)
 	t.Run("TimetableToUserUsingTeacher", testTimetableToOneUserUsingTeacher)
+	t.Run("UsersAccountToAccountUsingAccount", testUsersAccountToOneAccountUsingAccount)
+	t.Run("UsersAccountToUserUsingUser", testUsersAccountToOneUserUsingUser)
 }
 
 // TestOneToOne tests cannot be run in parallel
@@ -233,6 +247,7 @@ func TestOneToOne(t *testing.T) {}
 // TestToMany tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToMany(t *testing.T) {
+	t.Run("AccountToUsersAccounts", testAccountToManyUsersAccounts)
 	t.Run("ClassToDeposits", testClassToManyDeposits)
 	t.Run("ClassToStudents", testClassToManyStudents)
 	t.Run("ClassToSubclasses", testClassToManySubclasses)
@@ -260,6 +275,7 @@ func TestToMany(t *testing.T) {
 	t.Run("UserToBillingUserAccounts", testUserToManyBillingUserAccounts)
 	t.Run("UserToSignupUserAccounts", testUserToManySignupUserAccounts)
 	t.Run("UserToTeacherTimetables", testUserToManyTeacherTimetables)
+	t.Run("UserToUsersAccounts", testUserToManyUsersAccounts)
 }
 
 // TestToOneSet tests cannot be run in parallel
@@ -286,6 +302,8 @@ func TestToOneSet(t *testing.T) {
 	t.Run("TimetableToSubclassUsingTimetables", testTimetableToOneSetOpSubclassUsingSubclass)
 	t.Run("TimetableToSubjectUsingTimetables", testTimetableToOneSetOpSubjectUsingSubject)
 	t.Run("TimetableToUserUsingTeacherTimetables", testTimetableToOneSetOpUserUsingTeacher)
+	t.Run("UsersAccountToAccountUsingUsersAccounts", testUsersAccountToOneSetOpAccountUsingAccount)
+	t.Run("UsersAccountToUserUsingUsersAccounts", testUsersAccountToOneSetOpUserUsingUser)
 }
 
 // TestToOneRemove tests cannot be run in parallel
@@ -310,6 +328,7 @@ func TestOneToOneRemove(t *testing.T) {}
 // TestToManyAdd tests cannot be run in parallel
 // or deadlocks can occur.
 func TestToManyAdd(t *testing.T) {
+	t.Run("AccountToUsersAccounts", testAccountToManyAddOpUsersAccounts)
 	t.Run("ClassToDeposits", testClassToManyAddOpDeposits)
 	t.Run("ClassToStudents", testClassToManyAddOpStudents)
 	t.Run("ClassToSubclasses", testClassToManyAddOpSubclasses)
@@ -337,6 +356,7 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("UserToBillingUserAccounts", testUserToManyAddOpBillingUserAccounts)
 	t.Run("UserToSignupUserAccounts", testUserToManyAddOpSignupUserAccounts)
 	t.Run("UserToTeacherTimetables", testUserToManyAddOpTeacherTimetables)
+	t.Run("UserToUsersAccounts", testUserToManyAddOpUsersAccounts)
 }
 
 // TestToManySet tests cannot be run in parallel
@@ -387,6 +407,7 @@ func TestReload(t *testing.T) {
 	t.Run("Teachers", testTeachersReload)
 	t.Run("Timetables", testTimetablesReload)
 	t.Run("Users", testUsersReload)
+	t.Run("UsersAccounts", testUsersAccountsReload)
 }
 
 func TestReloadAll(t *testing.T) {
@@ -403,6 +424,7 @@ func TestReloadAll(t *testing.T) {
 	t.Run("Teachers", testTeachersReloadAll)
 	t.Run("Timetables", testTimetablesReloadAll)
 	t.Run("Users", testUsersReloadAll)
+	t.Run("UsersAccounts", testUsersAccountsReloadAll)
 }
 
 func TestSelect(t *testing.T) {
@@ -419,6 +441,7 @@ func TestSelect(t *testing.T) {
 	t.Run("Teachers", testTeachersSelect)
 	t.Run("Timetables", testTimetablesSelect)
 	t.Run("Users", testUsersSelect)
+	t.Run("UsersAccounts", testUsersAccountsSelect)
 }
 
 func TestUpdate(t *testing.T) {
@@ -435,6 +458,7 @@ func TestUpdate(t *testing.T) {
 	t.Run("Teachers", testTeachersUpdate)
 	t.Run("Timetables", testTimetablesUpdate)
 	t.Run("Users", testUsersUpdate)
+	t.Run("UsersAccounts", testUsersAccountsUpdate)
 }
 
 func TestSliceUpdateAll(t *testing.T) {
@@ -451,4 +475,5 @@ func TestSliceUpdateAll(t *testing.T) {
 	t.Run("Teachers", testTeachersSliceUpdateAll)
 	t.Run("Timetables", testTimetablesSliceUpdateAll)
 	t.Run("Users", testUsersSliceUpdateAll)
+	t.Run("UsersAccounts", testUsersAccountsSliceUpdateAll)
 }

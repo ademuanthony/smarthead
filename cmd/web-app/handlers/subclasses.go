@@ -6,8 +6,10 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	"remoteschool/smarthead/internal/class"
+	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/datatable"
 	"remoteschool/smarthead/internal/platform/web"
@@ -15,6 +17,9 @@ import (
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subclass"
+	"remoteschool/smarthead/internal/subject"
+	"remoteschool/smarthead/internal/timetable"
+	"remoteschool/smarthead/internal/user"
 
 	"github.com/gorilla/schema"
 	"github.com/pkg/errors"
@@ -26,6 +31,11 @@ type Subclasses struct {
 	Repo      *subclass.Repository
 	ClassRepo *class.Repository
 	StudentRepo *student.Repository
+	TimetableRepo *timetable.Repository
+	UserRepo *user.Repository
+	PeriodRepo *period.Repository
+	SubjectRepo *subject.Repository
+
 	Redis     *redis.Client
 	Renderer  web.Renderer
 }
@@ -241,7 +251,6 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 				return true, web.Redirect(ctx, w, r, urlClassesIndex(), http.StatusFound)
 			case "add-student":
-				r.ParseForm()
 				regNo := r.FormValue("RegNo")
 				if regNo == "" {
 					webcontext.SessionFlashSuccess(ctx,
@@ -252,7 +261,7 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 				stud, err := h.StudentRepo.Find(ctx, claims, student.FindRequest{
 					Where: "reg_no = $1",
 					Args: []interface{}{regNo},
-				})
+				}) 
 				if err != nil || len(stud) == 0 {
 					webcontext.SessionFlashSuccess(ctx,
 						"Invalid Request",
@@ -270,6 +279,29 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 					"Student Added",
 					"Student successfully added.")
 				return false, nil
+				case "add-timetable":
+					req := new(timetable.CreateRequest)
+					decoder := schema.NewDecoder()
+					decoder.IgnoreUnknownKeys(true)
+
+					if err := decoder.Decode(req, r.PostForm); err != nil {
+						return false, err
+					}
+					req.SubclassID = classID
+					_, err := h.TimetableRepo.Create(ctx, claims, *req)
+					if err != nil {
+						return false, err
+					}
+					return false, nil
+				case "delete-timetable":
+					id := r.FormValue("timetableID")
+					err := h.TimetableRepo.Delete(ctx, claims, timetable.DeleteRequest{
+						ID: id,
+					})
+					if err != nil {
+						return false, err
+					}
+					return false, nil
 			}
 		}
 
@@ -289,6 +321,59 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 	}
 	cla := sub.Response(ctx)
 	data["class"] = cla
+
+	timetables, err := h.TimetableRepo.Find(ctx, timetable.FindRequest{
+		Where: "subclass_id = $1",
+		Args: []interface{}{classID},
+		IncludePeriod: true,
+		IncludeSubclass: true,
+		IncludeSubject: true,
+		IncludeTeacher: true,
+	})
+
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["timetables"] = timetables.Response(ctx)
+	
+	teachers, err := h.UserRepo.FindTeachers(ctx)
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["teachers"] = teachers
+	
+	periods, err := h.PeriodRepo.Find(ctx, claims, period.FindRequest{
+		Order: []string{"start_hour", "start_minute"},
+	})
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["periods"] = periods
+	
+	subjects, err := h.SubjectRepo.Find(ctx, claims, subject.FindRequest{
+		Order: []string{"name"},
+	})
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["subjects"] = subjects
+
+	data["days"] = map[int]time.Weekday{
+		int(time.Monday): time.Monday,
+		int(time.Tuesday): time.Tuesday,
+		int(time.Wednesday): time.Wednesday,
+		int(time.Thursday): time.Thursday,
+		int(time.Friday): time.Friday, 
+		int(time.Saturday): time.Saturday,
+	}
 	data["urlSubclassesIndex"] = urlSubclassesIndex()
 	data["urlSubclassesView"] = urlSubclassesView(classID)
 	data["urlSubclassesUpdate"] = urlSubclassesUpdate(classID)

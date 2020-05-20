@@ -20,6 +20,7 @@ var TableNames = struct {
 	Teacher          string
 	Timetable        string
 	Users            string
+	UsersAccounts    string
 }{
 	Accounts:         "accounts",
 	Classes:          "classes",
@@ -37,4 +38,5 @@ var TableNames = struct {
 	Teacher:          "teacher",
 	Timetable:        "timetable",
 	Users:            "users",
+	UsersAccounts:    "users_accounts",
 }

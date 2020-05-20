@@ -42,6 +42,7 @@ import (
 	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
+	"remoteschool/smarthead/internal/timetable"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
 	"remoteschool/smarthead/internal/user_account/invite"
@@ -83,7 +84,7 @@ func main() {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
-	
+
 	// =========================================================================
 	// Logging
 	log.SetFlags(log.LstdFlags | log.Lmicroseconds | log.Lshortfile)
@@ -103,7 +104,7 @@ func main() {
 			Host         string        `envconfig:"HOST"`
 			ReadTimeout  time.Duration `default:"5s" envconfig:"READ_TIMEOUT"`
 			WriteTimeout time.Duration `default:"5s" envconfig:"WRITE_TIMEOUT"`
-		} 
+		}
 		Service struct {
 			Name        string   `default:"web-app" envconfig:"SERVICE_NAME"`
 			BaseUrl     string   `default:"http://localhost" envconfig:"BASE_URL"  example:"http://example.saasstartupkit.com"`
@@ -483,6 +484,7 @@ func main() {
 	depositRepo := deposit.NewRepository(masterDb, subscriptionRepo, cfg.Project.PaystackSecret)
 	classRepo := class.NewRepository(masterDb)
 	subClassRepo := subclass.NewRepository(masterDb)
+	timetableRepo := timetable.NewRepository(masterDb)
 
 	appCtx := &handlers.AppContext{
 		Log:              log,
@@ -510,7 +512,8 @@ func main() {
 		SubscriptionRepo: subscriptionRepo,
 		DepositRepo:      depositRepo,
 		ClassRepo:        classRepo,
-		SubClassRepo:	  subClassRepo,
+		SubClassRepo:     subClassRepo,
+		TimetableRepo:    timetableRepo,
 	}
 
 	// =========================================================================
@@ -1145,7 +1148,7 @@ func main() {
 
 		httpServers = append(httpServers, api)
 
-		fileExists := func (filename string) bool {
+		fileExists := func(filename string) bool {
 			info, err := os.Stat(filename)
 			if os.IsNotExist(err) {
 				return false

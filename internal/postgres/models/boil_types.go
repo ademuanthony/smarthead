@@ -57,3 +57,10 @@ const (
 	AccountStatusTPending  = "pending"
 	AccountStatusTDisabled = "disabled"
 )
+
+// Enum values for user_account_status_t
+const (
+	UserAccountStatusTActive   = "active"
+	UserAccountStatusTInvited  = "invited"
+	UserAccountStatusTDisabled = "disabled"
+)

@@ -51,6 +51,10 @@ type User struct {
 	ArchivedAt    *pq.NullTime    `json:"archived_at,omitempty"`
 }
 
+func (u User) String() string {
+	return u.FirstName + " " + u.LastName
+}
+
 // UserResponse represents someone with access to our system that is returned for display.
 type UserResponse struct {
 	ID         string               `json:"id" example:"d69bdef7-173f-4d29-b52c-3edc60baf6a2"`

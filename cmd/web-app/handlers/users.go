@@ -52,7 +52,7 @@ func urlUsersInvite() string {
 }
 
 func urlUsersView(userID string) string {
-	return fmt.Sprintf("/users/%s", userID)
+	return fmt.Sprintf("/users/%s", userID) 
 }
 
 func urlUsersUpdate(userID string) string {
@@ -62,13 +62,13 @@ func urlUsersUpdate(userID string) string {
 // UserCreateRequest extends the UserCreateRequest with a list of roles.
 type UserCreateRequest struct {
 	user.UserCreateRequest
-	Roles user_account.UserAccountRoles `json:"roles" validate:"required,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"admin"`
+	Roles user_account.UserAccountRoles `json:"roles" validate:"required,dive,oneof=admin user teacher finance student" enums:"admin,user,teacher,finance,student" swaggertype:"array,string" example:"admin"`
 }
 
 // UserUpdateRequest extends the UserUpdateRequest with a list of roles.
 type UserUpdateRequest struct {
 	user.UserUpdateRequest
-	Roles user_account.UserAccountRoles `json:"roles" validate:"required,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"admin"`
+	Roles user_account.UserAccountRoles `json:"roles" validate:"required,dive,oneof=admin user teacher finance student" enums:"admin,user,teacher,finance,student" swaggertype:"array,string" example:"admin"`
 }
 
 // Index handles listing all the users for the current account.
@@ -233,7 +233,7 @@ func (h *Users) Create(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				} else {
 					return false, err
 				}
-			}
+			} 
 
 			usr, err := h.UserRepo.Create(ctx, claims, req.UserCreateRequest, ctxValues.Now)
 			if err != nil {

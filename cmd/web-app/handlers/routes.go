@@ -26,6 +26,7 @@ import (
 	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
+	"remoteschool/smarthead/internal/timetable"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
 	"remoteschool/smarthead/internal/user_account/invite"
@@ -67,6 +68,7 @@ type AppContext struct {
 	DepositRepo       *deposit.Repository
 	ClassRepo         *class.Repository
 	SubClassRepo      *subclass.Repository
+	TimetableRepo	  *timetable.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -209,6 +211,10 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		Repo:        appCtx.SubClassRepo,
 		ClassRepo:   appCtx.ClassRepo,
 		StudentRepo: appCtx.StudentRepo,
+		TimetableRepo: appCtx.TimetableRepo,
+		UserRepo: appCtx.UserRepo,
+		PeriodRepo: appCtx.PeriodRepo,
+		SubjectRepo: appCtx.SubjectRepo,
 		Redis:       appCtx.Redis,
 		Renderer:    appCtx.Renderer,
 	}
