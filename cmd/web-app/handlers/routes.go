@@ -66,7 +66,7 @@ type AppContext struct {
 	SubscriptionRepo  *subscription.Repository
 	DepositRepo       *deposit.Repository
 	ClassRepo         *class.Repository
-	SubClassRepo	  *subclass.Repository
+	SubClassRepo      *subclass.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -204,13 +204,13 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("GET", "/admin/classes/create", cla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/classes", cla.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
-
 	// Register subclass management pages.
 	subcla := Subclasses{
-		Repo:     appCtx.SubClassRepo,
-		ClassRepo: appCtx.ClassRepo,
-		Redis:    appCtx.Redis,
-		Renderer: appCtx.Renderer,
+		Repo:        appCtx.SubClassRepo,
+		ClassRepo:   appCtx.ClassRepo,
+		StudentRepo: appCtx.StudentRepo,
+		Redis:       appCtx.Redis,
+		Renderer:    appCtx.Renderer,
 	}
 	app.Handle("POST", "/admin/subclasses/:subclass_id/update", subcla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/subclasses/:subclass_id/update", subcla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
@@ -323,7 +323,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		SubscriptionRepo: appCtx.SubscriptionRepo,
 		DepositRepo:      appCtx.DepositRepo,
 		Renderer:         appCtx.Renderer,
-		EmailNotifier: appCtx.InviteRepo.Notify,
+		EmailNotifier:    appCtx.InviteRepo.Notify,
 	}
 	// This route is not authenticated
 	app.Handle("POST", "/signup", s.Step1)

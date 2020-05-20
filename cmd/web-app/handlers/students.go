@@ -57,10 +57,10 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
 		{Field: "name", Title: "Name", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
-		{Field: "username", Title: "Username", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Username"},
 		{Field: "reg_no", Title: "Registration Number", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Registration Number"},
 		{Field: "age", Title: "Age", Visible: true, Searchable: true, Orderable: true},
 		{Field: "current_class", Title: "Current Class", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
+		{Field: "subclass", Title: "Subclass", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
 		{Field: "parent_phone", Title: "Parent Phone", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Phone"},
 		{Field: "parent_email", Title: "Parent Email", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Email"},
 		{Field: "created_at", Title: "Registration Date", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Date"},
@@ -76,9 +76,6 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 			case "name":
 				v.Value = q.Name
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlStudentsView(q.ID), v.Value)
-			case "username":
-				v.Value = q.Name
-				v.Formatted = v.Value
 			case "reg_no":
 				v.Value = q.RegNo
 				v.Formatted = v.Value
@@ -87,7 +84,12 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 				v.Formatted = v.Value
 			case "current_class":
 				v.Value = q.CurrentClass
-				v.Formatted = v.Value
+				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlClassesView(q.ClassID), v.Value)
+			case "subclass":
+				v.Value = q.Subclass
+				if q.SubclassID != nil {
+					v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlSubclassesView(*q.SubclassID), v.Value)
+				}
 			case "parent_phone":
 				v.Value = q.ParentPhone
 				v.Formatted = v.Value
@@ -109,8 +111,10 @@ func (h *Students) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	loadFunc := func(ctx context.Context, sorting string, fields []datatable.DisplayField) (resp [][]datatable.ColumnValue, err error) {
 		res, err := h.Repo.Find(ctx, claims, student.FindRequest{
 			Order: strings.Split(sorting, ","),
+			IncludeClass: true,
+			IncludeSubclass: true,
 		})
-		if err != nil {
+		if err != nil { 
 			return resp, err
 		}
 

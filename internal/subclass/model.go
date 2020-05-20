@@ -5,6 +5,7 @@ import (
 
 	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/postgres/models"
+	"remoteschool/smarthead/internal/student"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -28,7 +29,8 @@ type Subclass struct {
 	ClassID     string `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
 
-	Class *class.Class `json:"_class"`
+	Class    *class.Class `json:"_class"`
+	Students student.Students
 }
 
 func FromModel(rec *models.Subclass) *Subclass {
@@ -43,6 +45,11 @@ func FromModel(rec *models.Subclass) *Subclass {
 		if rec.R.Class != nil {
 			b.Class = class.FromModel(rec.R.Class)
 		}
+		if rec.R.Students != nil {
+			for _, stud := range rec.R.Students {
+				b.Students = append(b.Students, student.FromModel(stud))
+			}
+		}
 	}
 
 	return b
@@ -55,6 +62,8 @@ type Response struct {
 	ClassID     string `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
 	Class       string `json:"_class"`
+
+	Students student.Students
 }
 
 // Response transforms Subclass to the Response that is used for display.
@@ -69,6 +78,7 @@ func (m *Subclass) Response(ctx context.Context) *Response {
 		Name:        m.Name,
 		ClassID:     m.ClassID,
 		SchoolOrder: m.SchoolOrder,
+		Students: m.Students,
 	}
 
 	if m.Class != nil {
@@ -138,4 +148,5 @@ type FindRequest struct {
 	Offset          *uint         `json:"offset" example:"20"`
 	IncludeArchived bool          `json:"include-archived" example:"false"`
 	IncludeClass    bool          `json:"include-class" example:"false"`
+	IncludeStudents bool          `json:"include-students" example:"false"`
 }

@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
+	"github.com/volatiletech/sqlboiler/queries/qm"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
 	"gopkg.in/DataDog/dd-trace-go.v1/ddtrace/tracer"
 )
@@ -30,6 +31,13 @@ var (
 func (repo *Repository) Find(ctx context.Context, _ auth.Claims, req FindRequest) (Students, error) {
 	var queries []QueryMod
 
+	if req.IncludeClass {
+		queries = append(queries, qm.Load(models.StudentRels.Class))
+	}
+	if req.IncludeSubclass {
+		queries = append(queries, qm.Load(models.StudentRels.Subclass))
+	}
+	
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
 	}
@@ -179,6 +187,9 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 	}
 	if req.ClassID != nil {
 		cols[models.StudentColumns.ClassID] = *req.ClassID
+	}
+	if req.SubclassID != nil {
+		cols[models.StudentColumns.SubclassID] = *req.SubclassID
 	}
 	if req.ParentPhone != nil {
 		cols[models.StudentColumns.ParentPhone] = *req.ParentPhone

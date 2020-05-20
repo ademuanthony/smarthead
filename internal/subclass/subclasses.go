@@ -31,6 +31,10 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, 
 		queries = append(queries, qm.Load(models.SubclassRels.Class))
 	}
 	
+	if req.IncludeStudents {
+		queries = append(queries, qm.Load(models.SubclassRels.Students))
+	}
+	
 	if req.Where != "" {
 		queries = append(queries, Where(req.Where, req.Args...))
 	}
@@ -68,6 +72,7 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, 
 func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Subclass, error) {
 	classModel, err := models.Subclasses(
 		qm.Load(models.SubclassRels.Class), 
+		qm.Load(models.SubclassRels.Students),
 		models.SubclassWhere.ID.EQ(id),
 	).One(ctx, repo.DbConn)
 	if err != nil {

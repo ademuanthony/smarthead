@@ -13,6 +13,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subclass"
 
 	"github.com/gorilla/schema"
@@ -24,6 +25,7 @@ import (
 type Subclasses struct {
 	Repo      *subclass.Repository
 	ClassRepo *class.Repository
+	StudentRepo *student.Repository
 	Redis     *redis.Client
 	Renderer  web.Renderer
 }
@@ -211,20 +213,25 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 		return err
 	}
 
+	ctxValue, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return err
+	}
+
 	data := make(map[string]interface{})
 	f := func() (bool, error) {
 		if r.Method == http.MethodPost {
 			err := r.ParseForm()
 			if err != nil {
 				return false, err
-			}
+			} 
 
 			switch r.PostForm.Get("action") {
 			case "archive":
 				err = h.Repo.Delete(ctx, claims, subclass.DeleteRequest{
 					ID: classID,
 				})
-				if err != nil {
+				if err != nil { 
 					return false, err
 				}
 
@@ -233,6 +240,36 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 					"Class successfully archive.")
 
 				return true, web.Redirect(ctx, w, r, urlClassesIndex(), http.StatusFound)
+			case "add-student":
+				r.ParseForm()
+				regNo := r.FormValue("RegNo")
+				if regNo == "" {
+					webcontext.SessionFlashSuccess(ctx,
+						"Invalid Request",
+						"Student ID cannot be empty.")
+						return false, nil
+				}
+				stud, err := h.StudentRepo.Find(ctx, claims, student.FindRequest{
+					Where: "reg_no = $1",
+					Args: []interface{}{regNo},
+				})
+				if err != nil || len(stud) == 0 {
+					webcontext.SessionFlashSuccess(ctx,
+						"Invalid Request",
+						"Student not found")
+						return false, nil
+				}
+				stuErr := h.StudentRepo.Update(ctx, claims, student.UpdateRequest{
+					ID: stud[0].ID,
+					SubclassID: &classID,
+				}, ctxValue.Now)
+				if stuErr != nil {
+					return false, stuErr
+				}
+				webcontext.SessionFlashSuccess(ctx,
+					"Student Added",
+					"Student successfully added.")
+				return false, nil
 			}
 		}
 
@@ -250,7 +287,8 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 	if err != nil {
 		return err
 	}
-	data["class"] = sub.Response(ctx)
+	cla := sub.Response(ctx)
+	data["class"] = cla
 	data["urlSubclassesIndex"] = urlSubclassesIndex()
 	data["urlSubclassesView"] = urlSubclassesView(classID)
 	data["urlSubclassesUpdate"] = urlSubclassesUpdate(classID)

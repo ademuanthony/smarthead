@@ -33,12 +33,14 @@ type Student struct {
 	AccountBalance int       `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	CurrentClass   string    `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
 	ClassID        string    `json:"class_id"`
+	SubclassID     *string   `json:"subclass_id"`
 	ParentPhone    string    `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string    `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
 	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
 	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
-	Class *class.Class `json:"_class"`
+	Class    *class.Class `json:"_class"`
+	Subclass *models.Subclass
 }
 
 func FromModel(rec *models.Student) *Student {
@@ -47,7 +49,7 @@ func FromModel(rec *models.Student) *Student {
 		Name:           rec.Name,
 		AccountBalance: rec.AccountBalance,
 		Age:            rec.Age,
-		RegNo: 			rec.RegNo,
+		RegNo:          rec.RegNo,
 		CreatedAt:      rec.CreatedAt,
 		ClassID:        rec.ClassID.String,
 		ParentEmail:    rec.ParentEmail,
@@ -56,9 +58,16 @@ func FromModel(rec *models.Student) *Student {
 		Username:       rec.Username,
 	}
 
+	if rec.SubclassID.Valid {
+		b.SubclassID = &rec.SubclassID.String
+	}
+
 	if rec.R != nil {
 		if rec.R.Class != nil {
 			b.Class = class.FromModel(rec.R.Class)
+		}
+		if rec.R.Subclass != nil {
+			b.Subclass = rec.R.Subclass
 		}
 	}
 
@@ -70,11 +79,13 @@ type Response struct {
 	ID             string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name           string           `boil:"name" json:"name" toml:"name" yaml:"name"`
 	Username       string           `boil:"username" json:"username" toml:"username" yaml:"username"`
-	RegNo          string    `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
+	RegNo          string           `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
 	Age            int              `boil:"age" json:"age" toml:"age" yaml:"age"`
 	AccountBalance int              `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	ClassID        string           `json:"class_id"`
+	SubclassID     *string          `json:"subclass_id"`
 	CurrentClass   string           `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	Subclass       string           `json:"subclass"`
 	ParentPhone    string           `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string           `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
 	CreatedAt      web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
@@ -92,10 +103,11 @@ func (m *Student) Response(ctx context.Context) *Response {
 		ID:             m.ID,
 		Name:           m.Name,
 		Username:       m.Username,
-		RegNo: 			m.RegNo,
+		RegNo:          m.RegNo,
 		Age:            m.Age,
 		AccountBalance: m.AccountBalance,
 		ClassID:        m.ClassID,
+		SubclassID:     m.SubclassID,
 		ParentEmail:    m.ParentEmail,
 		ParentPhone:    m.ParentPhone,
 		CreatedAt:      web.NewTimeResponse(ctx, m.CreatedAt),
@@ -104,6 +116,10 @@ func (m *Student) Response(ctx context.Context) *Response {
 
 	if m.Class != nil {
 		r.CurrentClass = m.Class.Name
+	}
+
+	if m.Subclass != nil {
+		r.Subclass = m.Subclass.Name
 	}
 
 	return r
@@ -152,6 +168,7 @@ type UpdateRequest struct {
 	Age            *int    `json:"age"`
 	AccountBalance *int    `json:"account_balance"`
 	ClassID        *string `json:"class_id"`
+	SubclassID     *string `json:"subclass_id"`
 	ParentPhone    *string `json:"parent_phone"`
 	ParentEmail    *string `json:"parent_email"`
 }
@@ -176,4 +193,6 @@ type FindRequest struct {
 	Limit           *uint         `json:"limit" example:"10"`
 	Offset          *uint         `json:"offset" example:"20"`
 	IncludeArchived bool          `json:"include-archived" example:"false"`
+	IncludeClass    bool          `json:"include-class" example:"false"`
+	IncludeSubclass bool          `json:"include-subclass" example:"false"`
 }

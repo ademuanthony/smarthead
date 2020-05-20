@@ -1,5 +1,5 @@
 {{define "title"}}Classes - {{ .class.Name }}{{end}}
-{{define "classesActive"}}active{{end}}
+{{define "subclassesActive"}}active{{end}}
 {{define "style"}}
 
 {{end}}
@@ -28,7 +28,8 @@
                     <div class="dropdown-header">Actions</div>
                     <a class="dropdown-item" href="{{ .urlSubclassesUpdate }}">Update Details</a>
                     {{ if HasRole $._Ctx "admin" }}
-                        <form method="post"><input type="hidden" name="action" value="archive" /><input type="submit" value="Archive Class" class="dropdown-item"></form>
+                        <form method="post"><input type="hidden" name="action" value="archive" />
+                            <input type="submit" value="Archive Class" class="dropdown-item"></form>
                     {{ end }}
                 </div>
             </div>
@@ -44,6 +45,47 @@
                         <small>Subclass</small><br/>
                         <b>{{ .class.Name }}</b>
                     </p>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12">
+                    <h4>Students</h4>
+                    <table class="table table-stripped">
+                        <thead>
+                            <tr>
+                                <th>
+                                    Name
+                                </th>
+                                <th>
+                                    Email
+                                </th>
+                                <th>
+                                    Phone
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {{ range $student := .class.Students }}
+                            <tr>
+                                <td>{{ $student.Name }}</td>
+                                <td>{{ $student.ParentEmail }}</td>
+                                <td>{{ $student.ParentPhone }}</td>
+                            </tr>
+                            {{ end }}
+                        </tbody>
+                    </table>
+                    <form method="POST">
+                        <input type="hidden" name="action" value="add-student">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <input name="RegNo" class="form-control" placeholder="Enter Reg Number"/>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="submit" value="Add to Class" class="btn btn-primary"/>
+                            </div>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
