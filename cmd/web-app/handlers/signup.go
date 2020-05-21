@@ -318,6 +318,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 
 	// create the one week trail lesson
 	startDate := subscription.NextMonday(v.Now)
+	startDate = time.Now()
 	endDate := startDate.Add(7 * 24 * time.Hour)
 
 	period, err := h.SubscriptionRepo.TrailPeriodID(ctx)
