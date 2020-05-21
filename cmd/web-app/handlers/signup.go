@@ -349,7 +349,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 			SubjectID: maths.ID,
 			Status: "paid",
 		}
-		err = h.AccountRepo.Insert(ctx, dept)
+		err = h.DepositRepo.Insert(ctx, dept)
 		if err != nil {
 			return err
 		}
