@@ -363,6 +363,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		ClassRepo:        appCtx.ClassRepo,
 		PeriodRepo:       appCtx.PeriodRepo,
 		SubjectRepo:      appCtx.SubjectRepo,
+		TimetableRepo: 	  appCtx.TimetableRepo,
 		Renderer:         appCtx.Renderer,
 		WebRoute:         appCtx.WebRoute,
 		Sitemap:          sm,

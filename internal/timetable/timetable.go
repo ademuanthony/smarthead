@@ -2,6 +2,10 @@ package timetable
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"strings"
+	"time"
 
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
@@ -76,6 +80,56 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Timetables, 
 	return result, nil
 }
 
+func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string) (Timetables, error) {
+	student, err := models.FindStudent(ctx, repo.DbConn, studentID)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot fetch student, %s", err)
+	}
+
+	if !student.SubclassID.Valid {
+		return Timetables{}, nil
+	}
+
+	subscriptions, err := models.Subscriptions(
+		models.SubscriptionWhere.StudentID.EQ(student.ID),
+		models.SubscriptionWhere.EndDate.GTE(time.Now().UTC().Unix()),
+	).All(ctx, repo.DbConn)
+	if err != nil {
+		if err.Error() == sql.ErrNoRows.Error() {
+			return Timetables{}, nil
+		}
+		return nil, err
+	}
+
+	var subjectIDs string
+	for _, s := range subscriptions {
+		subjectIDs += s.SubjectID + "|"
+	}
+
+	timetables, err := models.Timetables(
+		models.TimetableWhere.SubclassID.EQ(student.SubclassID.String),
+		qm.Load(models.TimetableRels.Period),
+		qm.Load(models.TimetableRels.Subclass),
+		qm.Load(models.TimetableRels.Subject),
+		qm.Load(models.TimetableRels.Teacher),
+	).All(ctx, repo.DbConn)
+	if err != nil {
+		if err.Error() == sql.ErrNoRows.Error() {
+			return Timetables{}, nil
+		}
+		return nil, err
+	}
+
+	var result Timetables
+	for _, t := range timetables {
+		if strings.Contains(subjectIDs, t.SubjectID) {
+			result = append(result, FromModel(t))
+		}
+	}
+
+	return result, nil
+}
+
 // ReadByID gets the specified class by ID from the database.
 func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Timetable, error) {
 	classModel, err := models.FindTimetable(ctx, repo.DbConn, id)
@@ -113,6 +167,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	exists, err = models.Timetables(
 		models.TimetableWhere.TeacherID.EQ(req.TeacherID),
 		models.TimetableWhere.PeriodID.EQ(req.PeriodID),
+		models.TimetableWhere.Day.EQ(req.Day),
 	).Exists(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err

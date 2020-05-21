@@ -85,7 +85,10 @@ func (repo *Repository) CurrentStudent(ctx context.Context, claims auth.Claims) 
 	if err != nil {
 		return nil, err
 	}
-	studentModel, err := models.Students(models.StudentWhere.Username.EQ(user.Email)).One(ctx, repo.DbConn)
+	studentModel, err := models.Students(
+		qm.Load(models.StudentRels.Subclass),
+		models.StudentWhere.Username.EQ(user.Email),
+	).One(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err
 	}

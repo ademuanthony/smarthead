@@ -1017,7 +1017,7 @@ func testSubclassesSelect(t *testing.T) {
 }
 
 var (
-	subclassDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `ClassID`: `uuid`, `SchoolOrder`: `integer`}
+	subclassDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `ClassID`: `uuid`, `SchoolOrder`: `integer`, `Link`: `character varying`}
 	_               = bytes.MinRead
 )
 

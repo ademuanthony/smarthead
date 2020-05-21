@@ -6,6 +6,7 @@
 
 <div class="d-sm-flex align-items-center justify-content-between mb-4">
   <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+  <p>Welcome {{ .student.Name }}, You are in {{ .student.Subclass }}</p>
 </div>
 
 {{ if .isNew}}
@@ -110,25 +111,38 @@
           </div>
         </div>
 
-
-        {{ if gt (len .subscriptions) 0 }}
-        <table class="table">
-          <tr>
-            <th>State Date</th>
-            <th>End Date</th>
-            <th>Subject</th>
-            <th>Class</th>
-          </tr>
-          {{range $sub := .subscriptions}}
-          <tr>
-            <td>{{ $sub.StartDate.LocalDate }}</td>
-            <td>{{ $sub.EndDate.LocalDate }}</td>
-            <td>{{ $sub.Subject }}</td>
-            <td>{{ $sub.Class }}</td>
-          </tr>
-          {{ end }}
-        </table>
+        {{ if gt (len .timetables) 0 }}
+        <div>
+          <h4>Timetable</h4>
+          <table class="table table-stripped">
+            <thead>
+              <tr>
+                <th>Day</th>
+                <th>Period</th>
+                <th>Subject</th>
+                <th>Teacher</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {{ range $t := .timetables }}
+              <tr>
+                <td>{{ $t.Day }}</td>
+                <td>{{ $t.Period }}</td>
+                <td>{{ $t.Subject }}</td>
+                <td>{{ $t.Teacher }}</td>
+                <td>
+                  {{ if isLessonTime $t }}
+                  <a href="/lessons/join/{{ $t.ID }}" class="btn btn-success">Join Class</a>
+                  {{ end }}
+                </td>
+              </tr>
+              {{ end }}
+            </tbody>
+          </table>
+        </div>
         {{ end }}
+
       </div>
     </div>
   </div>

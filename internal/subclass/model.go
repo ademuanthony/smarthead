@@ -28,6 +28,7 @@ type Subclass struct {
 	Name        string `boil:"name" json:"name" toml:"name" yaml:"name"`
 	ClassID     string `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
+	Link string    `json:"link"`
 
 	Class    *class.Class `json:"_class"`
 	Students student.Students
@@ -39,6 +40,7 @@ func FromModel(rec *models.Subclass) *Subclass {
 		Name:        rec.Name,
 		ClassID:     rec.ClassID,
 		SchoolOrder: rec.SchoolOrder,
+		Link: rec.Link,
 	}
 
 	if rec.R != nil {
@@ -61,6 +63,7 @@ type Response struct {
 	Name        string `json:"name" example:"Rocket Launch"`
 	ClassID     string `json:"class_id"`
 	SchoolOrder int    `json:"school_order"`
+	Link string    `json:"link"`
 	Class       string `json:"_class"`
 
 	Students student.Students
@@ -78,6 +81,7 @@ func (m *Subclass) Response(ctx context.Context) *Response {
 		Name:        m.Name,
 		ClassID:     m.ClassID,
 		SchoolOrder: m.SchoolOrder,
+		Link: m.Link,
 		Students: m.Students,
 	}
 
@@ -107,6 +111,7 @@ func (m *Subclasses) Response(ctx context.Context) []*Response {
 type CreateRequest struct {
 	Name        string `json:"name" validate:"required"  example:"Rocket Launch"`
 	ClassID     string `json:"class_id" validate:"required"`
+	Link string    `json:"link"`
 	SchoolOrder int    `json:"school_order"`
 }
 
@@ -124,6 +129,7 @@ type UpdateRequest struct {
 	ID          string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name        *string `json:"name,omitempty" validate:"omitempty,unique" example:"Rocket Launch to Moon"`
 	ClassID     *string `json:"class_id" validate:"required"`
+	Link *string    `json:"link"`
 	SchoolOrder *int    `json:"school_order"`
 }
 

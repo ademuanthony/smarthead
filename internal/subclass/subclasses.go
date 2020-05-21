@@ -113,6 +113,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		Name:      req.Name,
 		ClassID:   req.ClassID,
 		SchoolOrder: req.SchoolOrder,
+		Link: req.Link,
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
@@ -123,6 +124,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		ID:         m.ID,
 		Name:       m.Name,
 		SchoolOrder: m.SchoolOrder,
+		Link: m.Link,
 		ClassID: m.ClassID,
 	}, nil
 }
@@ -165,6 +167,10 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 
 	if req.SchoolOrder != nil {
 		cols[models.SubclassColumns.SchoolOrder] = *req.SchoolOrder
+	}
+
+	if req.Link != nil {
+		cols[models.SubclassColumns.Link] = *req.Link
 	}
 
 	if req.ClassID != nil {

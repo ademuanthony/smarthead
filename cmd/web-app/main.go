@@ -16,6 +16,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"reflect"
+	"strconv"
 	"strings"
 	"syscall"
 	"time"
@@ -913,6 +914,31 @@ func main() {
 				return s == ""
 			}
 			return s == *sPtr
+		},
+		"isLessonTime": func (t timetable.Response) bool {
+			if t.Day != time.Now().Weekday() {
+				return false
+			}
+
+			currentDate := time.Now()
+
+			periodDec := strings.Split(t.Period, "-")
+			startPeriod := strings.Split(periodDec[0], ":")
+			endPeriod := strings.Split(periodDec[1], ":")
+
+			startHour, _ := strconv.Atoi(startPeriod[0])
+			startMin, _ := strconv.Atoi(startPeriod[1])
+
+			endHour, _ := strconv.Atoi(endPeriod[0])
+			endMin, _ := strconv.Atoi(endPeriod[1])
+
+			startDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
+				startHour, startMin, 0, 0, time.Local)
+
+			endDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
+				endHour, endMin, 0, 0, time.Local)
+
+			return (startDate.Unix() >= currentDate.Unix() && endDate.Unix() <= currentDate.Unix())
 		},
 	}
 

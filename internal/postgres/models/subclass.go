@@ -27,6 +27,7 @@ type Subclass struct {
 	Name        string `boil:"name" json:"name" toml:"name" yaml:"name"`
 	ClassID     string `boil:"class_id" json:"class_id" toml:"class_id" yaml:"class_id"`
 	SchoolOrder int    `boil:"school_order" json:"school_order" toml:"school_order" yaml:"school_order"`
+	Link        string `boil:"link" json:"link" toml:"link" yaml:"link"`
 
 	R *subclassR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L subclassL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -37,11 +38,13 @@ var SubclassColumns = struct {
 	Name        string
 	ClassID     string
 	SchoolOrder string
+	Link        string
 }{
 	ID:          "id",
 	Name:        "name",
 	ClassID:     "class_id",
 	SchoolOrder: "school_order",
+	Link:        "link",
 }
 
 // Generated where
@@ -51,11 +54,13 @@ var SubclassWhere = struct {
 	Name        whereHelperstring
 	ClassID     whereHelperstring
 	SchoolOrder whereHelperint
+	Link        whereHelperstring
 }{
 	ID:          whereHelperstring{field: "\"subclass\".\"id\""},
 	Name:        whereHelperstring{field: "\"subclass\".\"name\""},
 	ClassID:     whereHelperstring{field: "\"subclass\".\"class_id\""},
 	SchoolOrder: whereHelperint{field: "\"subclass\".\"school_order\""},
+	Link:        whereHelperstring{field: "\"subclass\".\"link\""},
 }
 
 // SubclassRels is where relationship names are stored.
@@ -85,9 +90,9 @@ func (*subclassR) NewStruct() *subclassR {
 type subclassL struct{}
 
 var (
-	subclassAllColumns            = []string{"id", "name", "class_id", "school_order"}
+	subclassAllColumns            = []string{"id", "name", "class_id", "school_order", "link"}
 	subclassColumnsWithoutDefault = []string{"id", "name", "class_id", "school_order"}
-	subclassColumnsWithDefault    = []string{}
+	subclassColumnsWithDefault    = []string{"link"}
 	subclassPrimaryKeyColumns     = []string{"id"}
 )
 

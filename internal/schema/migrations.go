@@ -1253,6 +1253,23 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// Add link to subclass table
+		{
+			ID: "20200521-01",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE subclass
+				ADD link character varying(512) COLLATE pg_catalog."default" DEFAULT '' NOT NULL`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
 	}
 }
 

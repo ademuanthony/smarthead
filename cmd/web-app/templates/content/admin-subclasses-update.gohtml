@@ -59,6 +59,17 @@
                             {{template "invalid-feedback" dict "fieldName" "SchoolOrder" "validationDefaults" $.userValidationDefaults "validationErrors" $.validationErrors }}
                         </div>
                     </div>
+
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label for="inputName">Lesson Link</label>
+                            <input type="text" id="inputName"
+                                   class="form-control {{ ValidationFieldClass $.validationErrors "Link" }}"
+                                   placeholder="Enter a link for this class" name="Link" value="{{ .form.Link }}" required>
+                            {{template "invalid-feedback" dict "fieldName" "Link" "validationDefaults" $.userValidationDefaults "validationErrors" $.validationErrors }}
+                        </div>
+                    </div>
+
                 </div>
 
             </div>

@@ -61,8 +61,9 @@ func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.R
 
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
-		{Field: "class", Title: "Class", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
 		{Field: "name", Title: "Subclass", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
+		{Field: "class", Title: "Class", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Class"},
+		{Field: "link", Title: "Link", Visible: true, Filterable: true, FilterPlaceholder: "filter Link"},
 		{Field: "school_order", Title: "School Order", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter School"},
 	}
 
@@ -73,12 +74,15 @@ func (h *Subclasses) Index(ctx context.Context, w http.ResponseWriter, r *http.R
 			switch col.Field {
 			case "id":
 				v.Value = fmt.Sprintf("%s", q.ID)
-			case "name":
-				v.Value = q.Name
-				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlSubclassesView(q.ID), v.Value)
 			case "class":
 				v.Value = q.Class
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlClassesView(q.ClassID), v.Value)
+			case "name":
+				v.Value = q.Name
+				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlSubclassesView(q.ID), v.Value)
+			case "link":
+				v.Value = q.Link
+				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", q.Link, "Link")
 			case "school_order":
 				v.Value = fmt.Sprint(q.SchoolOrder)
 				v.Formatted = v.Value
@@ -453,6 +457,7 @@ func (h *Subclasses) Update(ctx context.Context, w http.ResponseWriter, r *http.
 		req.Name = &sub.Name
 		req.ClassID = &sub.ClassID
 		req.SchoolOrder = &sub.SchoolOrder
+		req.Link = &sub.Link
 	}
 	data["form"] = req
 

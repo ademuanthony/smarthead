@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"time"
 
 	"remoteschool/smarthead/internal/class"
 	"remoteschool/smarthead/internal/period"
@@ -17,6 +18,7 @@ import (
 	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
+	"remoteschool/smarthead/internal/timetable"
 	"remoteschool/smarthead/internal/webroute"
 
 	"github.com/ikeikeikeike/go-sitemap-generator/v2/stm"
@@ -31,6 +33,7 @@ type Root struct {
 	ClassRepo		 *class.Repository
 	SubjectRepo		 *subject.Repository
 	PeriodRepo		 *period.Repository 
+	TimetableRepo	 *timetable.Repository
 	Renderer         web.Renderer
 	Sitemap          *stm.Sitemap
 	WebRoute         webroute.WebRoute
@@ -66,26 +69,36 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	if err != nil { 
 		return err
 	}
-
+ 
 	data := map[string]interface{}{}
 
-	r.ParseForm()
-	data["isNew"] = r.FormValue("s") == "new"
-	
 	currentStudent, err := h.StudentRepo.CurrentStudent(ctx, claims)
 	if err != nil {
 		return err
 	}
+	data["student"] = currentStudent.Response(ctx)
+	r.ParseForm()
+	data["isNew"] = currentStudent.CreatedAt.Day() == time.Now().Day() && 
+		currentStudent.CreatedAt.Month() == time.Now().Month() && currentStudent.CreatedAt.Year() == time.Now().Year()
+	
 
-	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
-		Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
-	})
-	if err != nil {
-		if err.Error() != sql.ErrNoRows.Error() {
-			return err
+		classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
+			Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
+		}) 
+		if err != nil {
+			if err.Error() != sql.ErrNoRows.Error() {
+				return err
+			}
 		}
-	}
-	data["classes"] = classes
+		data["classes"] = classes
+
+		myTimetable, err := h.TimetableRepo.StudentsTimetables(ctx, currentStudent.ID)
+		if err != nil {
+			if err.Error() != sql.ErrNoRows.Error() {
+				return err
+			}
+		}
+		data["timetables"] = myTimetable.Response(ctx)
 
 	// wget -qO- https://ubuntu.bigbluebutton.org/bbb-install.sh | bash -s platform.remoteschool.com.ng
 	// ./bbb-install.sh -v xenial-220 -s platform.remoteschool.com.ng -e ademuanthony@gmail.com
