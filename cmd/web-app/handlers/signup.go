@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"database/sql"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -16,6 +17,7 @@ import (
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
+	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/signup"
 	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subject"
@@ -24,6 +26,7 @@ import (
 
 	"github.com/gorilla/schema"
 	"github.com/jmoiron/sqlx"
+	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"gopkg.in/go-playground/validator.v9"
 )
@@ -325,14 +328,32 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
-	trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
-	if err != nil {
-		return err
-	}
 
 	maths, err := h.SubjectRepo.MathsID(ctx)
 	if err != nil {
 		return err
+	}
+
+	trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error(){
+			return err
+		}
+		dept := models.Deposit{
+			ID: uuid.NewRandom().String(),
+			Amount: 0,
+			Channel: "trail",
+			ClassID: req.ClassID,
+			CreatedAt: time.Now(),
+			StudentID: s.ID,
+			SubjectID: maths.ID,
+			Status: "paid",
+		}
+		err = h.AccountRepo.Insert(ctx, dept)
+		if err != nil {
+			return err
+		}
+		trailDeposit.ID = dept.ID
 	}
 
 	// Maths trail

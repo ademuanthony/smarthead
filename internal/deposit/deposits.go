@@ -157,6 +157,10 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	}, nil
 }
 
+func (repo *Repository) Insert(ctx context.Context, dept models.Deposit) error {
+	return dept.Insert(ctx, repo.DbConn, boil.Infer())
+}
+
 // Update replaces an subject in the database.
 func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req UpdateRequest, now time.Time) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.deposit.Update")
