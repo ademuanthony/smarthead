@@ -36,7 +36,7 @@ type UserAccount struct {
 	//ID         string            `json:"id" validate:"required,uuid" example:"72938896-a998-4258-a17b-6418dcdb80e3"`
 	UserID     string            `json:"user_id" validate:"required,uuid" example:"d69bdef7-173f-4d29-b52c-3edc60baf6a2"`
 	AccountID  string            `json:"account_id" validate:"required,uuid" example:"c4653bf9-5978-48b7-89c5-95704aebb7e2"`
-	Roles      UserAccountRoles  `json:"roles" validate:"required,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"admin"`
+	Roles      UserAccountRoles  `json:"roles" validate:"required,dive,oneof=admin user teacher finance student" enums:"admin,user,teacher,finance,student" swaggertype:"array,string" example:"admin"`
 	Status     UserAccountStatus `json:"status" validate:"omitempty,oneof=active invited disabled" enums:"active,invited,disabled" swaggertype:"string" example:"active"`
 	CreatedAt  time.Time         `json:"created_at"`
 	UpdatedAt  time.Time         `json:"updated_at"`
@@ -48,7 +48,7 @@ type UserAccountResponse struct {
 	//ID         string            `json:"id" example:"d69bdef7-173f-4d29-b52c-3edc60baf6a2"`
 	UserID     string                `json:"user_id" example:"d69bdef7-173f-4d29-b52c-3edc60baf6a2"`
 	AccountID  string                `json:"account_id" example:"c4653bf9-5978-48b7-89c5-95704aebb7e2"`
-	Roles      web.EnumMultiResponse `json:"roles" validate:"required,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"admin"`
+	Roles      web.EnumMultiResponse `json:"roles" validate:"required,dive,oneof=admin user teacher finance student" enums:"admin,user,teacher,finance,student" swaggertype:"array,string" example:"admin"`
 	Status     web.EnumResponse      `json:"status"`                // Status is enum with values [active, invited, disabled].
 	CreatedAt  web.TimeResponse      `json:"created_at"`            // CreatedAt contains multiple format options for display.
 	UpdatedAt  web.TimeResponse      `json:"updated_at"`            // UpdatedAt contains multiple format options for display.
@@ -136,7 +136,7 @@ type UserAccountReadRequest struct {
 type UserAccountUpdateRequest struct {
 	UserID    string             `json:"user_id" validate:"required,uuid" example:"d69bdef7-173f-4d29-b52c-3edc60baf6a2"`
 	AccountID string             `json:"account_id" validate:"required,uuid" example:"c4653bf9-5978-48b7-89c5-95704aebb7e2"`
-	Roles     *UserAccountRoles  `json:"roles,omitempty" validate:"omitempty,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"user"`
+	Roles     *UserAccountRoles  `json:"roles,omitempty" validate:"omitempty,dive,oneof=admin user teacher finance" enums:"admin,user,teacher,finance" swaggertype:"array,string" example:"user"`
 	Status    *UserAccountStatus `json:"status,omitempty" validate:"omitempty,oneof=active invited disabled" enums:"active,invited,disabled" swaggertype:"string" example:"disabled"`
 	unArchive bool               `json:"-"` // Internal use only.
 }
@@ -291,7 +291,7 @@ func (s UserAccountRoles) Value() (driver.Value, error) {
 
 	var arr pq.StringArray
 	for _, r := range s {
-		errs := v.Var(r, "required,oneof=admin user")
+		errs := v.Var(r, "required,oneof=admin user teacher finance student")
 		if errs != nil {
 			return nil, errs
 		}
@@ -310,7 +310,7 @@ type User struct {
 	Email      string            `json:"email" validate:"required,email,unique" example:"gabi@geeksinthewoods.com"`
 	Timezone   *string           `json:"timezone" validate:"omitempty" example:"America/Anchorage"`
 	AccountID  string            `json:"account_id" validate:"required,uuid" example:"c4653bf9-5978-48b7-89c5-95704aebb7e2"`
-	Roles      UserAccountRoles  `json:"roles" validate:"required,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"admin"`
+	Roles      UserAccountRoles  `json:"roles" validate:"required,dive,oneof=admin user teacher finance student" enums:"admin,user,teacher,finance,student" swaggertype:"array,string" example:"admin"`
 	Status     UserAccountStatus `json:"status" validate:"omitempty,oneof=active invited disabled" enums:"active,invited,disabled" swaggertype:"string" example:"active"`
 	CreatedAt  time.Time         `json:"created_at"`
 	UpdatedAt  time.Time         `json:"updated_at"`
@@ -326,7 +326,7 @@ type UserResponse struct {
 	Email      string                `json:"email" example:"gabi@geeksinthewoods.com"`
 	Timezone   string                `json:"timezone" example:"America/Anchorage"`
 	AccountID  string                `json:"account_id" example:"c4653bf9-5978-48b7-89c5-95704aebb7e2"`
-	Roles      web.EnumMultiResponse `json:"roles" validate:"required,dive,oneof=admin user" enums:"admin,user" swaggertype:"array,string" example:"admin"`
+	Roles      web.EnumMultiResponse `json:"roles" validate:"required,dive,oneof=admin user teacher finance student" enums:"admin,user,teacher,finance,student" swaggertype:"array,string" example:"admin"`
 	Status     web.EnumResponse      `json:"status"`                // Status is enum with values [active, invited, disabled].
 	CreatedAt  web.TimeResponse      `json:"created_at"`            // CreatedAt contains multiple format options for display.
 	UpdatedAt  web.TimeResponse      `json:"updated_at"`            // UpdatedAt contains multiple format options for display.
