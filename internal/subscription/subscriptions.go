@@ -78,8 +78,39 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 }
 
 func (repo *Repository) CountActiveSubscriptions(ctx context.Context, studentID string, now time.Time) (int64, error) {
+	// If now empty set it to the current time.
+	if now.IsZero() {
+		now = time.Now()
+	}
+
+	// Always store the time as UTC.
+	now = now.UTC()
+	// Postgres truncates times to milliseconds when storing. We and do the same
+	// here so the value we return is consistent with what we store.
+	now = now.Truncate(time.Millisecond)
 	return models.Subscriptions(models.SubscriptionWhere.StudentID.EQ(studentID), 
-	models.SubscriptionWhere.EndDate.GT(now.Unix())).Count(ctx, repo.DbConn)
+		models.SubscriptionWhere.StartDate.LTE(now.Unix()),
+		models.SubscriptionWhere.EndDate.GTE(now.Unix()),
+	).Count(ctx, repo.DbConn)
+}
+
+func (repo *Repository) StudentHasSubscription(ctx context.Context, studentID string, subjectID string, now time.Time)  (bool, error)  {
+	// If now empty set it to the current time.
+	if now.IsZero() {
+		now = time.Now()
+	}
+
+	// Always store the time as UTC.
+	now = now.UTC()
+	// Postgres truncates times to milliseconds when storing. We and do the same
+	// here so the value we return is consistent with what we store.
+	now = now.Truncate(time.Millisecond)
+	return models.Subscriptions(
+		models.SubscriptionWhere.StudentID.EQ(studentID),
+		models.SubscriptionWhere.SubjectID.EQ(subjectID),
+		models.SubscriptionWhere.StartDate.LTE(now.Unix()),
+		models.SubscriptionWhere.EndDate.GTE(now.Unix()),
+	).Exists(ctx, repo.DbConn)
 }
 
 func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, 

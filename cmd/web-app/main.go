@@ -913,24 +913,47 @@ func main() {
 			if sPtr == nil {
 				return s == ""
 			}
-			return s == *sPtr
+			return s == *sPtr 
 		},
-		"isLessonTime": func (t timetable.Response) bool {
-			if t.Day != time.Now().Weekday() {
+		"isLessonTime": func (ctx context.Context, t timetable.Response) bool {
+			ctxValue, err := webcontext.ContextValues(ctx)
+			if err != nil {
+				log.Printf("main: isLessonTime failed to get context value - %s", err.Error())
 				return false
 			}
 
-			currentDate := time.Now()
+			if t.Day != ctxValue.Now.Weekday() {
+				return false
+			}
 
-			periodDec := strings.Split(t.Period, "-")
+			currentDate := ctxValue.Now
+
+			periodDec := strings.Split(strings.Replace(t.Period, " ", "", -1), "-")
 			startPeriod := strings.Split(periodDec[0], ":")
-			endPeriod := strings.Split(periodDec[1], ":")
+			endPeriod := strings.Split(periodDec[1], ":") 
 
-			startHour, _ := strconv.Atoi(startPeriod[0])
-			startMin, _ := strconv.Atoi(startPeriod[1])
+			startHour, err := strconv.Atoi(startPeriod[0])
+			if err != nil {
+				log.Printf("main: isLessonTime conversion failed - %s", err.Error())
+				return false
+			}
+			startMin, err := strconv.Atoi(startPeriod[1])
+			if err != nil {
+				log.Printf("main: isLessonTime conversion failed - %s", err.Error())
+				return false
+			}
 
-			endHour, _ := strconv.Atoi(endPeriod[0])
-			endMin, _ := strconv.Atoi(endPeriod[1])
+			endHour, err := strconv.Atoi(endPeriod[0])
+			if err != nil {
+				log.Printf("main: isLessonTime conversion failed - %s", err.Error())
+				return false
+			}
+
+			endMin, err := strconv.Atoi(endPeriod[1])
+			if err != nil {
+				log.Printf("main: isLessonTime conversion failed - %s", err.Error())
+				return false
+			}
 
 			startDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
 				startHour, startMin, 0, 0, time.Local)
@@ -938,7 +961,7 @@ func main() {
 			endDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
 				endHour, endMin, 0, 0, time.Local)
 
-			return (startDate.Unix() >= currentDate.Unix() && endDate.Unix() <= currentDate.Unix())
+			return (startDate.Unix() <= currentDate.Unix() && endDate.Unix() >= currentDate.Unix())
 		},
 	}
 

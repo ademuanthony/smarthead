@@ -118,9 +118,9 @@
             <thead>
               <tr>
                 <th>Day</th>
-                <th>Period</th>
+                <th>Period</th> 
                 <th>Subject</th>
-                <th>Teacher</th>
+                <th>Teacher</th> 
                 <th></th>
               </tr>
             </thead>
@@ -132,8 +132,8 @@
                 <td>{{ $t.Subject }}</td>
                 <td>{{ $t.Teacher }}</td>
                 <td>
-                  {{ if isLessonTime $t }}
-                  <a href="/lessons/join/{{ $t.ID }}" class="btn btn-success">Join Class</a>
+                  {{ if isLessonTime $._Ctx $t }}
+                  <a href="/lessons/join/{{ $t.ID }}" class="btn btn-success" target="_blank">Go to Classroom</a>
                   {{ end }}
                 </td>
               </tr>

@@ -88,7 +88,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		if err != nil {
 			if err.Error() != sql.ErrNoRows.Error() {
 				return err
-			}
+			} 
 		}
 		data["classes"] = classes
 

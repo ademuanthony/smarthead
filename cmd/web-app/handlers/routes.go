@@ -68,7 +68,7 @@ type AppContext struct {
 	DepositRepo       *deposit.Repository
 	ClassRepo         *class.Repository
 	SubClassRepo      *subclass.Repository
-	TimetableRepo	  *timetable.Repository
+	TimetableRepo     *timetable.Repository
 	StaticDir         string
 	TemplateDir       string
 	Renderer          web.Renderer
@@ -208,15 +208,15 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 
 	// Register subclass management pages.
 	subcla := Subclasses{
-		Repo:        appCtx.SubClassRepo,
-		ClassRepo:   appCtx.ClassRepo,
-		StudentRepo: appCtx.StudentRepo,
+		Repo:          appCtx.SubClassRepo,
+		ClassRepo:     appCtx.ClassRepo,
+		StudentRepo:   appCtx.StudentRepo,
 		TimetableRepo: appCtx.TimetableRepo,
-		UserRepo: appCtx.UserRepo,
-		PeriodRepo: appCtx.PeriodRepo,
-		SubjectRepo: appCtx.SubjectRepo,
-		Redis:       appCtx.Redis,
-		Renderer:    appCtx.Renderer,
+		UserRepo:      appCtx.UserRepo,
+		PeriodRepo:    appCtx.PeriodRepo,
+		SubjectRepo:   appCtx.SubjectRepo,
+		Redis:         appCtx.Redis,
+		Renderer:      appCtx.Renderer,
 	}
 	app.Handle("POST", "/admin/subclasses/:subclass_id/update", subcla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/subclasses/:subclass_id/update", subcla.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
@@ -225,6 +225,17 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("POST", "/admin/subclasses/create", subcla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/subclasses/create", subcla.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/admin/subclasses", subcla.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+
+	// Lessons
+	lesson := Lessons{
+		StudentRepo:      appCtx.StudentRepo,
+		TimetableRepo:    appCtx.TimetableRepo,
+		PeriodRepo:       appCtx.PeriodRepo,
+		Redis:            appCtx.Redis,
+		Renderer:         appCtx.Renderer,
+		SubscriptionRepo: appCtx.SubscriptionRepo,
+	}
+	app.Handle("GET", "/lessons/join/:timetable_id", lesson.Join, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register student management pages.
 	subscription := Subscriptions{
@@ -363,7 +374,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		ClassRepo:        appCtx.ClassRepo,
 		PeriodRepo:       appCtx.PeriodRepo,
 		SubjectRepo:      appCtx.SubjectRepo,
-		TimetableRepo: 	  appCtx.TimetableRepo,
+		TimetableRepo:    appCtx.TimetableRepo,
 		Renderer:         appCtx.Renderer,
 		WebRoute:         appCtx.WebRoute,
 		Sitemap:          sm,

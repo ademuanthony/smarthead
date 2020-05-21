@@ -92,6 +92,7 @@ func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string
 
 	subscriptions, err := models.Subscriptions(
 		models.SubscriptionWhere.StudentID.EQ(student.ID),
+		models.SubscriptionWhere.StartDate.LTE(time.Now().UTC().Unix()),
 		models.SubscriptionWhere.EndDate.GTE(time.Now().UTC().Unix()),
 	).All(ctx, repo.DbConn)
 	if err != nil {
@@ -132,7 +133,10 @@ func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string
 
 // ReadByID gets the specified class by ID from the database.
 func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id string) (*Timetable, error) {
-	classModel, err := models.FindTimetable(ctx, repo.DbConn, id)
+	classModel, err := models.Timetables(
+		models.TimetableWhere.ID.EQ(id),
+		qm.Load(models.TimetableRels.Subclass),
+	).One(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err
 	}
@@ -156,6 +160,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	exists, err := models.Timetables(
 		models.TimetableWhere.SubclassID.EQ(req.SubclassID),
 		models.TimetableWhere.PeriodID.EQ(req.PeriodID),
+		models.TimetableWhere.Day.EQ(req.Day),
 	).Exists(ctx, repo.DbConn)
 	if err != nil {
 		return nil, err
