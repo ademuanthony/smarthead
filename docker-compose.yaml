@@ -71,9 +71,9 @@ services:
     volumes:
       - ./:/go/src/gitlab.com/remoteschool/smarthead
     ports:
-      - 3000:3000 # WEB APP
+      - 70:3000 # WEB APP
       - 3100:3100
-      - 4000:4000 # DEBUG API
+      - 443:4000 # DEBUG API
     networks:
       main:
         aliases:
