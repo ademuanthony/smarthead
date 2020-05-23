@@ -11,8 +11,11 @@
 
 {{ if .isNew}}
 <div class="alert alert-success mt-2 mb-3" role="alert">
-  Congratulations! Your free classes are been created. 
-  We will send you an email/SMS with further instructions on how to connect to the class
+  Congratulations! Check the timetable below for the date and time of your lesson. <br>
+  {{ if isWorkHour }}
+  Enter the virtual class room to see how it works <br>
+  <a href="https://bit.ly/remote-school-f-free-math" target="_blank" class="btn btn-primary btn-lg">Go to Classroom</a>
+  {{ end }}
 </div>
 {{ end }}
 
