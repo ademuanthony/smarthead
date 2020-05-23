@@ -353,7 +353,9 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		if err != nil {
 			return err
 		}
-		trailDeposit.ID = dept.ID
+		trailDeposit = &deposit.Deposit{
+			ID: dept.ID,
+		}
 	}
 
 	// Maths trail
