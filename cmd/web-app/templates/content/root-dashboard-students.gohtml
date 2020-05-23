@@ -12,10 +12,6 @@
 {{ if .isNew}}
 <div class="alert alert-success mt-2 mb-3" role="alert">
   Congratulations! Check the timetable below for the date and time of your lesson. <br>
-  {{ if isWorkHour }}
-  Enter the virtual class room to see how it works <br>
-  <a href="https://bit.ly/remote-school-f-free-math" target="_blank" class="btn btn-primary btn-lg">Go to Classroom</a>
-  {{ end }}
 </div>
 {{ end }}
 
@@ -113,6 +109,13 @@
 
           </div>
         </div>
+
+        <p>
+          {{ if isWorkHour }}
+          Enter the virtual class room to see how it works <br>
+          <a href="https://bit.ly/remote-school-f-free-math" target="_blank" class="btn btn-primary btn-lg">Go to Classroom</a>
+          {{ end }}
+        </p>
 
         {{ if gt (len .timetables) 0 }}
         <div>
