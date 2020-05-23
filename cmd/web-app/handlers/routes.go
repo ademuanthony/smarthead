@@ -296,6 +296,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	}
 	app.Handle("POST", "/user/login", u.Login)
 	app.Handle("GET", "/login", u.Login)
+	app.Handle("POST", "/login", u.Login)
 	app.Handle("GET", "/user/login", u.Login, waitDbMid)
 	app.Handle("GET", "/user/logout", u.Logout)
 	app.Handle("POST", "/user/reset-password/:hash", u.ResetConfirm)
