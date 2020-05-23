@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"math"
 	"net"
 	"net/http"
 	_ "net/http/pprof"
@@ -57,6 +58,7 @@ import (
 	"github.com/go-redis/redis"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
+
 	//"github.com/joho/godotenv"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/lib/pq"
@@ -552,7 +554,9 @@ func main() {
 	if cfg.Service.SessionName == "" {
 		cfg.Service.SessionName = fmt.Sprintf("%s-session", cfg.Service.Name)
 	}
-	sessionStore := sessions.NewCookieStore([]byte(cfg.Project.SharedSecretKey))
+	// sessionStore := sessions.NewCookieStore([]byte(cfg.Project.SharedSecretKey))
+	sessionStore := sessions.NewFilesystemStore(".data", []byte(cfg.Project.SharedSecretKey))
+	sessionStore.MaxLength(math.MaxInt64)
 	appCtx.PostAppMiddleware = append(appCtx.PostAppMiddleware, mid.Session(sessionStore, cfg.Service.SessionName))
 
 	// =========================================================================
