@@ -147,6 +147,7 @@ type CreateRequest struct {
 	Age            int    `json:"age" toml:"age" yaml:"age"`
 	AccountBalance int    `json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	ClassID        string `json:"class_id" toml:"class_id" yaml:"class_id"`
+	SubclassID	   string `json:"subclass_id"`
 	ParentPhone    string `json:"parent_phone" validate:"required" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string `json:"parent_email" validate:"required" toml:"parent_email" yaml:"parent_email"`
 }

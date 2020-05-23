@@ -2,6 +2,9 @@ package subclass
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
+	"strings"
 
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
@@ -66,6 +69,36 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, 
 	}
 
 	return result, nil
+}
+
+func (repo *Repository) NextSubclass(ctx context.Context, classID string) (*Subclass, error) {
+	s, err := models.Subclasses(models.SubclassWhere.ClassID.EQ(classID)).All(ctx, repo.DbConn)
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return nil, err
+		}
+		cla, err := models.FindClass(ctx, repo.DbConn, classID)
+		if err != nil {
+			return nil, errors.Errorf("Invalid classID - %s", err.Error)
+		}
+		sClass := models.Subclass{
+			ID: uuid.NewRandom().String(),
+			ClassID: classID,
+			Name: fmt.Sprintf("%sA Free", cla.Name),
+			SchoolOrder: cla.SchoolOrder,
+		}
+		err = sClass.Insert(ctx, repo.DbConn, boil.Infer())
+		if err != nil {
+			return nil, err
+		}
+		return FromModel(&sClass), nil
+	}
+	for _, sc := range s {
+		if strings.Contains(sc.Name, "A Free") {
+			return FromModel(sc), nil
+		}
+	}
+	return nil, errors.Errorf("Subclass not found")
 }
 
 // ReadByID gets the specified class by ID from the database.

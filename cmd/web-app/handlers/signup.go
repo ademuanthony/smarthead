@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -20,6 +21,7 @@ import (
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/signup"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
 	"remoteschool/smarthead/internal/user_auth"
@@ -39,6 +41,7 @@ type Signup struct {
 	GeoRepo          *geonames.Repository
 	StudentRepo      *student.Repository
 	ClassRepo        *class.Repository
+	SubclassRepo	 *subclass.Repository
 	SubscriptionRepo *subscription.Repository
 	SubjectRepo      *subject.Repository
 	DepositRepo      *deposit.Repository
@@ -262,6 +265,11 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		return web.RespondJsonError(ctx, w, err)
 	}
 
+	subclassA, err := h.SubclassRepo.NextSubclass(ctx, req.ClassID)
+	if err != nil {
+		return web.RespondJsonError(ctx, w, err)
+	}
+
 	pass := randomPassword()
 	names := strings.Split(req.Name, " ")
 	firstName := names[0]
@@ -314,6 +322,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		ParentPhone: req.Phone,
 		Username:    req.Email,
 		ClassID:     req.ClassID,
+		SubclassID:	 subclassA.ID,
 	}, v.Now)
 	if err != nil {
 		return err
