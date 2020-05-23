@@ -122,7 +122,11 @@
                                 <td>{{ $t.Subject }}</td>
                                 <td>{{ $t.Teacher }}</td>
                                 <td>
-                                   
+                                   <form method="POST">
+                                       <input type="hidden" name="action" value="delete-timetable">
+                                       <input type="hidden" name="timetableID" value="{{ $t.ID }}">
+                                       <input type="submit" value="Delete" class="btn btn-danger"/>
+                                   </form>
                                 </td>
                             </tr>
                             {{ end }}
