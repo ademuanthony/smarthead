@@ -338,6 +338,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		ClassRepo:        appCtx.ClassRepo,
 		SubjectRepo:      appCtx.SubjectRepo,
 		SubscriptionRepo: appCtx.SubscriptionRepo,
+		SubclassRepo:     appCtx.SubClassRepo,
 		DepositRepo:      appCtx.DepositRepo,
 		Renderer:         appCtx.Renderer,
 		EmailNotifier:    appCtx.InviteRepo.Notify,
