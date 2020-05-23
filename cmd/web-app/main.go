@@ -971,7 +971,7 @@ func main() {
 			if time.Now().Weekday() == time.Sunday { 
 				return false
 			}
-			return time.Now().Hour() >= 8 && time.Now().Hour() <= 18
+			return time.Now().Hour() >= 9 && time.Now().Hour() <= 17
 		},
 	}
 
