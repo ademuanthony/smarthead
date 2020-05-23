@@ -290,7 +290,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		UserRepo:        appCtx.UserRepo,
 		UserAccountRepo: appCtx.UserAccountRepo,
 		AccountRepo:     appCtx.AccountRepo,
-		AuthRepo:        appCtx.AuthRepo,
+		AuthRepo:        appCtx.AuthRepo, 
 		GeoRepo:         appCtx.GeoRepo,
 		Renderer:        appCtx.Renderer,
 	}
