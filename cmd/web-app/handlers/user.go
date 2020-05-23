@@ -70,6 +70,7 @@ func (h UserRepos) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 				return false, err
 			}
 
+			req.Password = strings.Replace(req.Password, ".", "", -1)
 			sessionTTL := time.Hour
 			if req.RememberMe {
 				sessionTTL = time.Hour * 36
