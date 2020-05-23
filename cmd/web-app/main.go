@@ -967,6 +967,12 @@ func main() {
 
 			return (startDate.Unix() <= currentDate.Unix() && endDate.Unix() >= currentDate.Unix())
 		},
+		"isWorkHour": func() bool {
+			if time.Now().Weekday() == time.Sunday {
+				return false
+			}
+			return time.Now().Hour() >= 8 && time.Now().Hour() <= 18
+		},
 	}
 
 	imgUrlFormatter := staticUrlFormatter
