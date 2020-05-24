@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"math"
 	"net/http"
 	"time"
 
@@ -78,9 +79,8 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	}
 	data["student"] = currentStudent.Response(ctx)
 	r.ParseForm()
-	data["isNew"] = currentStudent.CreatedAt.Day() == time.Now().Day() && 
-		currentStudent.CreatedAt.Month() == time.Now().Month() && currentStudent.CreatedAt.Year() == time.Now().Year()
-	
+	dDay := currentStudent.CreatedAt.Sub(time.Now()).Hours()
+	data["isNew"] = math.Abs(dDay) < 24 * 5
 
 		classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
 			Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
