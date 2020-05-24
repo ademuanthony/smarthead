@@ -968,9 +968,9 @@ func main() {
 			return (startDate.Unix() <= currentDate.Unix() && endDate.Unix() >= currentDate.Unix())
 		},
 		"isWorkHour": func() bool {
-			if time.Now().Weekday() == time.Sunday { 
-				return false
-			}
+			// if time.Now().Weekday() == time.Sunday { 
+			// 	return false
+			// }
 			return time.Now().Hour() >= 9 && time.Now().Hour() <= 17
 		},
 	}
