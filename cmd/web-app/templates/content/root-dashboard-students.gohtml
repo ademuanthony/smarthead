@@ -120,32 +120,25 @@
         {{ if gt (len .timetables) 0 }}
         <div>
           <h4>Timetable</h4>
-          <table class="table table-stripped">
-            <thead>
-              <tr>
-                <th>Day</th>
-                <th>Period</th> 
-                <th>Subject</th>
-                <th>Teacher</th> 
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              {{ range $t := .timetables }}
-              <tr>
-                <td>{{ $t.Day }}</td>
-                <td>{{ $t.Period }}</td>
-                <td>{{ $t.Subject }}</td>
-                <td>{{ $t.Teacher }}</td>
-                <td>
+          <div class="col-md-4 col-sm-12">
+            {{ range $t := .timetables }}
+            <div class="card" style="width: 18rem;">
+              <div class="card-header">
+                {{ $t.Day }} {{ $t.Period }}
+              </div>
+              <ul class="list-group list-group-flush">
+                <li class="list-group-item">{{ $t.Subject }}</li>
+                <li class="list-group-item">{{ $t.Teacher }}</li>
+                <li class="list-group-item">
                   {{ if isLessonTime $._Ctx $t }}
                   <a href="/lessons/join/{{ $t.ID }}" class="btn btn-success" target="_blank">Go to Classroom</a>
                   {{ end }}
-                </td>
-              </tr>
-              {{ end }}
-            </tbody>
-          </table>
+                </li>
+              </ul>
+            </div>
+            {{ end }}
+
+          </div>
         </div>
         {{ end }}
 
