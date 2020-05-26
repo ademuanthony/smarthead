@@ -55,6 +55,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/ec2metadata"
 	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/go-redis/redis"
 	"github.com/gorilla/securecookie"
 	"github.com/gorilla/sessions"
@@ -960,10 +961,10 @@ func main() {
 			}
 
 			startDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
-				startHour, startMin, 0, 0, time.Local)
+				startHour - 1, startMin, 0, 0, time.UTC)
 
 			endDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
-				endHour, endMin, 0, 0, time.Local)
+				endHour - 1, endMin, 0, 0, time.UTC)
 
 			return (startDate.Unix() <= currentDate.Unix() && endDate.Unix() >= currentDate.Unix())
 		},
