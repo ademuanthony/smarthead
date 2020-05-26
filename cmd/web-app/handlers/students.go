@@ -225,6 +225,10 @@ func (h *Students) View(ctx context.Context, w http.ResponseWriter, r *http.Requ
 					"Student successfully archive.")
 
 				return true, web.Redirect(ctx, w, r, urlStudentsIndex(), http.StatusFound)
+				case "send-welcome-mail":
+					
+					return true, nil
+
 			}
 		}
 

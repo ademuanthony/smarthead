@@ -290,7 +290,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		UserRepo:        appCtx.UserRepo,
 		UserAccountRepo: appCtx.UserAccountRepo,
 		AccountRepo:     appCtx.AccountRepo,
-		AuthRepo:        appCtx.AuthRepo, 
+		AuthRepo:        appCtx.AuthRepo,
 		GeoRepo:         appCtx.GeoRepo,
 		Renderer:        appCtx.Renderer,
 	}
@@ -342,6 +342,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		SubscriptionRepo: appCtx.SubscriptionRepo,
 		SubclassRepo:     appCtx.SubClassRepo,
 		DepositRepo:      appCtx.DepositRepo,
+		Timetable:        appCtx.TimetableRepo,
 		Renderer:         appCtx.Renderer,
 		EmailNotifier:    appCtx.InviteRepo.Notify,
 	}

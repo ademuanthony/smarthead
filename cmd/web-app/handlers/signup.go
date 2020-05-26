@@ -3,6 +3,7 @@ package handlers
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"math/rand"
 	"net/http"
 	"strings"
@@ -23,6 +24,7 @@ import (
 	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
+	"remoteschool/smarthead/internal/timetable"
 	"remoteschool/smarthead/internal/user_auth"
 
 	"github.com/gorilla/schema"
@@ -44,6 +46,7 @@ type Signup struct {
 	SubscriptionRepo *subscription.Repository
 	SubjectRepo      *subject.Repository
 	DepositRepo      *deposit.Repository
+	Timetable 		 *timetable.Repository
 	MasterDB         *sqlx.DB
 	Renderer         web.Renderer
 	EmailNotifier	 notify.Email
@@ -383,12 +386,35 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		return errors.New("Unable to create free trial for your new account. Please contact the admin")
 	}
 
+	timetables, err := h.Timetable.StudentsTimetables(ctx, s.ID)
+	if err != nil {
+		return err
+	}
+
+	if len(timetables) < 2 {
+		// TODO: log the issue for admin to resolve 
+		data := map[string]interface{}{
+			"Name": req.Name,
+			"Email": req.Email,
+			"Password": pass,
+			"Lesson1Date": "Monday",
+			"Lesson2Date": "Wednesday",
+			"Subject1": maths.Name,
+			"Subject2": maths.Name,
+		}
+		err = h.EmailNotifier.Send(ctx, req.Email, "Welcome to Remote School", "welcome_email", data)
+		if err != nil {
+			return err
+		}
+		return web.RespondJson(ctx, w, res.Response(ctx), http.StatusCreated)
+	}
+
 	data := map[string]interface{}{
 		"Name": req.Name,
 		"Email": req.Email,
 		"Password": pass,
-		"Lesson1Date": "Monday, 8:00 AM",
-		"Lesson2Date": "Wednesday, 8:00 AM",
+		"Lesson1Date": fmt.Sprintf("%s, %s", time.Weekday(timetables[0].Day).String(), timetables[0].Period.String()),
+		"Lesson2Date": fmt.Sprintf("%s, %s", time.Weekday(timetables[1].Day).String(), timetables[1].Period.String()),
 		"Subject1": maths.Name,
 		"Subject2": maths.Name,
 	}

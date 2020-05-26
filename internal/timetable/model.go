@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"remoteschool/smarthead/internal/period"
+	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/subclass"
 	"remoteschool/smarthead/internal/subject"
@@ -37,6 +38,17 @@ type Timetable struct {
 	Subject  *subject.Subject
 	Teacher  *models.User
 	Period   *period.Period
+}
+
+
+func (m *Timetable) NextLessonDate(ctx context.Context, now time.Time) web.TimeResponse {
+	daysLeft := m.Day - now.Day()
+	if daysLeft < 0 {
+		daysLeft = (7 - now.Day()) + m.Day
+	}
+	startDate := time.Date(now.Year(), now.Month(), daysLeft, 
+				m.Period.StartHour - 1, m.Period.StartMinute, 0, 0, time.UTC)
+	return web.NewTimeResponse(ctx, startDate)
 }
 
 func FromModel(rec *models.Timetable) *Timetable {
