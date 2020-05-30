@@ -406,6 +406,10 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		if err != nil {
 			return err
 		}
+		err = h.EmailNotifier.Send(ctx, "onlineremoteschool@gmail.com", "Welcome to Remote School for " + req.Name, "welcome_email", data)
+		if err != nil {
+			return err
+		}
 		return web.RespondJson(ctx, w, res.Response(ctx), http.StatusCreated)
 	}
 
