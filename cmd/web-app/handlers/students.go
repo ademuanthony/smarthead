@@ -165,6 +165,8 @@ func (h *Students) Download(ctx context.Context, w http.ResponseWriter, r *http.
 
 	res, err := h.Repo.Find(ctx, claims, student.FindRequest{
 		Order: []string{"name"},
+		IncludeClass: true,
+		IncludeSubclass: true,
 	})
 	if err != nil {
 		return err
@@ -172,13 +174,13 @@ func (h *Students) Download(ctx context.Context, w http.ResponseWriter, r *http.
 	b := &bytes.Buffer{}
     csvWriter := csv.NewWriter(b)
 
-    if err := csvWriter.Write([]string{"Name", "Registration Number", "Email", "Phone", "CLass", "Date"}); err != nil {
+    if err := csvWriter.Write([]string{"Name", "Registration Number", "Email", "Phone", "CLass", "SubcLass", "Date"}); err != nil {
         weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
     }
 
-	
-	for _, st := range res {
-		var records = []string{st.Name, st.RegNo, st.ParentEmail, st.ParentPhone, st.CurrentClass, web.NewTimeResponse(ctx, st.CreatedAt).Local}
+	re := res.Response(ctx)
+	for _, st := range re {
+		var records = []string{st.Name, st.RegNo, st.ParentEmail, st.ParentPhone, st.CurrentClass, st.Subclass, st.CreatedAt.Local}
 		if err := csvWriter.Write(records); err != nil {
 			weberror.NewErrorMessage(ctx, err, 500, "error writing record to csv:")
 		}
