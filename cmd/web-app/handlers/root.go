@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"math"
 	"net/http"
+	"strings"
 	"time"
 
 	"remoteschool/smarthead/internal/class"
@@ -78,6 +79,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		return err
 	}
 	data["student"] = currentStudent.Response(ctx)
+	data["sssThreeStudent"] = strings.Contains(currentStudent.Class.Name, "SSS 3")
 	r.ParseForm()
 	dDay := currentStudent.CreatedAt.Sub(time.Now()).Hours()
 	data["isNew"] = math.Abs(dDay) < 24 * 5

@@ -59,14 +59,20 @@ type SignupUser struct {
 
 // SignupResult response signup with created account and user.
 type SignupResult struct {
-	Account *account.Account `json:"account"`
-	User    *user.User       `json:"user"`
+	Account   *account.Account `json:"account"`
+	User      *user.User       `json:"user"`
+	StudentID string           `json"student_id"`
+	ClassID   string 		   `json:"class_id"`
+	SubjectID string 		   `json:"subject_id"`
 }
 
 // SignupResponse represents the user and account created for signup that is returned for display.
 type SignupResponse struct {
 	Account *account.AccountResponse `json:"account"`
 	User    *user.UserResponse       `json:"user"`
+	StudentID string           `json"student_id"`
+	ClassID   string 		   `json:"class_id"`
+	SubjectID string 		   `json:"subject_id"`
 }
 
 // Response transforms SignupResult to SignupResponse that is used for display.
@@ -76,7 +82,7 @@ func (m *SignupResult) Response(ctx context.Context) *SignupResponse {
 		return nil
 	}
 
-	r := &SignupResponse{}
+	r := &SignupResponse{ClassID: m.ClassID, SubjectID: m.SubjectID, StudentID: m.StudentID}
 	if m.Account != nil {
 		r.Account = m.Account.Response(ctx)
 	}

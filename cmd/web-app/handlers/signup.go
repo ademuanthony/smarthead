@@ -329,8 +329,10 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
+	res.StudentID = s.ID
+	res.ClassID = req.ClassID
 
-	// create the one week trail lesson
+	// create the one week trail lesson 
 	startDate := subscription.NextMonday(v.Now)
 	startDate = time.Now()
 	endDate := startDate.Add(7 * 24 * time.Hour)
@@ -344,6 +346,8 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	if err != nil {
 		return err
 	}
+
+	res.SubjectID = maths.ID
 
 	trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
 	if err != nil {
@@ -431,6 +435,10 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 
 func (h *Signup) ThankYou(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-thank-you.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
+}
+
+func (h *Signup) WeacNecoPrep(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	return h.Renderer.Render(ctx, w, r, landingPageLayout, "waec-neco-prep.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
 }
 
 func randomPassword () string {

@@ -86,6 +86,7 @@ func (repo *Repository) CurrentStudent(ctx context.Context, claims auth.Claims) 
 		return nil, err
 	}
 	studentModel, err := models.Students(
+		qm.Load(models.StudentRels.Class),
 		qm.Load(models.StudentRels.Subclass),
 		models.StudentWhere.Username.EQ(user.Email),
 	).One(ctx, repo.DbConn)
