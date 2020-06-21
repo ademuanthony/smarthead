@@ -75,7 +75,7 @@ func (h UserRepos) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 			if req.RememberMe {
 				sessionTTL = time.Hour * 36
 			}
-
+ 
 			// Authenticated the user.
 			token, err := h.AuthRepo.Authenticate(ctx, user_auth.AuthenticateRequest{
 				Email:    req.Email,
@@ -86,15 +86,14 @@ func (h UserRepos) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 				case user.ErrForbidden:
 					return false, web.RespondError(ctx, w, weberror.NewError(ctx, err, http.StatusForbidden))
 				case user_auth.ErrAuthenticationFailure:
-					data["error"] = weberror.NewErrorMessage(ctx, errors.New("Check your username and password and try again"),
-					 http.StatusUnauthorized, "Authentication failure.")
+					data["error"] = weberror.NewErrorMessage(ctx, err, http.StatusUnauthorized, "Authentication failure. Try again.")
 					return false, nil
 				default:
 					if verr, ok := weberror.NewValidationError(ctx, err); ok {
 						data["validationErrors"] = verr.(*weberror.Error)
 						return false, nil
 					} else {
-						return false, err 
+						return false, err
 					}
 				}
 			}

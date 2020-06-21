@@ -25,7 +25,7 @@ type Account struct {
 	AuthRepo        *user_auth.Repository
 	GeoRepo         *geonames.Repository
 	Authenticator   *auth.Authenticator
-	Renderer        web.Renderer
+	Renderer        web.Renderer 
 }
 
 // View handles displaying the current account profile.

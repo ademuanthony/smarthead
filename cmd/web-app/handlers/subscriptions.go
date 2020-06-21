@@ -31,6 +31,10 @@ func urlSubscriptionsIndex() string {
 	return fmt.Sprintf("/admin/subscriptions")
 }
 
+func urlSubscriptionsCreate() string {
+	return fmt.Sprintf("/admin/subscriptions/create")
+}
+
 func urlSubscriptionsView(subjectID string) string {
 	return fmt.Sprintf("/admin/subscriptions/%s", subjectID)
 }
@@ -150,12 +154,16 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 	data := map[string]interface{}{
 		"datatable":             dt.Response(),
 		"urlSubscriptionsIndex": urlSubscriptionsIndex(),
+		"urlSubscriptionsCreate": urlSubscriptionsCreate(),
 		"urlSubscriptionsDownload": urlSubscriptionsDownload(),
 	}
 
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subscriptions-index.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
+func (h *Subscriptions) Create(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	return nil
+}
 // My handles the listing all the subscriptions for the current account.
 func (h *Subscriptions) My(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 

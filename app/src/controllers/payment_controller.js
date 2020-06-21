@@ -139,8 +139,8 @@ export default class extends Controller {
     }
     // eslint-disable-next-line no-undef
     var handler = PaystackPop.setup({
-      key: 'pk_live_a669ccbde1c4d5509b6565af1131f87ea1af5ab6',
-      // key: 'pk_test_6e0424ff8e08138c2fcce3f4f2b05052c4b3f77c',
+      // key: 'pk_live_a669ccbde1c4d5509b6565af1131f87ea1af5ab6',
+      key: 'pk_test_6e0424ff8e08138c2fcce3f4f2b05052c4b3f77c',
       email: result.student.parent_email,
       amount: result.amount,
       currency: 'NGN',

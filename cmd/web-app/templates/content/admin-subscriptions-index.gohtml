@@ -13,10 +13,12 @@
 
         <h1 class="h3 mb-0 text-gray-800">Subscriptions</h1>
         {{ if HasRole $._Ctx "admin" }}
-            <a href="{{ .urlSubscriptionsCreate }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i class="fas fa-folder-plus fa-sm text-white-50 mr-1"></i>Create Subscriptions</a>
-            <a href="{{ .urlSubscriptionsDownload }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
-                <i class="fas fa-folder-plus fa-sm text-white-50 mr-1"></i>Download</a>
+            <div>
+                <a href="{{ .urlSubscriptionsCreate }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-folder-plus fa-sm text-white-50 mr-1"></i>Create Subscriptions</a>
+                <a href="{{ .urlSubscriptionsDownload }}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                    <i class="fas fa-folder-plus fa-sm text-white-50 mr-1"></i>Download</a>
+            </div>
         {{ end }}
     </div>
 

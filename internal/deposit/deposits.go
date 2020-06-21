@@ -237,11 +237,11 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 		return nil, errors.New("payment received but unable to update status. contact admin for help")
 	}
 
-	// amount := subscriptionAmount(len(req.Items))
-	// if amount > depositModel.Amount {
-	// 	_ = tx.Rollback()
-	// 	return nil, errors.New("Wrong amount received. Please contact the admin for help")
-	// }
+	amount := subscriptionAmount(len(req.Items))
+	if amount > depositModel.Amount {
+		_ = tx.Rollback()
+		return nil, errors.New("Wrong amount received. Please contact the admin for help")
+	}
 
 
 	period, err := repo.SubscriptionRepo.TrailPeriodID(ctx)
@@ -294,6 +294,99 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 	}
 	
 	return subs, nil
+}
+
+// AddManualDeposit
+func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepositRequest, claims auth.Claims, now time.Time) error {
+	if !claims.HasRole(auth.RoleAdmin) {
+		return ErrForbidden
+	}
+
+	v := webcontext.Validator()
+	err := v.StructCtx(ctx, req)
+	if err != nil {
+		return err
+	}
+
+	tx, err := repo.DbConn.Begin()
+	if err != nil {
+		return errors.Wrap(err, "starting transaction")
+	}
+
+	student, err := models.Students(models.StudentWhere.RegNo.EQ(req.StudentRegNo)).One(ctx, repo.DbConn)
+	if err != nil {
+		return errors.New("invalid Reg number")
+	}
+
+	if len(req.Items) == 0 {
+		return errors.New("please add at least one subject")
+	}
+
+	// If now empty set it to the current time.
+	if now.IsZero() {
+		now = time.Now()
+	}
+
+	// Always store the time as UTC.
+	now = now.UTC()
+	// Postgres truncates times to milliseconds when storing. We and do the same
+	// here so the value we return is consistent with what we store.
+	now = now.Truncate(time.Millisecond)
+
+	period, err := repo.SubscriptionRepo.TrailPeriodID(ctx)
+	if err != nil {
+		return errors.New("could not get a trail period")
+	}
+
+	m := models.Deposit {
+		ID:         uuid.NewRandom().String(),
+		StudentID:  student.ID,
+		SubjectID:  req.Items[0].SubjectID,
+		DaysOfWeek: 1,
+		PeriodID:   null.StringFrom(period.ID),
+		ClassID:    student.ClassID.String,
+		CreatedAt:  now,
+		Amount:     int(req.Amount),
+		Channel:    "Manual",
+		Status:     StatusSubscribed,
+		Ref:        "manual",
+		PaymentRef: "manual",
+	}
+
+	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
+		return errors.WithMessage(err, "Insert deposit failed")
+	}
+
+	for _, item := range req.Items {
+		if item.PeriodID == "" {
+			item.PeriodID = period.ID
+		}
+		subReq := subscription.CreateRequest {
+			StudentID:  student.ID,
+			StartDate:  req.StartDate.Unix(),
+			EndDate:    req.EndDate.Unix(),
+			DaysOfWeek: 1,
+			PeriodID:   item.PeriodID,
+			SubjectID:  item.SubjectID,
+			ClassID: item.ClassID,
+			DepositID: m.ID,
+		}
+	
+		_, err := repo.SubscriptionRepo.CreateTx(ctx, tx, claims, subReq, now)
+	
+		if err != nil {
+			_ = tx.Rollback()
+			//TODO: log critical error and inform admin
+			return errors.New("payment received but unable to create subscription. Please contact the admin")
+		}
+	}
+	
+	if err = tx.Commit(); err != nil {
+		// TODO: log critical error
+		_ = tx.Rollback()
+		return err
+	}
+	return nil
 }
 
 // Delete removes a deposit from the database.
