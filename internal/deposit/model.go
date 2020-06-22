@@ -179,11 +179,10 @@ type UpdateStatusRequest struct {
 }
 
 type AddManualDepositRequest struct {
-	StudentRegNo string             `json:"student_reg_no"`
-	Amount       float64            `json:"amount"`
-	StartDate	 time.Time			`json:"start_date"`
-	EndDate		 time.Time			`json:"end_date"`
-	Items        []SubscriptionItem `json:"items"`
+	StudentRegNo string             `json:"student_reg_no" validate:"required"`
+	StartDate	 string			`json:"start_date"`
+	EndDate		 string			`json:"end_date"`
+	Items        []SubscriptionItem `json:"items" validate:"required"`
 }
 
 // ReadRequest defines the information needed to read a checklist.

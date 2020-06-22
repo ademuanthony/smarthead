@@ -1,0 +1,147 @@
+{{define "title"}}Create Period{{end}}
+{{define "periodsActive"}}active{{end}}
+{{define "style"}}
+
+{{end}}
+{{define "content"}}
+
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{{ .urlSubscriptionsIndex }}">Subscriptions</a></li>
+            <li class="breadcrumb-item active" aria-current="page">Create</li>
+        </ol>
+    </nav>
+
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create Subscriptions</h1> 
+    </div>
+
+    <form class="user" method="post" novalidate data-action="submit->subscription#save" data-controller="subscription">
+
+        <div class="card shadow">
+            <div class="card-body">
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="inputName">Reg Number</label>
+                            <input type="text" id="inputRegNumber" data-target="subscription.regNo"
+                                   class="form-control"
+                                   placeholder="Enter the student's Registration Number" name="RegNo" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="startDate">Start Date</label>
+                            <input type="text" id="startDate" data-target="subscription.startDate"
+                                   class="form-control"
+                                   placeholder="Subscriptions Start Date" name="StartDate" required>
+                        </div>
+                    </div>
+
+                    <div class="col-md-4">
+                        <div class="form-group">
+                            <label for="endDate">End Date</label>
+                            <input type="text" id="endDate" data-target="subscription.endDate"
+                                   class="form-control"
+                                   placeholder="Subscriptions End Date" name="EndDate" required>
+                        </div>
+                    </div>
+
+                </div>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="jumbotron">
+                            <h1 class="display-4">Subscription Subjects</h1>
+                            <hr class="my-4" />
+                            <div class="form-row">
+                              <div class="col-md-6 col-sm-12 mt-3">
+                                <select data-target="subscription.subject" class="form-control">
+                                  <option value="">Select Subject</option>
+                                  {{ range $subject := .subjects }}
+                                  <option value="{{ $subject.ID }}">{{ $subject.Name }}</option>
+                                  {{ end }}
+                                </select>
+                              </div>
+                             
+                              <div class="col-md-3 col-sm-12 mt-3">
+                                <button type="button"
+                                  data-action="click->subscription#addToList"
+                                  class="btn btn-primary"
+                                >
+                                  Add To List
+                                </button>
+                              </div>
+                            </div>
+                  
+                            <div class="d-none mt-2" data-target="subscription.cartItemDiv">
+                              <table class="table">
+                                <thead>
+                                  <tr>
+                                    <th class="text-center">#</th>
+                                    <th>Subject</th>
+                                    <th></th>
+                                  </tr>
+                                </thead>
+                                <tbody data-target="subscription.listTbl"></tbody>
+                                <tfoot>
+                                  <tr>
+                                    <th class="text-right font-weight">Total Amount</th>
+                                    <td>
+                                      <span
+                                        class="font-weight-bolder"
+                                        data-target="subscription.cartTotal"
+                                      ></span>
+                                      <p>Saving <span style="color: brown;" data-target="subscription.savings"></span></p>
+                                    </td>
+                                  </tr>
+                                </tfoot>
+                              </table>
+                              <template data-target="subscription.itemTemplate">
+                                <tr>
+                                  <td class="text-center"></td>
+                                  <td></td>
+                                  <td></td>
+                                </tr>
+                              </template>
+                  
+                            </div>
+                          </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col">
+                <input data-action="click->subscription#save" id="btnSubmit" type="submit" name="action" value="Save" class="btn btn-primary"/>
+                <a href="{{ .urlSubscriptionsIndex }}" class="ml-2 btn btn-secondary" >Cancel</a>
+            </div>
+        </div>
+
+    </form>
+{{end}}
+{{define "js"}}
+    <script>
+        $(document).ready(function(){
+          $('#startDate').datepicker({
+            uiLibrary: 'bootstrap4',
+            iconsLibrary: 'fontawesome',
+            minDate: new Date(2020, 1, 1),
+            maxDate: function () {
+              return $('#endDate').val();
+            }
+          });
+          $('#endDate').datepicker({
+            uiLibrary: 'bootstrap4',
+            iconsLibrary: 'fontawesome',
+            minDate: function () {
+              return $('#startDate').val();
+            }
+          });
+        });
+    </script>
+{{end}}

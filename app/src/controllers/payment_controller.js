@@ -62,7 +62,6 @@ export default class extends Controller {
     this.displayList()
 
     this.subjectTarget.value = ''
-    this.classTarget.value = ''
   }
 
   removeFromList (evt) {

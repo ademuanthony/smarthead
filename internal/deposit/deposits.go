@@ -11,6 +11,7 @@ import (
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/subscription"
 
+	"github.com/opentracing/opentracing-go/log"
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
 	"github.com/volatiletech/null"
@@ -80,24 +81,24 @@ func (repo *Repository) TrailDeposit(ctx context.Context) (*Deposit, error) {
 	if err != nil {
 		return nil, err
 	}
-	return FromModel(m), nil	
+	return FromModel(m), nil
 }
 
-func subscriptionAmount (reqCount int) int {
+func subscriptionAmount(reqCount int) int {
 	var amount int
-	if (reqCount >= 5) {
-		fives := (reqCount - reqCount % 5) / 5
+	if reqCount >= 5 {
+		fives := (reqCount - reqCount%5) / 5
 		amount = 1500000 * fives
 		reqCount -= fives * 5
-	  }
-	  if (reqCount >= 3) {
-		threes := (reqCount - reqCount % 3) / 3
+	}
+	if reqCount >= 3 {
+		threes := (reqCount - reqCount%3) / 3
 		amount += 1200000 * threes
 		reqCount -= threes * 3
-	  }
-	  amount += reqCount * 500000
+	}
+	amount += reqCount * 500000
 
-	  return amount
+	return amount
 }
 
 // Create inserts a new subscription into the database.
@@ -127,7 +128,7 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	// Postgres truncates times to milliseconds when storing. We and do the same
 	// here so the value we return is consistent with what we store.
 	now = now.Truncate(time.Millisecond)
-	m := models.Deposit {
+	m := models.Deposit{
 		ID:         uuid.NewRandom().String(),
 		StudentID:  req.StudentID,
 		SubjectID:  req.SubjectID,
@@ -243,7 +244,6 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 		return nil, errors.New("Wrong amount received. Please contact the admin for help")
 	}
 
-
 	period, err := repo.SubscriptionRepo.TrailPeriodID(ctx)
 	if err != nil {
 		return nil, err
@@ -258,19 +258,19 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 		if item.PeriodID == "" {
 			item.PeriodID = period.ID
 		}
-		subReq := subscription.CreateRequest {
+		subReq := subscription.CreateRequest{
 			StudentID:  depositModel.StudentID,
 			StartDate:  startDate.Unix(),
 			EndDate:    endDate.Unix(),
 			DaysOfWeek: depositModel.DaysOfWeek,
 			PeriodID:   item.PeriodID,
 			SubjectID:  item.SubjectID,
-			ClassID: item.ClassID,
-			DepositID: depositModel.ID,
+			ClassID:    item.ClassID,
+			DepositID:  depositModel.ID,
 		}
-	
+
 		sub, err := repo.SubscriptionRepo.CreateTx(ctx, tx, claims, subReq, now)
-	
+
 		if err != nil {
 			_ = tx.Rollback()
 			//TODO: log critical error and inform admin
@@ -286,13 +286,13 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 		//TODO: log fatal error for admin to resolve
 		return nil, err
 	}
-	
+
 	if err = tx.Commit(); err != nil {
 		// TODO: log critical error
 		_ = tx.Rollback()
 		return nil, err
 	}
-	
+
 	return subs, nil
 }
 
@@ -318,6 +318,10 @@ func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepos
 		return errors.New("invalid Reg number")
 	}
 
+	if !student.ClassID.Valid {
+		return errors.New("Please set the student class to continue")
+	}
+
 	if len(req.Items) == 0 {
 		return errors.New("please add at least one subject")
 	}
@@ -338,7 +342,9 @@ func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepos
 		return errors.New("could not get a trail period")
 	}
 
-	m := models.Deposit {
+	amount := subscriptionAmount(len(req.Items))
+
+	m := models.Deposit{
 		ID:         uuid.NewRandom().String(),
 		StudentID:  student.ID,
 		SubjectID:  req.Items[0].SubjectID,
@@ -346,7 +352,7 @@ func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepos
 		PeriodID:   null.StringFrom(period.ID),
 		ClassID:    student.ClassID.String,
 		CreatedAt:  now,
-		Amount:     int(req.Amount),
+		Amount:     amount,
 		Channel:    "Manual",
 		Status:     StatusSubscribed,
 		Ref:        "manual",
@@ -357,30 +363,41 @@ func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepos
 		return errors.WithMessage(err, "Insert deposit failed")
 	}
 
+	startDate, err := time.Parse("01/02/2006", req.StartDate)
+	if err != nil {
+		startDate = now
+	}
+
+	endDate, err := time.Parse("01/02/2006", req.StartDate)
+	if err != nil {
+		endDate = now.Add(30 * time.Hour * 24)
+	}
+
 	for _, item := range req.Items {
 		if item.PeriodID == "" {
 			item.PeriodID = period.ID
 		}
-		subReq := subscription.CreateRequest {
+		subReq := subscription.CreateRequest{
 			StudentID:  student.ID,
-			StartDate:  req.StartDate.Unix(),
-			EndDate:    req.EndDate.Unix(),
+			StartDate:  startDate.Unix(),
+			EndDate:    endDate.Unix(),
 			DaysOfWeek: 1,
-			PeriodID:   item.PeriodID,
+			PeriodID:   period.ID,
 			SubjectID:  item.SubjectID,
-			ClassID: item.ClassID,
-			DepositID: m.ID,
+			ClassID:    student.ClassID.String,
+			DepositID:  m.ID,
 		}
-	
+
 		_, err := repo.SubscriptionRepo.CreateTx(ctx, tx, claims, subReq, now)
-	
+
 		if err != nil {
 			_ = tx.Rollback()
 			//TODO: log critical error and inform admin
-			return errors.New("payment received but unable to create subscription. Please contact the admin")
+			log.Error(err)
+			return errors.Wrap(err, "Error creating subscription")
 		}
 	}
-	
+
 	if err = tx.Commit(); err != nil {
 		// TODO: log critical error
 		_ = tx.Rollback()

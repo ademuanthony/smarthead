@@ -3,16 +3,20 @@ package handlers
 import (
 	"bytes"
 	"context"
+	"database/sql"
 	"encoding/csv"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"remoteschool/smarthead/internal/deposit"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/datatable"
 	"remoteschool/smarthead/internal/platform/web"
+	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/student"
+	"remoteschool/smarthead/internal/subject"
 	"remoteschool/smarthead/internal/subscription"
 
 	"github.com/pkg/errors"
@@ -22,7 +26,9 @@ import (
 // Deposits represents the Deposits API method handler set.
 type Subscriptions struct {
 	Repo        *subscription.Repository
+	DepositRepo *deposit.Repository
 	StudentRepo *student.Repository
+	SubjectRepo *subject.Repository
 	Redis       *redis.Client
 	Renderer    web.Renderer
 }
@@ -162,8 +168,54 @@ func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *htt
 }
 
 func (h *Subscriptions) Create(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
-	return nil
+	data := map[string]interface{}{
+		"urlSubscriptionsIndex": urlSubscriptionsIndex(),
+	}
+	claims, err := auth.ClaimsFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	subjects, err := h.SubjectRepo.Find(ctx, claims, subject.FindRequest{
+		Order: []string{"name"},
+	})
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["subjects"] = subjects
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "admin-subscriptions-create.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
+
+// UpdateStatus updates the status of the payment with the specified ID
+func (h *Subscriptions) APICreate(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+
+	ctxValues, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return web.RespondJsonError(ctx, w, err)
+	}
+ 
+	claims, err := auth.ClaimsFromContext(ctx) 
+	if err != nil {
+		return err
+	}
+
+	var req = new(deposit.AddManualDepositRequest)
+	if err := web.Decode(ctx, r, req); err != nil {
+		if _, ok := errors.Cause(err).(*weberror.Error); !ok {
+			err = weberror.NewError(ctx, err, http.StatusBadRequest)
+		}
+		return web.RespondJsonError(ctx, w, err)
+	}
+
+	err = h.DepositRepo.AddManualDeposit(ctx, *req, claims, ctxValues.Now)
+	if err != nil {
+		return web.RespondJsonError(ctx, w, err)
+	}
+	return web.RespondJson(ctx, w, true, http.StatusOK)
+}
+
 // My handles the listing all the subscriptions for the current account.
 func (h *Subscriptions) My(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 

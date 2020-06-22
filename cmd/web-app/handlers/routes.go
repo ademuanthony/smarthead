@@ -237,16 +237,21 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		SubscriptionRepo: appCtx.SubscriptionRepo,
 	}
 	app.Handle("GET", "/lessons/join/:timetable_id", lesson.Join, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/lessons/certificate", lesson.Certificate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 
 	// Register student management pages.
 	subscription := Subscriptions{
 		Repo:        appCtx.SubscriptionRepo,
+		DepositRepo: appCtx.DepositRepo,
+		SubjectRepo: appCtx.SubjectRepo,
 		StudentRepo: appCtx.StudentRepo,
 		Redis:       appCtx.Redis,
 		Renderer:    appCtx.Renderer,
 	}
 	app.Handle("GET", "/admin/subscriptions/download", subscription.Download, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/subscriptions/:subscription_id", subscription.View, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("GET", "/admin/subscriptions/create", subscription.Create, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("POST", "/admin/subscriptions/create", subscription.APICreate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/admin/subscriptions", subscription.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("GET", "/subscriptions", subscription.My, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 

@@ -19,6 +19,8 @@
         <script src="https://kit.fontawesome.com/670ea91c67.js"></script>
         <link href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i" rel="stylesheet">
 
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/gijgo/1.9.13/combined/css/gijgo.min.css" rel="stylesheet">
+        
         <!-- Global site tag (gtag.js) - Google Analytics -->
         <script async src="https://www.googletagmanager.com/gtag/js?id=UA-158909227-2"></script>
         <script>
@@ -96,6 +98,8 @@
         <script src="{{ SiteAssetUrl "/assets/vendor/jquery/jquery.min.js" }}"></script>
         <script src="{{ SiteAssetUrl "/assets/vendor/bootstrap/js/bootstrap.bundle.min.js" }}"></script>
 
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/gijgo/1.9.13/combined/js/gijgo.min.js"></script>
+
         <!-- ============================================================== -->
         <!-- Core plugin JavaScript                                         -->
         <!-- ============================================================== -->
@@ -111,6 +115,11 @@
         <!-- ============================================================== -->
         <script src="{{ SiteAssetUrl "/assets/js/custom.js" }}"></script>
 
+        <script>
+            $('.datepicker').datepicker({
+              uiLibrary: 'bootstrap4'
+            });
+        </script>
         <!-- ============================================================== -->
         <!-- Page specific Javascript                                       -->
         <!-- ============================================================== -->

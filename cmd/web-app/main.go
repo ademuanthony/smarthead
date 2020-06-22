@@ -128,15 +128,18 @@ func main() {
 			ScaleToZero     time.Duration `envconfig:"SCALE_TO_ZERO"`
 		}
 		Project struct {
-			Name              string `default:"" envconfig:"PROJECT_NAME"`
-			MailgunDomain     string `default:"mg.betterlifeglobal.org" envconfig:"MAILGUN_DOMAIN"`
-			MailgunKey        string `default:"" envconfig:"MAILGUN_KEY"`
-			SharedTemplateDir string `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
-			SharedSecretKey   string `default:"" envconfig:"SHARED_SECRET_KEY"`
-			EmailSender       string `default:"Remote School <media@remoteschool.com.ng>" envconfig:"EMAIL_SENDER"`
-			WebApiBaseUrl     string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
-			PaystackSecret    string `envconfig:"PAYSTACK_SECRET"`
-			PaystackPublicKey string `envconfig:"PAYSTACK_PUBLIC_KEY"`
+			Name                       string `default:"" envconfig:"PROJECT_NAME"`
+			MailgunDomain              string `default:"mg.betterlifeglobal.org" envconfig:"MAILGUN_DOMAIN"`
+			MailgunKey                 string `default:"" envconfig:"MAILGUN_KEY"`
+			SharedTemplateDir          string `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
+			SharedSecretKey            string `default:"" envconfig:"SHARED_SECRET_KEY"`
+			EmailSender                string `default:"Remote School <media@remoteschool.com.ng>" envconfig:"EMAIL_SENDER"`
+			WebApiBaseUrl              string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
+			PaystackSecret             string `envconfig:"PAYSTACK_SECRET"`
+			PaystackPublicKey          string `envconfig:"PAYSTACK_PUBLIC_KEY"`
+			AGORA_APP_ID               string `envconfig:"AGORA_APP_ID"`
+			AGORA_CUSTOMER_ID          string `envconfig:"AGORA_CUSTOMER_ID"`
+			AGORA_CUSTOMER_CERTIFICATE string `envconfig:"AGORA_CUSTOMER_CERTIFICATE"`
 		}
 		Redis struct {
 			Host            string        `default:":6379" envconfig:"HOST"`
@@ -917,9 +920,9 @@ func main() {
 			if sPtr == nil {
 				return s == ""
 			}
-			return s == *sPtr 
+			return s == *sPtr
 		},
-		"isLessonTime": func (ctx context.Context, t timetable.Response) bool {
+		"isLessonTime": func(ctx context.Context, t timetable.Response) bool {
 			ctxValue, err := webcontext.ContextValues(ctx)
 			if err != nil {
 				log.Printf("main: isLessonTime failed to get context value - %s", err.Error())
@@ -934,7 +937,7 @@ func main() {
 
 			periodDec := strings.Split(strings.Replace(t.Period, " ", "", -1), "-")
 			startPeriod := strings.Split(periodDec[0], ":")
-			endPeriod := strings.Split(periodDec[1], ":") 
+			endPeriod := strings.Split(periodDec[1], ":")
 
 			startHour, err := strconv.Atoi(startPeriod[0])
 			if err != nil {
@@ -959,16 +962,16 @@ func main() {
 				return false
 			}
 
-			startDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
-				startHour - 1, startMin, 0, 0, time.UTC)
+			startDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(),
+				startHour-1, startMin, 0, 0, time.UTC)
 
-			endDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(), 
-				endHour - 1, endMin, 0, 0, time.UTC)
+			endDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(),
+				endHour-1, endMin, 0, 0, time.UTC)
 
 			return (startDate.Unix() <= currentDate.Unix() && endDate.Unix() >= currentDate.Unix())
 		},
 		"isWorkHour": func() bool {
-			// if time.Now().Weekday() == time.Sunday { 
+			// if time.Now().Weekday() == time.Sunday {
 			// 	return false
 			// }
 			return time.Now().Hour() >= 9 && time.Now().Hour() <= 17
