@@ -143,7 +143,7 @@ func (repo *Repository) CreateDefaultAdmin(ctx context.Context, claims auth.Clai
 	// Default account
 	accountStatus := account.AccountStatus_Active
 	accountReq := account.AccountCreateRequest{
-		Name:          "Remote School",
+		Name:          "Smart Head",
 		Address1:      "50 Orile Raod",
 		City:          "Agege",
 		Region:        "Lagos",

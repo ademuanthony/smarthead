@@ -32,10 +32,10 @@ import (
 type Root struct {
 	StudentRepo      *student.Repository
 	SubscriptionRepo *subscription.Repository
-	ClassRepo		 *class.Repository
-	SubjectRepo		 *subject.Repository
-	PeriodRepo		 *period.Repository 
-	TimetableRepo	 *timetable.Repository
+	ClassRepo        *class.Repository
+	SubjectRepo      *subject.Repository
+	PeriodRepo       *period.Repository
+	TimetableRepo    *timetable.Repository
 	Renderer         web.Renderer
 	Sitemap          *stm.Sitemap
 	WebRoute         webroute.WebRoute
@@ -49,7 +49,7 @@ func (h *Root) Index(ctx context.Context, w http.ResponseWriter, r *http.Request
 		} else if claims.HasRole(auth.RoleUser) {
 			return h.studentsDashboard(ctx, w, r, params)
 		}
-	} 
+	}
 
 	return h.indexDefault(ctx, w, r, params)
 }
@@ -61,17 +61,17 @@ func (h *Root) indexDashboard(ctx context.Context, w http.ResponseWriter, r *htt
 
 // studentsDashboard loads deshboard for register student
 func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
-	
+
 	ctxValue, err := webcontext.ContextValues(ctx)
-	if err != nil { 
+	if err != nil {
 		return err
 	}
 
 	claims, err := auth.ClaimsFromContext(ctx)
-	if err != nil { 
+	if err != nil {
 		return err
 	}
- 
+
 	data := map[string]interface{}{}
 
 	currentStudent, err := h.StudentRepo.CurrentStudent(ctx, claims)
@@ -82,46 +82,46 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	data["sssThreeStudent"] = strings.Contains(currentStudent.Class.Name, "SSS 3")
 	r.ParseForm()
 	dDay := currentStudent.CreatedAt.Sub(time.Now()).Hours()
-	data["isNew"] = math.Abs(dDay) < 24 * 5
+	data["isNew"] = math.Abs(dDay) < 24*5
 
-		classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
-			Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
-		}) 
-		if err != nil {
-			if err.Error() != sql.ErrNoRows.Error() {
-				return err
-			} 
+	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
+		Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},
+	})
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
 		}
-		data["classes"] = classes
+	}
+	data["classes"] = classes
 
-		myTimetable, err := h.TimetableRepo.StudentsTimetables(ctx, currentStudent.ID)
-		if err != nil {
-			if err.Error() != sql.ErrNoRows.Error() {
-				return err
-			}
+	myTimetable, err := h.TimetableRepo.StudentsTimetables(ctx, currentStudent.ID)
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
 		}
-		data["timetables"] = myTimetable.Response(ctx)
+	}
+	data["timetables"] = myTimetable.Response(ctx)
 
-	// wget -qO- https://ubuntu.bigbluebutton.org/bbb-install.sh | bash -s platform.remoteschool.com.ng
-	// ./bbb-install.sh -v xenial-220 -s platform.remoteschool.com.ng -e ademuanthony@gmail.com
+	// wget -qO- https://ubuntu.bigbluebutton.org/bbb-install.sh | bash -s platform.smarthead.com.ng
+	// ./bbb-install.sh -v xenial-220 -s platform.smarthead.com.ng -e ademuanthony@gmail.com
 	// nortwestsouthnigeriaafricaebulokoimankonig
-	// /etc/letsencrypt/live/turn.remoteschool.com.ng/fullchain.pem
-	// /etc/letsencrypt/live/turn.remoteschool.com.ng/privkey.pem
+	// /etc/letsencrypt/live/turn.smarthead.com.ng/fullchain.pem
+	// /etc/letsencrypt/live/turn.smarthead.com.ng/privkey.pem
 	// "ECDH+AESGCM:ECDH+CHACHA20:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:RSA+AESGCM:RSA+AES:!aNULL:!MD5:!DSS"
 
-	// /etc/letsencrypt/live/app.remoteschool.com.ng/
+	// /etc/letsencrypt/live/app.smarthead.com.ng/
 	/*
-	listen 443 ssl;
-	listen [::]:443 ssl;
+		listen 443 ssl;
+		listen [::]:443 ssl;
 
-	ssl_certificate /etc/letsencrypt/live/app.remoteschool.com.ng/fullchain.pem;
-	ssl_certificate_key /etc/letsencrypt/live/app.remoteschool.com.ng/privkey.pem;
-	ssl_session_cache shared:SSL:10m;
-	ssl_session_timeout 10m;
-	ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
-	ssl_ciphers "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS:!AES256";
-	ssl_prefer_server_ciphers on;
-	ssl_dhparam /etc/nginx/ssl/dhp-4096.pem;
+		ssl_certificate /etc/letsencrypt/live/app.smarthead.com.ng/fullchain.pem;
+		ssl_certificate_key /etc/letsencrypt/live/app.smarthead.com.ng/privkey.pem;
+		ssl_session_cache shared:SSL:10m;
+		ssl_session_timeout 10m;
+		ssl_protocols TLSv1 TLSv1.1 TLSv1.2;
+		ssl_ciphers "ECDH+AESGCM:DH+AESGCM:ECDH+AES256:DH+AES256:ECDH+AES128:DH+AES:ECDH+3DES:DH+3DES:RSA+AESGCM:RSA+AES:RSA+3DES:!aNULL:!MD5:!DSS:!AES256";
+		ssl_prefer_server_ciphers on;
+		ssl_dhparam /etc/nginx/ssl/dhp-4096.pem;
 	*/
 
 	periods, err := h.PeriodRepo.Find(ctx, claims, period.FindRequest{
@@ -131,9 +131,8 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 		if err.Error() != sql.ErrNoRows.Error() {
 			return err
 		}
-	} 
+	}
 	data["periods"] = periods
-
 
 	subjects, err := h.SubjectRepo.Find(ctx, claims, subject.FindRequest{
 		Order: []string{"name"},
@@ -148,7 +147,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	var limit uint = 5
 	activeSubscriptions, err := h.SubscriptionRepo.Find(ctx, claims, subscription.FindRequest{
 		Where: "student_id = ? AND end_date > ?",
-		Args: []interface{}{currentStudent.ID, ctxValue.Now.UTC().Unix()},
+		Args:  []interface{}{currentStudent.ID, ctxValue.Now.UTC().Unix()},
 		Order: []string{"end_date desc"},
 		Limit: &limit,
 	})
@@ -174,7 +173,7 @@ func (h *Root) indexDefault(ctx context.Context, w http.ResponseWriter, r *http.
 			return err
 		}
 	}
-	data := map[string]interface{}{} 
+	data := map[string]interface{}{}
 	data["classes"] = classes
 	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-index.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
@@ -184,7 +183,7 @@ func (h *Root) SitePage(ctx context.Context, w http.ResponseWriter, r *http.Requ
 
 	data := make(map[string]interface{})
 
-	var tmpName string 
+	var tmpName string
 	switch r.RequestURI {
 	case "/":
 		tmpName = "dtox-index.html"
@@ -235,7 +234,7 @@ func (h *Root) SitePage(ctx context.Context, w http.ResponseWriter, r *http.Requ
 		tmpName = "dtox-about.html"
 	case "/thank-you":
 		tmpName = "dtox-thank-you.html"
-	case "/contact": 
+	case "/contact":
 		tmpName = "dtox-contact.html"
 	case "/legal/privacy":
 		tmpName = "dtox-privacy.gohtml"

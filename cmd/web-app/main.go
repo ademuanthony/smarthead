@@ -133,7 +133,7 @@ func main() {
 			MailgunKey                 string `default:"" envconfig:"MAILGUN_KEY"`
 			SharedTemplateDir          string `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
 			SharedSecretKey            string `default:"" envconfig:"SHARED_SECRET_KEY"`
-			EmailSender                string `default:"Remote School <media@remoteschool.com.ng>" envconfig:"EMAIL_SENDER"`
+			EmailSender                string `default:"Smart Head <media@smarthead.com.ng>" envconfig:"EMAIL_SENDER"`
 			WebApiBaseUrl              string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
 			PaystackSecret             string `envconfig:"PAYSTACK_SECRET"`
 			PaystackPublicKey          string `envconfig:"PAYSTACK_PUBLIC_KEY"`
@@ -1221,7 +1221,7 @@ func main() {
 		var cert string = ""
 		var privKey string = ""
 
-		certRoot := "/etc/letsencrypt/live/remoteschool.com.ng/"
+		certRoot := "/etc/letsencrypt/live/smarthead.com.ng/"
 		if fileExists(certRoot + "cert.pem") {
 			cert = certRoot + "cert.pem"
 			privKey = certRoot + "privkey.pem"
@@ -1237,7 +1237,7 @@ func main() {
 			// }
 			// privKey = string(content)
 		}
-		// /etc/letsencrypt/live/remoteschool.com.ng/
+		// /etc/letsencrypt/live/smarthead.com.ng/
 		// cert.pem  chain.pem  fullchain.pem  privkey.pem
 
 		go func() {
