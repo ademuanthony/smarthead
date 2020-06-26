@@ -85,20 +85,10 @@ func (repo *Repository) TrailDeposit(ctx context.Context) (*Deposit, error) {
 }
 
 func subscriptionAmount(reqCount int) int {
-	var amount int
-	if reqCount >= 5 {
-		fives := (reqCount - reqCount%5) / 5
-		amount = 1500000 * fives
-		reqCount -= fives * 5
+	if reqCount >= 10 {
+		return 10000
 	}
-	if reqCount >= 3 {
-		threes := (reqCount - reqCount%3) / 3
-		amount += 1200000 * threes
-		reqCount -= threes * 3
-	}
-	amount += reqCount * 500000
-
-	return amount
+	return reqCount * 1000
 }
 
 // Create inserts a new subscription into the database.
