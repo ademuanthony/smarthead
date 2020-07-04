@@ -19,102 +19,14 @@
   <div class="col">
     <div class="card">
       <div class="card-body">
-        {{ if .sssThreeStudent }} 
-        <div class="alert alert-success mt-2 mb-3" role="alert">
-          Take advantage of our WAEC/NECO promo today. Just 10,000 Naira for all subjects.
-          <a href="https://paystack.com/pay/remote-school-waec-neco" class="btn btn-lg btn-danger" target="_blank">Make Payment Now</a>
-        </div>
-        {{ else }}
-        <div class="jumbotron" data-controller="payment">
-          {{ if eq (len .subscriptions) 0 }}
-          <h1 class="display-4">Subscribe and start learning!</h1>
-          <p class="lead">
-            You do not have an active subscription. Subscribe now and start
-            learning from the comfort of your home
-          </p>
-          {{ else }}
-          <h1 class="display-4">Create New Subscription</h1>
-          {{ end }}
-          <hr class="my-4" />
-          <p>
-            Select one or more subjects and click on the button below to make payment. Subscription cost is
-            <span class="naira">5,000</span> for primary school,
-            <span class="naira">10,000</span> for secondary school,
-          </p>
-          <div class="form-row">
-            <div class="col-md-4 col-sm-12 mt-3">
-              <select data-target="payment.class" class="form-control">
-                <option value="">Select Class</option>
-                {{ range $class := .classes }}
-                <option value="{{ $class.ID }}">{{ $class.Name }}</option>
-                {{ end }}
-              </select>
-            </div>
-            <div class="col-md-4 col-sm-12 mt-3">
-              <select data-target="payment.subject" class="form-control">
-                <option value="">Select Subject</option>
-                {{ range $subject := .subjects }}
-                <option value="{{ $subject.ID }}">{{ $subject.Name }}</option>
-                {{ end }}
-              </select>
-            </div>
-           
-            <div class="col-md-3 col-sm-12 mt-3">
-              <button
-                data-action="click->payment#addToList"
-                class="btn btn-primary"
-              >
-                Add To List
-              </button>
-            </div>
-          </div>
-
-          <div class="d-none mt-2" data-target="payment.cartItemDiv">
-            <table class="table">
-              <thead>
-                <tr>
-                  <th class="text-right">#</th>
-                  <th>Class</th>
-                  <th>Subject</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody data-target="payment.listTbl"></tbody>
-              <tfoot>
-                <tr>
-                  <th colspan="2" class="text-right font-weight">Total Amount</th>
-                  <td class="text-right">
-                    <span
-                      class="font-weight-bolder"
-                      data-target="payment.cartTotal"
-                    ></span>
-                    <p>Saving <span style="color: brown;" data-target="payment.savings"></span></p>
-                  </td>
-                </tr>
-              </tfoot>
-            </table>
-            <template data-target="payment.itemTemplate">
-              <tr>
-                <td class="text-right"></td>
-                <td></td>
-                <td></td>
-                <td></td>
-                <td></td>
-              </tr>
-            </template>
-            
-            <div class="col-md-4 offset-4 col-sm-12 mt-3">
-              <button
-                class="btn btn-danger btn-lg btn-block"
-                data-action="click->payment#subscribe"
-              >
-                Make Payment
-              </button>
-            </div>
-
-          </div>
-        </div>
-        {{ end }}
+        {{ if eq (len .subscriptions) 0 }}
+        <h1 class="display-4">Subscribe and start learning!</h1>
+        <p class="lead">
+          You do not have an active subscription. Subscribe now and start
+          learning from the comfort of your home<br/>
+          <a href="{{ .paymentLink }}" class="btn btn-lg btn-danger" target="_blank">Make Payment Now</a>
+        </p>
+        {{ end }} 
 
         <p>
           {{ if isWorkHour }}
