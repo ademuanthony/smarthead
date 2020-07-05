@@ -113,14 +113,14 @@ func (repo *Repository) StudentHasSubscription(ctx context.Context, studentID st
 	).Exists(ctx, repo.DbConn)
 }
 
-func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req CreateRequest, 
+func (repo *Repository) Create(ctx context.Context, req CreateRequest, 
 	now time.Time) (*Subscription, error) {
 		
 	tx, err := repo.DbConn.Begin()
 	if err != nil {
 		return nil, err
 	}
-	resp, err := repo.CreateTx(ctx, tx, claims, req, now)
+	resp, err := repo.CreateTx(ctx, tx, req, now)
 	if err != nil {
 		_ = tx.Rollback()
 		return nil, err
@@ -131,12 +131,9 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 }
 
 // Create inserts a new subscription into the database.
-func (repo *Repository) CreateTx(ctx context.Context, tx *sql.Tx, claims auth.Claims, req CreateRequest, now time.Time) (*Subscription, error) {
+func (repo *Repository) CreateTx(ctx context.Context, tx *sql.Tx, req CreateRequest, now time.Time) (*Subscription, error) {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.subscription.Create")
 	defer span.Finish()
-	if claims.Audience == "" {
-		return nil, errors.WithStack(ErrForbidden)
-	}
 
 	// Validate the request.
 	v := webcontext.Validator()

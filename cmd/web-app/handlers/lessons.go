@@ -80,6 +80,10 @@ func (h *Lessons) Join(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		webcontext.SessionFlashError(ctx, "Access Denied", "You do not have access to this class")
 		return web.Redirect(ctx, w, r, "/", 320)
 	}
+	has, _ := h.SubscriptionRepo.StudentHasSubscription(ctx, currentStudent.ID, timetable.SubjectID, ctxValue.Now)
+	if !has {
+		return web.Redirect(ctx, w, r, "/", 320)
+	}
 
 	// TODO: check that its time for the lesson
 	http.Redirect(w, r, timetable.Subclass.Link, 301)

@@ -260,6 +260,37 @@ func (repo *Repository) ProccessPaystackSubscriptionEvent(ctx context.Context, r
 		}); err != nil {
 			log.Error(err)
 		}
+
+		allSubjects, err := models.Subjects().All(ctx, repo.DbConn)
+		if err != nil {
+			return err
+		}
+
+		var addReq = AddManualDepositRequest{
+			StudentRegNo: student.RegNo,
+			StartDate: now.Format("01/02/2006"),
+			EndDate: now.Add(30 * 24 * time.Hour).Format("01/02/2006"),
+		}
+		arrContains := func(items []int64, s int) bool {
+			for _, it := range items {
+				if it == int64(s) {
+					return true
+				}
+			}
+			return false
+		}
+		for _, s := range allSubjects {
+			if arrContains(s.SchoolOrder, student.R.Class.SchoolOrder) {
+				addReq.Items = append(addReq.Items, SubscriptionItem{
+					SubjectID: s.ID,
+					ClassID: student.ClassID.String,
+				})
+			}
+		}
+		if err = repo.AddManualDeposit(ctx, addReq, now); err != nil {
+			// TODO: rollback
+			return err
+		}
 		return nil
 	}
 }
@@ -305,7 +336,7 @@ func (repo *Repository) getAvailableSubclass(ctx context.Context, classID string
 }
 
 // UpdateStatus updates the status of the the supplied deposit by quering the channel
-func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusRequest, claims auth.Claims, now time.Time) ([]*subscription.Subscription, error) {
+func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusRequest, now time.Time) ([]*subscription.Subscription, error) {
 	depositModel, err := models.FindDeposit(ctx, repo.DbConn, req.ID)
 	if err != nil {
 		return nil, err
@@ -367,7 +398,7 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 			DepositID:  depositModel.ID,
 		}
 
-		sub, err := repo.SubscriptionRepo.CreateTx(ctx, tx, claims, subReq, now)
+		sub, err := repo.SubscriptionRepo.CreateTx(ctx, tx, subReq, now)
 
 		if err != nil {
 			_ = tx.Rollback()
@@ -395,10 +426,7 @@ func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusReques
 }
 
 // AddManualDeposit
-func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepositRequest, claims auth.Claims, now time.Time) error {
-	if !claims.HasRole(auth.RoleAdmin) {
-		return ErrForbidden
-	}
+func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepositRequest, now time.Time) error {
 
 	v := webcontext.Validator()
 	err := v.StructCtx(ctx, req)
@@ -486,7 +514,7 @@ func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepos
 			DepositID:  m.ID,
 		}
 
-		_, err := repo.SubscriptionRepo.CreateTx(ctx, tx, claims, subReq, now)
+		_, err := repo.SubscriptionRepo.CreateTx(ctx, tx, subReq, now)
 
 		if err != nil {
 			_ = tx.Rollback()

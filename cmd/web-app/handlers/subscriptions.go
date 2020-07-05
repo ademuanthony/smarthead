@@ -195,11 +195,6 @@ func (h *Subscriptions) APICreate(ctx context.Context, w http.ResponseWriter, r 
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
- 
-	claims, err := auth.ClaimsFromContext(ctx) 
-	if err != nil {
-		return err
-	}
 
 	var req = new(deposit.AddManualDepositRequest)
 	if err := web.Decode(ctx, r, req); err != nil {
@@ -209,7 +204,7 @@ func (h *Subscriptions) APICreate(ctx context.Context, w http.ResponseWriter, r 
 		return web.RespondJsonError(ctx, w, err)
 	}
 
-	err = h.DepositRepo.AddManualDeposit(ctx, *req, claims, ctxValues.Now)
+	err = h.DepositRepo.AddManualDeposit(ctx, *req, ctxValues.Now)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}

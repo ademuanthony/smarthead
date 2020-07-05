@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 	"time"
 
 	"remoteschool/smarthead/internal/platform/auth"
@@ -89,27 +90,27 @@ func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string
 		return Timetables{}, nil
 	}
 
-	thirtyDaysAgo := now.Add(-30 * 24 * time.Hour).Unix()
-	if student.LastPaymentDate < thirtyDaysAgo {
-		return nil, errors.New("payment required")
+	// thirtyDaysAgo := now.Add(-30 * 24 * time.Hour).Unix()
+	// if student.LastPaymentDate < thirtyDaysAgo {
+	// 	return nil, errors.New("payment required")
+	// }
+
+	subscriptions, err := models.Subscriptions(
+		models.SubscriptionWhere.StudentID.EQ(student.ID),
+		models.SubscriptionWhere.StartDate.LTE(time.Now().UTC().Unix()),
+		models.SubscriptionWhere.EndDate.GTE(time.Now().UTC().Unix()),
+	).All(ctx, repo.DbConn)
+	if err != nil {
+		if err.Error() == sql.ErrNoRows.Error() {
+			return Timetables{}, nil
+		}
+		return nil, err
 	}
 
-	// subscriptions, err := models.Subscriptions(
-	// 	models.SubscriptionWhere.StudentID.EQ(student.ID),
-	// 	models.SubscriptionWhere.StartDate.LTE(time.Now().UTC().Unix()),
-	// 	models.SubscriptionWhere.EndDate.GTE(time.Now().UTC().Unix()),
-	// ).All(ctx, repo.DbConn)
-	// if err != nil {
-	// 	if err.Error() == sql.ErrNoRows.Error() {
-	// 		return Timetables{}, nil
-	// 	}
-	// 	return nil, err
-	// }
-
-	// var subjectIDs string
-	// for _, s := range subscriptions {
-	// 	subjectIDs += s.SubjectID + "|"
-	// }
+	var subjectIDs string
+	for _, s := range subscriptions {
+		subjectIDs += s.SubjectID + "|"
+	}
 
 	timetables, err := models.Timetables(
 		models.TimetableWhere.SubclassID.EQ(student.SubclassID.String),
@@ -127,10 +128,10 @@ func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string
 
 	var result Timetables
 	for _, t := range timetables {
-		result = append(result, FromModel(t))
-		// if strings.Contains(subjectIDs, t.SubjectID) {
-		// 	result = append(result, FromModel(t))
-		// }
+		// result = append(result, FromModel(t))
+		if strings.Contains(subjectIDs, t.SubjectID) {
+			result = append(result, FromModel(t))
+		}
 	}
 
 	return result, nil
