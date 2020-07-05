@@ -149,7 +149,7 @@ func (repo *Repository) CreateDefaultAdmin(ctx context.Context, claims auth.Clai
 		Region:        "Lagos",
 		Country:       "Nigeria",
 		Zipcode:       "910210",
-		Status:        &accountStatus,
+		Status:        &accountStatus, 
 		SignupUserID:  &user.ID,
 		BillingUserID: &user.ID,
 	}
@@ -160,13 +160,15 @@ func (repo *Repository) CreateDefaultAdmin(ctx context.Context, claims auth.Clai
 		return err
 	}
 	accountID := account.ID
-	role := user_account.UserAccountRole_Admin
 	// Associate the created user with the new account. The first user for the account will
 	// always have the role of admin.
 	ua := user_account.UserAccountCreateRequest{
 		UserID:    user.ID,
 		AccountID: accountID,
-		Roles:     []user_account.UserAccountRole{role},
+		Roles:     []user_account.UserAccountRole{
+			user_account.UserAccountRole_Admin,
+			user_account.UserAccountRole_Teacher,
+		},
 		// Status:  Use default value
 	}
 

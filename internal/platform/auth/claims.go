@@ -83,7 +83,7 @@ func NewClaimPreferences(timezone *time.Location, datetimeFormat, dateFormat, ti
 func (c Claims) Valid() error {
 	for _, r := range c.Roles {
 		switch r {
-		case RoleAdmin, RoleUser: // Role is valid.
+		case RoleAdmin, RoleTeacher, RoleStudent, RoleFinance, RoleUser: // Role is valid.
 		default:
 			return fmt.Errorf("invalid role %q", r)
 		}
