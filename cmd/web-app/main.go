@@ -128,18 +128,22 @@ func main() {
 			ScaleToZero     time.Duration `envconfig:"SCALE_TO_ZERO"`
 		}
 		Project struct {
-			Name                       string `default:"" envconfig:"PROJECT_NAME"`
-			MailgunDomain              string `default:"mg.betterlifeglobal.org" envconfig:"MAILGUN_DOMAIN"`
-			MailgunKey                 string `default:"" envconfig:"MAILGUN_KEY"`
-			SharedTemplateDir          string `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
-			SharedSecretKey            string `default:"" envconfig:"SHARED_SECRET_KEY"`
-			EmailSender                string `default:"Remote School <media@remoteschool.com.ng>" envconfig:"EMAIL_SENDER"`
-			WebApiBaseUrl              string `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
-			PaystackSecret             string `envconfig:"PAYSTACK_SECRET"`
-			PaystackPublicKey          string `envconfig:"PAYSTACK_PUBLIC_KEY"`
-			AGORA_APP_ID               string `envconfig:"AGORA_APP_ID"`
-			AGORA_CUSTOMER_ID          string `envconfig:"AGORA_CUSTOMER_ID"`
-			AGORA_CUSTOMER_CERTIFICATE string `envconfig:"AGORA_CUSTOMER_CERTIFICATE"`
+			Name                       string  `default:"" envconfig:"PROJECT_NAME"`
+			MailgunDomain              string  `default:"mg.betterlifeglobal.org" envconfig:"MAILGUN_DOMAIN"`
+			MailgunKey                 string  `default:"" envconfig:"MAILGUN_KEY"`
+			SharedTemplateDir          string  `default:"../../resources/templates/shared" envconfig:"SHARED_TEMPLATE_DIR"`
+			SharedSecretKey            string  `default:"" envconfig:"SHARED_SECRET_KEY"`
+			EmailSender                string  `default:"Remote School <media@remoteschool.com.ng>" envconfig:"EMAIL_SENDER"`
+			WebApiBaseUrl              string  `default:"http://127.0.0.1:3001" envconfig:"WEB_API_BASE_URL"  example:"http://api.example.saasstartupkit.com"`
+			PaystackSecret             string  `envconfig:"PAYSTACK_SECRET"`
+			PaystackPublicKey          string  `envconfig:"PAYSTACK_PUBLIC_KEY"`
+			PrimaryPlan                string  `default:"PLN_nj9henrxgmnxh5n" envconfig:"PAYSTACK_PRIMARY_PLAN_CODE"`
+			SecondaryPlan              string  `default:"PLN_v1kalv4j9qch18d" envconfig:"PAYSTACK_SECONDARY_PLAN_CODE"`
+			PrimaryAmount              float32 `default:"5000" envconfig:"PAYSTACK_PRIMARY_PLAN_AMOUNT"`
+			SecondaryAmount            float32 `default:"10000" envconfig:"PAYSTACK_SECONDARY_PLAN_AMOUNT"`
+			AGORA_APP_ID               string  `envconfig:"AGORA_APP_ID"`
+			AGORA_CUSTOMER_ID          string  `envconfig:"AGORA_CUSTOMER_ID"`
+			AGORA_CUSTOMER_CERTIFICATE string  `envconfig:"AGORA_CUSTOMER_CERTIFICATE"`
 		}
 		Redis struct {
 			Host            string        `default:":6379" envconfig:"HOST"`
@@ -487,7 +491,8 @@ func main() {
 	periodRepo := period.NewRepository(masterDb)
 	studentRepo := student.NewRepository(masterDb)
 	subscriptionRepo := subscription.NewRepository(masterDb)
-	depositRepo := deposit.NewRepository(masterDb, subscriptionRepo, cfg.Project.PaystackSecret)
+	depositRepo := deposit.NewRepository(masterDb, subscriptionRepo, cfg.Project.PaystackSecret, 
+		cfg.Project.PrimaryPlan, cfg.Project.SecondaryPlan, cfg.Project.PrimaryAmount, cfg.Project.SecondaryAmount)
 	classRepo := class.NewRepository(masterDb)
 	subClassRepo := subclass.NewRepository(masterDb)
 	timetableRepo := timetable.NewRepository(masterDb)

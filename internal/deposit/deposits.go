@@ -2,7 +2,10 @@ package deposit
 
 import (
 	"context"
+	"database/sql"
+	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"remoteschool/smarthead/internal/paystack"
@@ -206,6 +209,7 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 	return nil
 }
 
+// ProccessPaystackSubscriptionEvent
 func (repo *Repository) ProccessPaystackSubscriptionEvent(ctx context.Context, req PaystackSubscriptionEvent, now time.Time) error {
 	switch req.Event {
 	default:
@@ -231,6 +235,7 @@ func (repo *Repository) ProccessPaystackSubscriptionEvent(ctx context.Context, r
 		}
 		student, err := models.Students(
 			models.StudentWhere.RegNo.EQ(req.Data.Customer.Metadata.RegistrationNumber),
+			qm.Load(models.StudentRels.Subclass),
 		).One(ctx, repo.DbConn)
 		if err != nil {
 			// send registration instruction to user
@@ -238,16 +243,65 @@ func (repo *Repository) ProccessPaystackSubscriptionEvent(ctx context.Context, r
 		}
 		cols := models.M{}
 		cols[models.StudentColumns.LastPaymentDate] = now
+		var subclassID string
+		if !student.SubclassID.Valid {
+			subclassID = repo.getAvailableSubclass(ctx, student.ClassID.String)
+		} else if strings.Contains(strings.ToLower(student.R.Subclass.Name), "free") {
+			subclassID = repo.getAvailableSubclass(ctx, student.ClassID.String)
+		}
+		if subclassID != "" {
+			cols[models.StudentColumns.SubclassID] = subclassID
+		}
 		if _, err = models.Students(models.StudentWhere.ID.EQ(student.ID)).UpdateAll(ctx, repo.DbConn, cols); err != nil {
 			return err
 		}
-		if err = repo.NotifyEmail.Send(ctx, student.ParentEmail, "Payment Received", "email/payment_received", map[string]interface{}{
+		if err = repo.NotifyEmail.Send(ctx, student.ParentEmail, "Payment Received", "payment_received", map[string]interface{}{
 			"Name": student.Name, "Amount": payment.Amount,
 		}); err != nil {
 			log.Error(err)
 		}
 		return nil
 	}
+}
+
+func (repo *Repository) getAvailableSubclass(ctx context.Context, classID string) string {
+	subclasses, err := models.Subclasses(
+		models.SubclassWhere.ClassID.EQ(classID),
+		qm.OrderBy(models.SubclassColumns.Name),
+	).All(ctx, repo.DbConn)
+
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return ""
+		}
+	} else {
+		for _, s := range subclasses {
+			count, err := models.Students(models.StudentWhere.SubclassID.EQ(null.StringFrom(s.ID))).Count(ctx, repo.DbConn)
+			if err != nil {
+				log.Error(err)
+			}
+			if count < 10 {
+				return s.ID
+			}
+		}
+	}
+
+	class, err := models.FindClass(ctx, repo.DbConn, classID)
+	if err != nil {
+		return ""
+	}
+	subclass := models.Subclass{
+		ID:          uuid.NewRandom().String(),
+		ClassID:     classID,
+		Name:        fmt.Sprintf("%sA", class.Name),
+		SchoolOrder: class.SchoolOrder,
+	}
+	if err = subclass.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
+		return ""
+	}
+	return subclass.ID
+
+	return ""
 }
 
 // UpdateStatus updates the status of the the supplied deposit by quering the channel

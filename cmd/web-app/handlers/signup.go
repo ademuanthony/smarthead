@@ -390,7 +390,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		return errors.New("Unable to create free trial for your new account. Please contact the admin")
 	}
 
-	timetables, err := h.Timetable.StudentsTimetables(ctx, s.ID)
+	timetables, err := h.Timetable.StudentsTimetables(ctx, s.ID, v.Now)
 	if err != nil {
 		return err
 	}

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"remoteschool/smarthead/internal/deposit"
-	"remoteschool/smarthead/internal/paystack"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/datatable"
 	"remoteschool/smarthead/internal/platform/web"
@@ -16,7 +15,7 @@ import (
 	"remoteschool/smarthead/internal/student"
 	"remoteschool/smarthead/internal/subscription"
 
-	"github.com/pkg/errors"
+	"github.com/pkg/errors" 
 	"gopkg.in/DataDog/dd-trace-go.v1/contrib/go-redis/redis"
 )
 

@@ -5,6 +5,7 @@ import (
 	b64 "encoding/base64"
 	"fmt"
 	"net/http"
+	"time"
 
 	"remoteschool/smarthead/internal/period"
 	"remoteschool/smarthead/internal/platform/auth"
@@ -48,11 +49,16 @@ func (h *Lessons) Join(ctx context.Context, w http.ResponseWriter, r *http.Reque
 	if err != nil {
 		return web.Redirect(ctx, w, r, "/", 320)
 	}
-	
+
 	tID := params["timetable_id"]
 	timetable, err := h.TimetableRepo.ReadByID(ctx, claims, tID)
 	if err != nil {
 		return web.Redirect(ctx, w, r, "/", 320)
+	}
+
+	if claims.HasRole(auth.RoleTeacher, auth.RoleAdmin) {
+		// TODO: check that its time for the lesson
+		http.Redirect(w, r, timetable.Subclass.Link, 301)
 	}
 
 	currentStudent, err := h.StudentRepo.CurrentStudent(ctx, claims)
@@ -60,12 +66,17 @@ func (h *Lessons) Join(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return web.Redirect(ctx, w, r, "/", 320)
 	}
 
-	has, err := h.SubscriptionRepo.StudentHasSubscription(ctx, currentStudent.ID, timetable.SubjectID, ctxValue.Now)
-	if err != nil {
+	if currentStudent.SubclassID == nil {
 		return web.Redirect(ctx, w, r, "/", 320)
 	}
 
-	if !has {
+	if timetable.SubclassID != *currentStudent.SubclassID {
+		webcontext.SessionFlashError(ctx, "Access Denied", "You do not have access to this class")
+		return web.Redirect(ctx, w, r, "/", 320)
+	}
+
+	thirtyDaysAgo := ctxValue.Now.Add(-30 * 24 * time.Hour).Unix()
+	if currentStudent.LastPaymentDate.Unix() < thirtyDaysAgo {
 		webcontext.SessionFlashError(ctx, "Access Denied", "You do not have access to this class")
 		return web.Redirect(ctx, w, r, "/", 320)
 	}

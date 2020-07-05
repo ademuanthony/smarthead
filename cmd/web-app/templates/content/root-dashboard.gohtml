@@ -9,6 +9,43 @@
     </div>
 
    
+<div class="row">
+    <div class="col">
+      <div class="card"> 
+        <div class="card-body">
+  
+          {{ if gt (len .timetables) 0 }}
+          <div>
+            <h4>Timetable</h4>
+            <div class="row">
+              {{ range $t := .timetables }}
+              <div class="col-md-4 col-sm-12 mt-3">
+              <div class="card" style="width: 18rem;">
+                <div class="card-header">
+                  {{ $t.Day }} {{ $t.Period }}
+                </div>
+                <ul class="list-group list-group-flush">
+                  <li class="list-group-item">{{ $t.Subject }}</li>
+                  <li class="list-group-item">{{ $t.Teacher }}</li>
+                  {{ if isLessonTime $._Ctx $t }}
+                  <li class="list-group-item">
+                    <a href="/lessons/join/{{ $t.ID }}" class="btn btn-success" target="_blank">Go to Classroom</a>
+                  </li>
+                  {{ end }}
+                </ul>
+              </div>
+            </div>
+              {{ end }}
+            </div>
+            
+          </div>
+          {{ end }}
+  
+        </div>
+      </div>
+    </div>
+  </div>
+  
 
 {{end}}
 {{define "js"}}

@@ -46,17 +46,33 @@ func (h *Root) Index(ctx context.Context, w http.ResponseWriter, r *http.Request
 	if claims, err := auth.ClaimsFromContext(ctx); err == nil && claims.HasAuth() {
 		if claims.HasRole(auth.RoleAdmin) {
 			return h.indexDashboard(ctx, w, r, params)
+		} else if claims.HasRole(auth.RoleTeacher) {
+			return h.indexDashboard(ctx, w, r, params)
 		} else if claims.HasRole(auth.RoleUser) {
 			return h.studentsDashboard(ctx, w, r, params)
 		}
 	}
 
 	return h.indexDefault(ctx, w, r, params)
-}
+} 
 
 // indexDashboard loads the dashboard for a user when they are authenticated.
 func (h *Root) indexDashboard(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
-	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "root-dashboard.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
+	data := map[string]interface{}{}
+
+	claims, err := auth.ClaimsFromContext(ctx)
+	if err != nil {
+		return err
+	}
+
+	myTimetable, err := h.TimetableRepo.TeachersTimetables(ctx, claims.Subject)
+	if err != nil {
+		if err.Error() != sql.ErrNoRows.Error() {
+			return err
+		}
+	}
+	data["timetables"] = myTimetable.Response(ctx)
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "root-dashboard.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 // studentsDashboard loads deshboard for register student
@@ -103,7 +119,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	}
 	data["classes"] = classes
 
-	myTimetable, err := h.TimetableRepo.StudentsTimetables(ctx, currentStudent.ID)
+	myTimetable, err := h.TimetableRepo.StudentsTimetables(ctx, currentStudent.ID, ctxValue.Now)
 	if err != nil {
 		if err.Error() != sql.ErrNoRows.Error() {
 			return err
