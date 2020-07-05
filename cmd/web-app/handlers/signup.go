@@ -155,7 +155,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 					DepositID: trailDeposit.ID,
 				}
 
-				_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, ctxValues.Now)
+				_, err = h.SubscriptionRepo.Create(ctx, subReq, ctxValues.Now)
 
 				if err != nil {
 					return false, weberror.NewErrorMessage(ctx, err, 400, "Unable to create free trial for your new account. Please contact the admin")
@@ -176,7 +176,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 					DepositID: trailDeposit.ID,
 				}
 
-				_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, ctxValues.Now)
+				_, err = h.SubscriptionRepo.Create(ctx, subReq, ctxValues.Now)
 
 				if err != nil {
 					return false, errors.New("Unable to create free trial for your new account. Please contact the admin")
@@ -384,7 +384,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		DepositID: trailDeposit.ID,
 	}
 
-	_, err = h.SubscriptionRepo.Create(ctx, claims, subReq, v.Now)
+	_, err = h.SubscriptionRepo.Create(ctx, subReq, v.Now)
 
 	if err != nil {
 		return errors.New("Unable to create free trial for your new account. Please contact the admin")

@@ -34,7 +34,7 @@ func urlSubjectsCreate() string {
 }
 
 func urlSubjectsView(subjectID string) string {
-	return fmt.Sprintf("/admin/subjects/%s", subjectID)
+	return fmt.Sprintf("/admin/subjects/%s", subjectID) 
 }
 
 func urlSubjectsUpdate(subjectID string) string {
@@ -315,6 +315,12 @@ func (h *Subjects) Update(ctx context.Context, w http.ResponseWriter, r *http.Re
 
 	if req.ID == "" {
 		req.Name = &sub.Name
+		var schoolOrders []string
+		for _, s := range sub.SchoolOrders {
+			schoolOrders = append(schoolOrders, fmt.Sprintf("%d", s))
+		}
+		s := strings.Join(schoolOrders, ", ")
+		req.SchoolOrder = &s
 	}
 	data["form"] = req
 

@@ -185,11 +185,6 @@ func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *h
 		return web.RespondJsonError(ctx, w, err)
 	}
  
-	claims, err := auth.ClaimsFromContext(ctx) 
-	if err != nil {
-		return err
-	}
- 
 	depositID := params["deposit_id"]
 
 	var req = new(deposit.UpdateStatusRequest)
@@ -201,7 +196,7 @@ func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *h
 	}
 	req.ID = depositID
 
-	subs, err := h.Repo.UpdateStatus(ctx, *req, claims, ctxValues.Now)
+	subs, err := h.Repo.UpdateStatus(ctx, *req, ctxValues.Now)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
