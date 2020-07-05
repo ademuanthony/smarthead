@@ -274,7 +274,7 @@ func (h *Subclasses) View(ctx context.Context, w http.ResponseWriter, r *http.Re
 				}
 				stuErr := h.StudentRepo.Update(ctx, claims, student.UpdateRequest{
 					ID: stud[0].ID,
-					SubclassID: &classID,
+					SubclassID: &classID, 
 				}, ctxValue.Now)
 				if stuErr != nil {
 					return false, stuErr

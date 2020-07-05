@@ -12,6 +12,7 @@ import (
 
 	"github.com/pborman/uuid"
 	"github.com/pkg/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries/qm"
 	. "github.com/volatiletech/sqlboiler/queries/qm"
@@ -239,10 +240,32 @@ func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req Dele
 	if !claims.HasRole(auth.RoleAdmin) {
 		return errors.WithStack(ErrForbidden)
 	}
-
-	_, err = models.Subclasses(models.SubclassWhere.ID.EQ(req.ID)).DeleteAll(ctx, repo.DbConn)
+	tx, err := repo.DbConn.Begin()
 	if err != nil {
+		return err
+	}
+
+	_, err = models.Timetables(models.TimetableWhere.SubclassID.EQ(req.ID)).DeleteAll(ctx, tx)
+	if err != nil {
+		return err
+	}
+
+	_, err = models.Students(models.StudentWhere.SubclassID.EQ(null.StringFrom(req.ID))).UpdateAll(ctx, tx, models.M{
+		models.StudentColumns.SubclassID: null.NewString("", false),
+	})
+	if err != nil {
+		_ = tx.Rollback()
+		return err
+	}
+
+	_, err = models.Subclasses(models.SubclassWhere.ID.EQ(req.ID)).DeleteAll(ctx, tx)
+	if err != nil {
+		_ = tx.Rollback()
 		return errors.WithStack(err)
+	}
+
+	if err = tx.Commit(); err != nil {
+		return err
 	}
 
 	return nil
