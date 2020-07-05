@@ -434,7 +434,19 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 }
 
 func (h *Signup) ThankYou(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
-	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-thank-you.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
+	numbers := []string{
+		"2348069430990",
+		"2340938889931",
+	}
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+	number := numbers[r1.Intn(100)%len(numbers)]
+	whatsAppLink := "https://api.whatsapp.com/send?phone=" + number + 
+		"&text=I%20have%20registered%20on%20remote%20school,%20how%20do%20I%20get%20started?"
+	data := map[string]interface{}{
+		"whatsAppLink": whatsAppLink,
+	}
+	return h.Renderer.Render(ctx, w, r, tmplLayoutSite, "dtox-thank-you.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
 func (h *Signup) WeacNecoPrep(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
