@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"remoteschool/smarthead/internal/deposit"
+	"remoteschool/smarthead/internal/paystack"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/datatable"
 	"remoteschool/smarthead/internal/platform/web"
@@ -206,6 +207,29 @@ func (h *Deposits) UpdateStatus(ctx context.Context, w http.ResponseWriter, r *h
 		return web.RespondJsonError(ctx, w, err)
 	}
 	return web.RespondJson(ctx, w, subs, http.StatusOK)
+}
+
+// Events provides an endpoint for the paystack events
+func (h *Deposits) Events(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+
+	ctxValues, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return web.RespondJsonError(ctx, w, err)
+	}
+
+	var req = new(deposit.PaystackSubscriptionEvent)
+	if err := web.Decode(ctx, r, req); err != nil {
+		if _, ok := errors.Cause(err).(*weberror.Error); !ok {
+			err = weberror.NewError(ctx, err, http.StatusBadRequest)
+		}
+		return web.RespondJsonError(ctx, w, err)
+	}
+
+	err = h.Repo.ProccessPaystackSubscriptionEvent(ctx, *req, ctxValues.Now)
+	if err != nil {
+		return web.RespondJsonError(ctx, w, err)
+	}
+	return web.RespondJson(ctx, w, true, http.StatusOK)
 }
 
 // View handles displaying a deposits.

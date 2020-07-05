@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"remoteschool/smarthead/internal/class"
+	"remoteschool/smarthead/internal/platform/notify"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/student"
@@ -17,7 +18,12 @@ import (
 type Repository struct {
 	DbConn           *sqlx.DB
 	SubscriptionRepo *subscription.Repository
+	NotifyEmail		 notify.Email
 	PaystackSecret   string
+	PrimaryPlan      string
+	SecondaryPlan    string
+	PrimaryAmount    float32
+	SecondaryAmount  float32
 }
 
 const (
@@ -27,11 +33,16 @@ const (
 )
 
 // NewRepository creates a new Repository that defines dependencies for Branch.
-func NewRepository(db *sqlx.DB, subscriptionRepo *subscription.Repository, paystackSecret string) *Repository {
+func NewRepository(db *sqlx.DB, subscriptionRepo *subscription.Repository, paystackSecret, primaryPlan, secondaryPlan string,
+	primaryAmount, secondaryAmount float32) *Repository {
 	return &Repository{
 		DbConn:           db,
 		SubscriptionRepo: subscriptionRepo,
 		PaystackSecret:   paystackSecret,
+		PrimaryAmount: primaryAmount,
+		SecondaryAmount: secondaryAmount,
+		PrimaryPlan: primaryPlan,
+		SecondaryPlan: secondaryPlan,
 	}
 }
 
@@ -178,10 +189,29 @@ type UpdateStatusRequest struct {
 	Items []SubscriptionItem `json:"items"`
 }
 
+// PaystackSubscriptionEvent represents the event that is sent from paystack for subscription payment
+type PaystackSubscriptionEvent struct {
+	Event string `json:"event"`
+	Data  struct {
+		ID        string  `json:"id"`
+		Domain    string  `json:domain"`
+		Status    string  `json:"status"`
+		Reference string  `json:"reference"`
+		Amount    float64 `json:"amount"`
+		Plan      string  `json:"plan"`
+		Customer  struct {
+			Email    string `json:"email"`
+			Metadata struct {
+				RegistrationNumber string `json:"registration_number"`
+			} `json:"metadata"`
+		} `json:"customer"`
+	} `json:"data"`
+}
+
 type AddManualDepositRequest struct {
 	StudentRegNo string             `json:"student_reg_no" validate:"required"`
-	StartDate	 string			`json:"start_date"`
-	EndDate		 string			`json:"end_date"`
+	StartDate    string             `json:"start_date"`
+	EndDate      string             `json:"end_date"`
 	Items        []SubscriptionItem `json:"items" validate:"required"`
 }
 

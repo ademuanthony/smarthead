@@ -25,37 +25,44 @@ func NewRepository(db *sqlx.DB) *Repository {
 
 // Branch represents a workflow.
 type Student struct {
-	ID             string    `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name           string    `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Username       string    `boil:"username" json:"username" toml:"username" yaml:"username"`
-	RegNo          string    `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
-	Age            int       `boil:"age" json:"age" toml:"age" yaml:"age"`
-	AccountBalance int       `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
-	CurrentClass   string    `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
-	ClassID        string    `json:"class_id"`
-	SubclassID     *string   `json:"subclass_id"`
-	ParentPhone    string    `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
-	ParentEmail    string    `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
-	CreatedAt      time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID              string    `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	Name            string    `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Username        string    `boil:"username" json:"username" toml:"username" yaml:"username"`
+	RegNo           string    `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
+	Age             int       `boil:"age" json:"age" toml:"age" yaml:"age"`
+	AccountBalance  int       `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
+	CurrentClass    string    `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	ClassID         string    `json:"class_id"`
+	SubclassID      *string   `json:"subclass_id"`
+	ParentPhone     string    `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
+	ParentEmail     string    `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
+	LastPaymentDate time.Time `boil:"last_payment_date" json:"last_payment_date" toml:"last_payment_date" yaml:"last_payment_date"`
+	CreatedAt       time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt       time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 
 	Class    *class.Class `json:"_class"`
 	Subclass *models.Subclass
 }
 
+// HasActiveSubscription checks wheather the student has made payment within the last 30 days
+func (s *Student) HasActiveSubscription(now time.Time) bool {
+	return now.Sub(s.LastPaymentDate).Hours()/24 <= 30
+}
+
 func FromModel(rec *models.Student) *Student {
 	b := &Student{
-		ID:             rec.ID,
-		Name:           rec.Name,
-		AccountBalance: rec.AccountBalance,
-		Age:            rec.Age,
-		RegNo:          rec.RegNo,
-		CreatedAt:      rec.CreatedAt,
-		ClassID:        rec.ClassID.String,
-		ParentEmail:    rec.ParentEmail,
-		ParentPhone:    rec.ParentPhone,
-		UpdatedAt:      rec.UpdatedAt,
-		Username:       rec.Username,
+		ID:              rec.ID,
+		Name:            rec.Name,
+		AccountBalance:  rec.AccountBalance,
+		Age:             rec.Age,
+		RegNo:           rec.RegNo,
+		CreatedAt:       rec.CreatedAt,
+		ClassID:         rec.ClassID.String,
+		ParentEmail:     rec.ParentEmail,
+		ParentPhone:     rec.ParentPhone,
+		LastPaymentDate: time.Unix(rec.LastPaymentDate, 0),
+		UpdatedAt:       rec.UpdatedAt,
+		Username:        rec.Username,
 	}
 
 	if rec.SubclassID.Valid {
@@ -76,20 +83,21 @@ func FromModel(rec *models.Student) *Student {
 
 // Response represents a workflow that is returned for display.
 type Response struct {
-	ID             string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name           string           `boil:"name" json:"name" toml:"name" yaml:"name"`
-	Username       string           `boil:"username" json:"username" toml:"username" yaml:"username"`
-	RegNo          string           `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
-	Age            int              `boil:"age" json:"age" toml:"age" yaml:"age"`
-	AccountBalance int              `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
-	ClassID        string           `json:"class_id"`
-	SubclassID     *string          `json:"subclass_id"`
-	CurrentClass   string           `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
-	Subclass       string           `json:"subclass"`
-	ParentPhone    string           `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
-	ParentEmail    string           `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
-	CreatedAt      web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt      web.TimeResponse `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID              string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	Name            string           `boil:"name" json:"name" toml:"name" yaml:"name"`
+	Username        string           `boil:"username" json:"username" toml:"username" yaml:"username"`
+	RegNo           string           `boil:"reg_no" json:"reg_no" toml:"reg_no" yaml:"reg_no"`
+	Age             int              `boil:"age" json:"age" toml:"age" yaml:"age"`
+	AccountBalance  int              `boil:"account_balance" json:"account_balance" toml:"account_balance" yaml:"account_balance"`
+	ClassID         string           `json:"class_id"`
+	SubclassID      *string          `json:"subclass_id"`
+	CurrentClass    string           `boil:"current_class" json:"current_class" toml:"current_class" yaml:"current_class"`
+	Subclass        string           `json:"subclass"`
+	ParentPhone     string           `boil:"parent_phone" json:"parent_phone" toml:"parent_phone" yaml:"parent_phone"`
+	ParentEmail     string           `boil:"parent_email" json:"parent_email" toml:"parent_email" yaml:"parent_email"`
+	LastPaymentDate web.TimeResponse `boil:"last_payment_date" json:"last_payment_date" toml:"last_payment_date" yaml:"last_payment_date"`
+	CreatedAt       web.TimeResponse `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt       web.TimeResponse `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
 }
 
 // Response transforms Branch to the Response that is used for display.
@@ -100,18 +108,19 @@ func (m *Student) Response(ctx context.Context) *Response {
 	}
 
 	r := &Response{
-		ID:             m.ID,
-		Name:           m.Name,
-		Username:       m.Username,
-		RegNo:          m.RegNo,
-		Age:            m.Age,
-		AccountBalance: m.AccountBalance,
-		ClassID:        m.ClassID,
-		SubclassID:     m.SubclassID,
-		ParentEmail:    m.ParentEmail,
-		ParentPhone:    m.ParentPhone,
-		CreatedAt:      web.NewTimeResponse(ctx, m.CreatedAt),
-		UpdatedAt:      web.NewTimeResponse(ctx, m.UpdatedAt),
+		ID:              m.ID,
+		Name:            m.Name,
+		Username:        m.Username,
+		RegNo:           m.RegNo,
+		Age:             m.Age,
+		AccountBalance:  m.AccountBalance,
+		ClassID:         m.ClassID,
+		SubclassID:      m.SubclassID,
+		ParentEmail:     m.ParentEmail,
+		ParentPhone:     m.ParentPhone,
+		LastPaymentDate: web.NewTimeResponse(ctx, m.LastPaymentDate),
+		CreatedAt:       web.NewTimeResponse(ctx, m.CreatedAt),
+		UpdatedAt:       web.NewTimeResponse(ctx, m.UpdatedAt),
 	}
 
 	if m.Class != nil {
@@ -147,7 +156,7 @@ type CreateRequest struct {
 	Age            int    `json:"age" toml:"age" yaml:"age"`
 	AccountBalance int    `json:"account_balance" toml:"account_balance" yaml:"account_balance"`
 	ClassID        string `json:"class_id" toml:"class_id" yaml:"class_id"`
-	SubclassID	   string `json:"subclass_id"`
+	SubclassID     string `json:"subclass_id"`
 	ParentPhone    string `json:"parent_phone" validate:"required" toml:"parent_phone" yaml:"parent_phone"`
 	ParentEmail    string `json:"parent_email" validate:"required" toml:"parent_email" yaml:"parent_email"`
 }

@@ -206,6 +206,50 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 	return nil
 }
 
+func (repo *Repository) ProccessPaystackSubscriptionEvent(ctx context.Context, req PaystackSubscriptionEvent, now time.Time) error {
+	switch req.Event {
+	default:
+		return errors.New("unsupported event")
+	case "charge.success":
+		client := paystack.NewClient(repo.PaystackSecret, http.DefaultClient)
+		payment, err := client.Transaction.Verify(req.Data.Reference)
+		if err != nil {
+			// TODO: inform the admin of verification problem
+			return err
+		}
+		switch req.Data.Plan {
+		default:
+			return errors.New("unsupported plan")
+		case repo.PrimaryPlan:
+			if payment.Amount < repo.PrimaryAmount {
+				return errors.New("partial payment received")
+			}
+		case repo.SecondaryPlan:
+			if payment.Amount < repo.SecondaryAmount {
+				return errors.New("partial payment received")
+			}
+		}
+		student, err := models.Students(
+			models.StudentWhere.RegNo.EQ(req.Data.Customer.Metadata.RegistrationNumber),
+		).One(ctx, repo.DbConn)
+		if err != nil {
+			// send registration instruction to user
+			return errors.New("student not found")
+		}
+		cols := models.M{}
+		cols[models.StudentColumns.LastPaymentDate] = now
+		if _, err = models.Students(models.StudentWhere.ID.EQ(student.ID)).UpdateAll(ctx, repo.DbConn, cols); err != nil {
+			return err
+		}
+		if err = repo.NotifyEmail.Send(ctx, student.ParentEmail, "Payment Received", "email/payment_received", map[string]interface{}{
+			"Name": student.Name, "Amount": payment.Amount,
+		}); err != nil {
+			log.Error(err)
+		}
+		return nil
+	}
+}
+
 // UpdateStatus updates the status of the the supplied deposit by quering the channel
 func (repo *Repository) UpdateStatus(ctx context.Context, req UpdateStatusRequest, claims auth.Claims, now time.Time) ([]*subscription.Subscription, error) {
 	depositModel, err := models.FindDeposit(ctx, repo.DbConn, req.ID)

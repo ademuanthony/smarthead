@@ -268,6 +268,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 	app.Handle("GET", "/admin/deposits", deposit.Index, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth(), mid.HasRole(auth.RoleAdmin))
 	app.Handle("POST", "/payments/initiate", deposit.Initiate, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
 	app.Handle("POST", "/payments/:deposit_id/update-status", deposit.UpdateStatus, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasAuth())
+	app.Handle("POST", "/payments/notify-success", deposit.Events)
 
 	// Register user management pages.
 	us := Users{

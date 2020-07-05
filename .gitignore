@@ -8,6 +8,7 @@ tmp
 docker-compose.yml
 *.env
 tools/schema/.env
+postgres-data/
 cmd/web-app/static/assets/js/app.bundle.js
 cmd/web-app/static/assets/js/app.bundle.js.map
 cmd/web-app/static/assets/js/vendors~app.bundle.js
