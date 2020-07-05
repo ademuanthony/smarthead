@@ -2,9 +2,11 @@ package subject
 
 import (
 	"context"
+	"fmt"
+
+	"remoteschool/smarthead/internal/postgres/models"
 
 	"github.com/jmoiron/sqlx"
-	"remoteschool/smarthead/internal/postgres/models"
 )
 
 // Repository defines the required dependencies for Branch.
@@ -19,6 +21,30 @@ func NewRepository(db *sqlx.DB) *Repository {
 	}
 }
 
+type schoolOrders []int64
+
+func (s schoolOrders) String() string {
+	var schools = make([]string, len(s))
+	for i, sch := range s {
+		var school string
+		switch sch {
+		case 0:
+			school = "PRI"
+			break
+		case 1:
+			school = "JSS"
+			break
+		case 2:
+			school = "SSS"
+			break
+		default:
+			school = "UNKNOWN"
+		}
+		schools[i] = school
+	}
+	return fmt.Sprintf("%v", schools)
+}
+
 // Branch represents a workflow.
 type Subject struct {
 	ID           string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
@@ -30,9 +56,11 @@ func FromModel(rec *models.Subject) *Subject {
 	b := &Subject{
 		ID:           rec.ID,
 		Name:         rec.Name,
-		SchoolOrders: rec.SchoolOrder,
 	}
 
+	for _, s := range rec.SchoolOrder {
+		b.SchoolOrders = append(b.SchoolOrders, s)
+	}
 	return b
 }
 
@@ -40,7 +68,7 @@ func FromModel(rec *models.Subject) *Subject {
 type Response struct {
 	ID           string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
 	Name         string  `json:"name"  validate:"required" example:"Rocket Launch"`
-	SchoolOrders []int64 `json:"school_order"`
+	SchoolOrders schoolOrders `json:"school_order"`
 }
 
 // Response transforms Subject to the Response that is used for display.

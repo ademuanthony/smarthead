@@ -24,7 +24,7 @@ type Subjects struct {
 	Redis         *redis.Client
 	Renderer      web.Renderer
 }
-
+ 
 func urlSubjectsIndex() string {
 	return fmt.Sprintf("/admin/subjects")
 }
@@ -36,7 +36,7 @@ func urlSubjectsCreate() string {
 func urlSubjectsView(subjectID string) string {
 	return fmt.Sprintf("/admin/subjects/%s", subjectID) 
 }
-
+ 
 func urlSubjectsUpdate(subjectID string) string {
 	return fmt.Sprintf("/admin/subjects/%s/update", subjectID)
 }
@@ -52,10 +52,10 @@ func (h *Subjects) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
 		{Field: "name", Title: "Subject", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
-		{Field: "school_order", Title: "School Order", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
+		{Field: "school_order", Title: "School(s)", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 	}
 
-	mapFunc := func(q *subject.Subject, cols []datatable.DisplayField) (resp []datatable.ColumnValue, err error) {
+	mapFunc := func(q *subject.Response, cols []datatable.DisplayField) (resp []datatable.ColumnValue, err error) {
 		for i := 0; i < len(cols); i++ {
 			col := cols[i]
 			var v datatable.ColumnValue
@@ -86,7 +86,7 @@ func (h *Subjects) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 		}
 
 		for _, a := range res {
-			l, err := mapFunc(a, fields)
+			l, err := mapFunc(a.Response(ctx), fields)
 			if err != nil {
 				return resp, errors.Wrapf(err, "Failed to map checklist for display.")
 			}
@@ -253,9 +253,8 @@ func (h *Subjects) Update(ctx context.Context, w http.ResponseWriter, r *http.Re
 	claims, err := auth.ClaimsFromContext(ctx)
 	if err != nil {
 		return err
-	}
+	} 
 
-	//
 	req := new(subject.UpdateRequest)
 	data := make(map[string]interface{})
 	f := func() (bool, error) {
@@ -272,7 +271,6 @@ func (h *Subjects) Update(ctx context.Context, w http.ResponseWriter, r *http.Re
 				return false, err
 			}
 			req.ID = subjectID
-
 			err = h.Repo.Update(ctx, claims, *req)
 			if err != nil {
 				switch errors.Cause(err) {

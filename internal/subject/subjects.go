@@ -2,6 +2,7 @@ package subject
 
 import (
 	"context"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -198,6 +199,7 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 		return nil
 	}
 
+	fmt.Println(cols)
 	_, err = models.Subjects(models.SubjectWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, cols)
 
 	return nil
