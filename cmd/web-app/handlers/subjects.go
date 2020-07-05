@@ -52,6 +52,7 @@ func (h *Subjects) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 	fields := []datatable.DisplayField{
 		{Field: "id", Title: "ID", Visible: false, Searchable: true, Orderable: true, Filterable: false},
 		{Field: "name", Title: "Subject", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
+		{Field: "school_order", Title: "School Order", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "filter Name"},
 	}
 
 	mapFunc := func(q *subject.Subject, cols []datatable.DisplayField) (resp []datatable.ColumnValue, err error) {
@@ -64,6 +65,9 @@ func (h *Subjects) Index(ctx context.Context, w http.ResponseWriter, r *http.Req
 			case "name":
 				v.Value = q.Name
 				v.Formatted = fmt.Sprintf("<a href='%s'>%s</a>", urlSubjectsView(q.ID), v.Value)
+			case "school_order":
+				v.Value = fmt.Sprintf("%v", q.SchoolOrders)
+				v.Formatted = v.Value
 			default:
 				return resp, errors.Errorf("Failed to map value for %s.", col.Field)
 			}

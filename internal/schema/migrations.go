@@ -1286,6 +1286,22 @@ func migrationList(ctx context.Context, db *sqlx.DB, log *log.Logger, isUnittest
 				return nil
 			},
 		},
+		// Add last_payment_date to student table
+		{
+			ID: "20200705-02",
+			Migrate: func(tx *sql.Tx) error {
+				q1 := `ALTER TABLE subject ADD school_order INT8[] NOT NULL`
+				
+				if _, err := tx.Exec(q1); err != nil {
+					return errors.Wrapf(err, "Query failed %s", q1)
+				}
+
+				return nil
+			},
+			Rollback: func(tx *sql.Tx) error {
+				return nil
+			},
+		},
 	}
 }
 

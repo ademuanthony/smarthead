@@ -919,7 +919,7 @@ func (studentL) LoadSubjects(ctx context.Context, e boil.ContextExecutor, singul
 		one := new(Subject)
 		var localJoinCol string
 
-		err = results.Scan(&one.ID, &one.Name, &one.CreatedAt, &one.UpdatedAt, &localJoinCol)
+		err = results.Scan(&one.ID, &one.Name, &one.CreatedAt, &one.UpdatedAt, &one.SchoolOrder, &localJoinCol)
 		if err != nil {
 			return errors.Wrap(err, "failed to scan eager loaded results for subject")
 		}

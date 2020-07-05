@@ -1511,7 +1511,7 @@ func testSubjectsSelect(t *testing.T) {
 }
 
 var (
-	subjectDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`}
+	subjectDBTypes = map[string]string{`ID`: `uuid`, `Name`: `character varying`, `CreatedAt`: `timestamp without time zone`, `UpdatedAt`: `timestamp without time zone`, `SchoolOrder`: `ARRAYbigint`}
 	_              = bytes.MinRead
 )
 

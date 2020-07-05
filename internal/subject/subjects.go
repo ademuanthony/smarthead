@@ -2,6 +2,8 @@ package subject
 
 import (
 	"context"
+	"strconv"
+	"strings"
 
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
@@ -115,9 +117,20 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 		return nil, err
 	}
 
+	schoolOrdersStrs := strings.Split(req.SchoolOrder, ",")
+	var schoolOrders = make([]int64, len(schoolOrdersStrs))
+	for i, s := range schoolOrdersStrs {
+		s = strings.Trim(s, " ")
+		sInt, err := strconv.Atoi(s)
+		if err != nil {
+			return nil, errors.New("Invalid character for school order")
+		}
+		schoolOrders[i] = int64(sInt)
+	}
 	m := models.Subject{
-		ID:        uuid.NewRandom().String(),
-		Name:      req.Name,
+		ID:          uuid.NewRandom().String(),
+		Name:        req.Name,
+		SchoolOrder: schoolOrders,
 	}
 
 	if err := m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
@@ -125,8 +138,9 @@ func (repo *Repository) Create(ctx context.Context, claims auth.Claims, req Crea
 	}
 
 	return &Subject{
-		ID:         m.ID,
-		Name:       m.Name,
+		ID:           m.ID,
+		Name:         m.Name,
+		SchoolOrders: m.SchoolOrder,
 	}, nil
 }
 
@@ -166,11 +180,25 @@ func (repo *Repository) Update(ctx context.Context, claims auth.Claims, req Upda
 		cols[models.SubjectColumns.Name] = *req.Name
 	}
 
+	if req.SchoolOrder != nil {
+		schoolOrdersStrs := strings.Split(*req.SchoolOrder, ",")
+		var schoolOrders = make([]int64, len(schoolOrdersStrs))
+		for i, s := range schoolOrdersStrs {
+			s = strings.Trim(s, " ")
+			sInt, err := strconv.Atoi(s)
+			if err != nil {
+				return errors.New("Invalid character for school order")
+			}
+			schoolOrders[i] = int64(sInt)
+		}
+		cols[models.SubjectColumns.SchoolOrder] = schoolOrders
+	}
+
 	if len(cols) == 0 {
 		return nil
 	}
 
-	_,err = models.Subjects(models.SubjectWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, cols)
+	_, err = models.Subjects(models.SubjectWhere.ID.EQ(req.ID)).UpdateAll(ctx, repo.DbConn, cols)
 
 	return nil
 }

@@ -19,43 +19,70 @@ import (
 	"github.com/volatiletech/sqlboiler/queries/qm"
 	"github.com/volatiletech/sqlboiler/queries/qmhelper"
 	"github.com/volatiletech/sqlboiler/strmangle"
+	"github.com/volatiletech/sqlboiler/types"
 )
 
 // Subject is an object representing the database table.
 type Subject struct {
-	ID        string    `boil:"id" json:"id" toml:"id" yaml:"id"`
-	Name      string    `boil:"name" json:"name" toml:"name" yaml:"name"`
-	CreatedAt time.Time `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
-	UpdatedAt time.Time `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	ID          string           `boil:"id" json:"id" toml:"id" yaml:"id"`
+	Name        string           `boil:"name" json:"name" toml:"name" yaml:"name"`
+	CreatedAt   time.Time        `boil:"created_at" json:"created_at" toml:"created_at" yaml:"created_at"`
+	UpdatedAt   time.Time        `boil:"updated_at" json:"updated_at" toml:"updated_at" yaml:"updated_at"`
+	SchoolOrder types.Int64Array `boil:"school_order" json:"school_order" toml:"school_order" yaml:"school_order"`
 
 	R *subjectR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L subjectL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var SubjectColumns = struct {
-	ID        string
-	Name      string
-	CreatedAt string
-	UpdatedAt string
+	ID          string
+	Name        string
+	CreatedAt   string
+	UpdatedAt   string
+	SchoolOrder string
 }{
-	ID:        "id",
-	Name:      "name",
-	CreatedAt: "created_at",
-	UpdatedAt: "updated_at",
+	ID:          "id",
+	Name:        "name",
+	CreatedAt:   "created_at",
+	UpdatedAt:   "updated_at",
+	SchoolOrder: "school_order",
 }
 
 // Generated where
 
+type whereHelpertypes_Int64Array struct{ field string }
+
+func (w whereHelpertypes_Int64Array) EQ(x types.Int64Array) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.EQ, x)
+}
+func (w whereHelpertypes_Int64Array) NEQ(x types.Int64Array) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.NEQ, x)
+}
+func (w whereHelpertypes_Int64Array) LT(x types.Int64Array) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LT, x)
+}
+func (w whereHelpertypes_Int64Array) LTE(x types.Int64Array) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.LTE, x)
+}
+func (w whereHelpertypes_Int64Array) GT(x types.Int64Array) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GT, x)
+}
+func (w whereHelpertypes_Int64Array) GTE(x types.Int64Array) qm.QueryMod {
+	return qmhelper.Where(w.field, qmhelper.GTE, x)
+}
+
 var SubjectWhere = struct {
-	ID        whereHelperstring
-	Name      whereHelperstring
-	CreatedAt whereHelpertime_Time
-	UpdatedAt whereHelpertime_Time
+	ID          whereHelperstring
+	Name        whereHelperstring
+	CreatedAt   whereHelpertime_Time
+	UpdatedAt   whereHelpertime_Time
+	SchoolOrder whereHelpertypes_Int64Array
 }{
-	ID:        whereHelperstring{field: "\"subject\".\"id\""},
-	Name:      whereHelperstring{field: "\"subject\".\"name\""},
-	CreatedAt: whereHelpertime_Time{field: "\"subject\".\"created_at\""},
-	UpdatedAt: whereHelpertime_Time{field: "\"subject\".\"updated_at\""},
+	ID:          whereHelperstring{field: "\"subject\".\"id\""},
+	Name:        whereHelperstring{field: "\"subject\".\"name\""},
+	CreatedAt:   whereHelpertime_Time{field: "\"subject\".\"created_at\""},
+	UpdatedAt:   whereHelpertime_Time{field: "\"subject\".\"updated_at\""},
+	SchoolOrder: whereHelpertypes_Int64Array{field: "\"subject\".\"school_order\""},
 }
 
 // SubjectRels is where relationship names are stored.
@@ -91,8 +118,8 @@ func (*subjectR) NewStruct() *subjectR {
 type subjectL struct{}
 
 var (
-	subjectAllColumns            = []string{"id", "name", "created_at", "updated_at"}
-	subjectColumnsWithoutDefault = []string{"id", "name", "created_at", "updated_at"}
+	subjectAllColumns            = []string{"id", "name", "created_at", "updated_at", "school_order"}
+	subjectColumnsWithoutDefault = []string{"id", "name", "created_at", "updated_at", "school_order"}
 	subjectColumnsWithDefault    = []string{}
 	subjectPrimaryKeyColumns     = []string{"id"}
 )

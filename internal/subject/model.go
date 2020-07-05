@@ -2,7 +2,7 @@ package subject
 
 import (
 	"context"
-	
+
 	"github.com/jmoiron/sqlx"
 	"remoteschool/smarthead/internal/postgres/models"
 )
@@ -21,16 +21,16 @@ func NewRepository(db *sqlx.DB) *Repository {
 
 // Branch represents a workflow.
 type Subject struct {
-	ID         string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name  	   string  `boil:"name" json:"name" toml:"name" yaml:"name"`
-	
-	
+	ID           string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	Name         string  `boil:"name" json:"name" toml:"name" yaml:"name"`
+	SchoolOrders []int64 `json:"school_order"`
 }
 
 func FromModel(rec *models.Subject) *Subject {
 	b := &Subject{
-		ID:         rec.ID,
-		Name:       rec.Name,
+		ID:           rec.ID,
+		Name:         rec.Name,
+		SchoolOrders: rec.SchoolOrder,
 	}
 
 	return b
@@ -38,8 +38,9 @@ func FromModel(rec *models.Subject) *Subject {
 
 // Response represents a workflow that is returned for display.
 type Response struct {
-	ID         string            `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name       string            `json:"name"  validate:"required" example:"Rocket Launch"`
+	ID           string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	Name         string  `json:"name"  validate:"required" example:"Rocket Launch"`
+	SchoolOrders []int64 `json:"school_order"`
 }
 
 // Response transforms Subject to the Response that is used for display.
@@ -50,8 +51,9 @@ func (m *Subject) Response(ctx context.Context) *Response {
 	}
 
 	r := &Response{
-		ID:        m.ID,
-		Name:      m.Name,
+		ID:           m.ID,
+		Name:         m.Name,
+		SchoolOrders: m.SchoolOrders,
 	}
 
 	return r
@@ -74,7 +76,8 @@ func (m *Subjects) Response(ctx context.Context) []*Response {
 
 // CreateRequest contains information needed to create a new Branch.
 type CreateRequest struct {
-	Name      string           `json:"name" validate:"required"  example:"Rocket Launch"`
+	Name        string `json:"name" validate:"required"  example:"Rocket Launch"`
+	SchoolOrder string `json:"school_order" validate:"required" example:"0,1"`
 }
 
 // ReadRequest defines the information needed to read a checklist.
@@ -88,8 +91,9 @@ type ReadRequest struct {
 // changed. It uses pointer fields so we can differentiate between a field that
 // was not provided and a field that was provided as explicitly blank.
 type UpdateRequest struct {
-	ID     string           `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
-	Name   *string          `json:"name,omitempty" validate:"omitempty,unique" example:"Rocket Launch to Moon"`
+	ID          string  `json:"id" validate:"required,uuid" example:"985f1746-1d9f-459f-a2d9-fc53ece5ae86"`
+	Name        *string `json:"name,omitempty" validate:"omitempty,unique" example:"Rocket Launch to Moon"`
+	SchoolOrder *string `json:"school_order" example:"0,1"`
 }
 
 // ArchiveRequest defines the information needed to archive a checklist. This will archive (soft-delete) the
