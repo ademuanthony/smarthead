@@ -2,9 +2,11 @@ package subject
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"strconv"
 	"strings"
+	"time"
 
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
@@ -72,10 +74,21 @@ func (repo *Repository) ReadByID(ctx context.Context, claims auth.Claims, id str
 
 func (repo *Repository) EnglishID(ctx context.Context) (*Subject, error) {
 	m, err := models.Subjects(
-		models.SubjectWhere.Name.EQ("English Language"),
+		models.SubjectWhere.Name.EQ("ENGLISH"),
 	).One(ctx, repo.DbConn)
 	if err != nil {
-		return nil, err
+		if err.Error() != sql.ErrNoRows.Error() {
+			return nil, err
+		}
+		m = &models.Subject{
+			ID: uuid.NewRandom().String(),
+			Name: "ENGLISH",
+			CreatedAt: time.Now(),
+			SchoolOrder: []int64{0,1,2},
+		}
+		if err = m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
+			return nil, err
+		}
 	}
 
 	return FromModel(m), nil
@@ -83,10 +96,21 @@ func (repo *Repository) EnglishID(ctx context.Context) (*Subject, error) {
 
 func (repo *Repository) MathsID(ctx context.Context) (*Subject, error) {
 	m, err := models.Subjects(
-		models.SubjectWhere.Name.EQ("Mathematics"),
+		models.SubjectWhere.Name.EQ("MATHEMATICS"),
 	).One(ctx, repo.DbConn)
 	if err != nil {
-		return nil, err
+		if err.Error() != sql.ErrNoRows.Error() {
+			return nil, err
+		}
+		m = &models.Subject{
+			ID: uuid.NewRandom().String(),
+			Name: "MATHEMATICS",
+			CreatedAt: time.Now(),
+			SchoolOrder: []int64{0,1,2},
+		}
+		if err = m.Insert(ctx, repo.DbConn, boil.Infer()); err != nil {
+			return nil, err
+		}
 	}
 
 	return FromModel(m), nil
