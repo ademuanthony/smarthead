@@ -2,7 +2,6 @@ package subclass
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
@@ -72,30 +71,17 @@ func (repo *Repository) Find(ctx context.Context, req FindRequest) (Subclasses, 
 	return result, nil
 }
 
-func (repo *Repository) NextSubclass(ctx context.Context, classID string) (*Subclass, error) {
-	s, err := models.Subclasses(models.SubclassWhere.ClassID.EQ(classID)).All(ctx, repo.DbConn)
+func (repo *Repository) NextFreeSubclass(ctx context.Context, classID string) (*Subclass, error) {
+	class, err := models.FindClass(ctx, repo.DbConn, classID)
 	if err != nil {
-		if err.Error() != sql.ErrNoRows.Error() {
-			return nil, err
-		}
-		cla, err := models.FindClass(ctx, repo.DbConn, classID)
-		if err != nil {
-			return nil, errors.Errorf("Invalid classID - %s", err.Error)
-		}
-		sClass := models.Subclass{
-			ID: uuid.NewRandom().String(),
-			ClassID: classID,
-			Name: fmt.Sprintf("%sA Free", cla.Name),
-			SchoolOrder: cla.SchoolOrder,
-		}
-		err = sClass.Insert(ctx, repo.DbConn, boil.Infer())
-		if err != nil {
-			return nil, err
-		}
-		return FromModel(&sClass), nil
+		return nil, fmt.Errorf("Cannot get subclass - %s", err.Error())
 	}
-	for _, sc := range s {
-		if strings.Contains(sc.Name, "A Free") {
+	subclasses, err := models.Subclasses(models.SubclassWhere.SchoolOrder.EQ(class.SchoolOrder)).All(ctx, repo.DbConn)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get subclass - %s", err.Error())
+	}
+	for _, sc := range subclasses {
+		if strings.Contains(strings.ToLower(sc.Name), "free") {
 			return FromModel(sc), nil
 		}
 	}

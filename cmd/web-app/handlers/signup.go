@@ -267,7 +267,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		return web.RespondJsonError(ctx, w, err)
 	}
 
-	subclassA, err := h.SubclassRepo.NextSubclass(ctx, req.ClassID)
+	subclassA, err := h.SubclassRepo.NextFreeSubclass(ctx, req.ClassID)
 	if err != nil {
 		return web.RespondJsonError(ctx, w, err)
 	}
