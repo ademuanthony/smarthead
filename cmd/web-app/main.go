@@ -968,7 +968,7 @@ func main() {
 			}
 
 			startDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(),
-				startHour-1, startMin, 0, 0, time.UTC)
+				startHour-1, startMin, 0, 0, time.UTC).Add(-5 * time.Minute)
 
 			endDate := time.Date(currentDate.Year(), currentDate.Month(), currentDate.Day(),
 				endHour-1, endMin, 0, 0, time.UTC)
