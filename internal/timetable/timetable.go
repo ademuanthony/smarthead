@@ -269,3 +269,12 @@ func (repo *Repository) Delete(ctx context.Context, claims auth.Claims, req Dele
 
 	return nil
 }
+
+// StartLessonDeamon
+func (repo *Repository) StartLessonDeamon(ctx context.Context) error {
+	return nil
+}
+
+func (repo *Repository) generateLessons(ctx context.Context) error {
+	return nil
+}

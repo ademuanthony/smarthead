@@ -644,7 +644,7 @@ func testLessonStudentsSelect(t *testing.T) {
 }
 
 var (
-	lessonStudentDBTypes = map[string]string{`ID`: `uuid`, `LessonID`: `uuid`, `StudentID`: `uuid`}
+	lessonStudentDBTypes = map[string]string{`ID`: `uuid`, `LessonID`: `uuid`, `StudentID`: `uuid`, `AttendanceDate`: `bigint`}
 	_                    = bytes.MinRead
 )
 

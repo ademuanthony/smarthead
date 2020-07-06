@@ -103,11 +103,13 @@ var UserWhere = struct {
 var UserRels = struct {
 	BillingUserAccounts string
 	SignupUserAccounts  string
+	TeacherLessons      string
 	TeacherTimetables   string
 	UsersAccounts       string
 }{
 	BillingUserAccounts: "BillingUserAccounts",
 	SignupUserAccounts:  "SignupUserAccounts",
+	TeacherLessons:      "TeacherLessons",
 	TeacherTimetables:   "TeacherTimetables",
 	UsersAccounts:       "UsersAccounts",
 }
@@ -116,6 +118,7 @@ var UserRels = struct {
 type userR struct {
 	BillingUserAccounts AccountSlice
 	SignupUserAccounts  AccountSlice
+	TeacherLessons      LessonSlice
 	TeacherTimetables   TimetableSlice
 	UsersAccounts       UsersAccountSlice
 }
@@ -263,6 +266,27 @@ func (o *User) SignupUserAccounts(mods ...qm.QueryMod) accountQuery {
 
 	if len(queries.GetSelect(query.Query)) == 0 {
 		queries.SetSelect(query.Query, []string{"\"accounts\".*"})
+	}
+
+	return query
+}
+
+// TeacherLessons retrieves all the lesson's Lessons with an executor via teacher_id column.
+func (o *User) TeacherLessons(mods ...qm.QueryMod) lessonQuery {
+	var queryMods []qm.QueryMod
+	if len(mods) != 0 {
+		queryMods = append(queryMods, mods...)
+	}
+
+	queryMods = append(queryMods,
+		qm.Where("\"lesson\".\"teacher_id\"=?", o.ID),
+	)
+
+	query := Lessons(queryMods...)
+	queries.SetFrom(query.Query, "\"lesson\"")
+
+	if len(queries.GetSelect(query.Query)) == 0 {
+		queries.SetSelect(query.Query, []string{"\"lesson\".*"})
 	}
 
 	return query
@@ -478,6 +502,94 @@ func (userL) LoadSignupUserAccounts(ctx context.Context, e boil.ContextExecutor,
 					foreign.R = &accountR{}
 				}
 				foreign.R.SignupUser = local
+				break
+			}
+		}
+	}
+
+	return nil
+}
+
+// LoadTeacherLessons allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for a 1-M or N-M relationship.
+func (userL) LoadTeacherLessons(ctx context.Context, e boil.ContextExecutor, singular bool, maybeUser interface{}, mods queries.Applicator) error {
+	var slice []*User
+	var object *User
+
+	if singular {
+		object = maybeUser.(*User)
+	} else {
+		slice = *maybeUser.(*[]*User)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &userR{}
+		}
+		args = append(args, object.ID)
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &userR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.ID) {
+					continue Outer
+				}
+			}
+
+			args = append(args, obj.ID)
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`lesson`), qm.WhereIn(`lesson.teacher_id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load lesson")
+	}
+
+	var resultSlice []*Lesson
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice lesson")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results in eager load on lesson")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for lesson")
+	}
+
+	if singular {
+		object.R.TeacherLessons = resultSlice
+		for _, foreign := range resultSlice {
+			if foreign.R == nil {
+				foreign.R = &lessonR{}
+			}
+			foreign.R.Teacher = object
+		}
+		return nil
+	}
+
+	for _, foreign := range resultSlice {
+		for _, local := range slice {
+			if queries.Equal(local.ID, foreign.TeacherID) {
+				local.R.TeacherLessons = append(local.R.TeacherLessons, foreign)
+				if foreign.R == nil {
+					foreign.R = &lessonR{}
+				}
+				foreign.R.Teacher = local
 				break
 			}
 		}
@@ -901,6 +1013,129 @@ func (o *User) RemoveSignupUserAccounts(ctx context.Context, exec boil.ContextEx
 				o.R.SignupUserAccounts[i] = o.R.SignupUserAccounts[ln-1]
 			}
 			o.R.SignupUserAccounts = o.R.SignupUserAccounts[:ln-1]
+			break
+		}
+	}
+
+	return nil
+}
+
+// AddTeacherLessons adds the given related objects to the existing relationships
+// of the user, optionally inserting them as new records.
+// Appends related to o.R.TeacherLessons.
+// Sets related.R.Teacher appropriately.
+func (o *User) AddTeacherLessons(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Lesson) error {
+	var err error
+	for _, rel := range related {
+		if insert {
+			queries.Assign(&rel.TeacherID, o.ID)
+			if err = rel.Insert(ctx, exec, boil.Infer()); err != nil {
+				return errors.Wrap(err, "failed to insert into foreign table")
+			}
+		} else {
+			updateQuery := fmt.Sprintf(
+				"UPDATE \"lesson\" SET %s WHERE %s",
+				strmangle.SetParamNames("\"", "\"", 1, []string{"teacher_id"}),
+				strmangle.WhereClause("\"", "\"", 2, lessonPrimaryKeyColumns),
+			)
+			values := []interface{}{o.ID, rel.ID}
+
+			if boil.IsDebug(ctx) {
+				writer := boil.DebugWriterFrom(ctx)
+				fmt.Fprintln(writer, updateQuery)
+				fmt.Fprintln(writer, values)
+			}
+			if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+				return errors.Wrap(err, "failed to update foreign table")
+			}
+
+			queries.Assign(&rel.TeacherID, o.ID)
+		}
+	}
+
+	if o.R == nil {
+		o.R = &userR{
+			TeacherLessons: related,
+		}
+	} else {
+		o.R.TeacherLessons = append(o.R.TeacherLessons, related...)
+	}
+
+	for _, rel := range related {
+		if rel.R == nil {
+			rel.R = &lessonR{
+				Teacher: o,
+			}
+		} else {
+			rel.R.Teacher = o
+		}
+	}
+	return nil
+}
+
+// SetTeacherLessons removes all previously related items of the
+// user replacing them completely with the passed
+// in related items, optionally inserting them as new records.
+// Sets o.R.Teacher's TeacherLessons accordingly.
+// Replaces o.R.TeacherLessons with related.
+// Sets related.R.Teacher's TeacherLessons accordingly.
+func (o *User) SetTeacherLessons(ctx context.Context, exec boil.ContextExecutor, insert bool, related ...*Lesson) error {
+	query := "update \"lesson\" set \"teacher_id\" = null where \"teacher_id\" = $1"
+	values := []interface{}{o.ID}
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, query)
+		fmt.Fprintln(writer, values)
+	}
+	_, err := exec.ExecContext(ctx, query, values...)
+	if err != nil {
+		return errors.Wrap(err, "failed to remove relationships before set")
+	}
+
+	if o.R != nil {
+		for _, rel := range o.R.TeacherLessons {
+			queries.SetScanner(&rel.TeacherID, nil)
+			if rel.R == nil {
+				continue
+			}
+
+			rel.R.Teacher = nil
+		}
+
+		o.R.TeacherLessons = nil
+	}
+	return o.AddTeacherLessons(ctx, exec, insert, related...)
+}
+
+// RemoveTeacherLessons relationships from objects passed in.
+// Removes related items from R.TeacherLessons (uses pointer comparison, removal does not keep order)
+// Sets related.R.Teacher.
+func (o *User) RemoveTeacherLessons(ctx context.Context, exec boil.ContextExecutor, related ...*Lesson) error {
+	var err error
+	for _, rel := range related {
+		queries.SetScanner(&rel.TeacherID, nil)
+		if rel.R != nil {
+			rel.R.Teacher = nil
+		}
+		if _, err = rel.Update(ctx, exec, boil.Whitelist("teacher_id")); err != nil {
+			return err
+		}
+	}
+	if o.R == nil {
+		return nil
+	}
+
+	for _, rel := range related {
+		for i, ri := range o.R.TeacherLessons {
+			if rel != ri {
+				continue
+			}
+
+			ln := len(o.R.TeacherLessons)
+			if ln > 1 && i < ln-1 {
+				o.R.TeacherLessons[i] = o.R.TeacherLessons[ln-1]
+			}
+			o.R.TeacherLessons = o.R.TeacherLessons[:ln-1]
 			break
 		}
 	}

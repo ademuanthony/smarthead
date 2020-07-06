@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/friendsofgo/errors"
+	"github.com/volatiletech/null"
 	"github.com/volatiletech/sqlboiler/boil"
 	"github.com/volatiletech/sqlboiler/queries"
 	"github.com/volatiletech/sqlboiler/queries/qm"
@@ -23,22 +24,34 @@ import (
 
 // Lesson is an object representing the database table.
 type Lesson struct {
-	ID          string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	TimetableID string `boil:"timetable_id" json:"timetable_id" toml:"timetable_id" yaml:"timetable_id"`
-	Date        int64  `boil:"date" json:"date" toml:"date" yaml:"date"`
+	ID                    string      `boil:"id" json:"id" toml:"id" yaml:"id"`
+	TimetableID           string      `boil:"timetable_id" json:"timetable_id" toml:"timetable_id" yaml:"timetable_id"`
+	Date                  int64       `boil:"date" json:"date" toml:"date" yaml:"date"`
+	StartDate             int64       `boil:"start_date" json:"start_date" toml:"start_date" yaml:"start_date"`
+	EndDate               int64       `boil:"end_date" json:"end_date" toml:"end_date" yaml:"end_date"`
+	TeacherID             null.String `boil:"teacher_id" json:"teacher_id,omitempty" toml:"teacher_id" yaml:"teacher_id,omitempty"`
+	TeacherAttendanceDate int64       `boil:"teacher_attendance_date" json:"teacher_attendance_date" toml:"teacher_attendance_date" yaml:"teacher_attendance_date"`
 
 	R *lessonR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L lessonL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var LessonColumns = struct {
-	ID          string
-	TimetableID string
-	Date        string
+	ID                    string
+	TimetableID           string
+	Date                  string
+	StartDate             string
+	EndDate               string
+	TeacherID             string
+	TeacherAttendanceDate string
 }{
-	ID:          "id",
-	TimetableID: "timetable_id",
-	Date:        "date",
+	ID:                    "id",
+	TimetableID:           "timetable_id",
+	Date:                  "date",
+	StartDate:             "start_date",
+	EndDate:               "end_date",
+	TeacherID:             "teacher_id",
+	TeacherAttendanceDate: "teacher_attendance_date",
 }
 
 // Generated where
@@ -60,26 +73,37 @@ func (w whereHelperint64) IN(slice []int64) qm.QueryMod {
 }
 
 var LessonWhere = struct {
-	ID          whereHelperstring
-	TimetableID whereHelperstring
-	Date        whereHelperint64
+	ID                    whereHelperstring
+	TimetableID           whereHelperstring
+	Date                  whereHelperint64
+	StartDate             whereHelperint64
+	EndDate               whereHelperint64
+	TeacherID             whereHelpernull_String
+	TeacherAttendanceDate whereHelperint64
 }{
-	ID:          whereHelperstring{field: "\"lesson\".\"id\""},
-	TimetableID: whereHelperstring{field: "\"lesson\".\"timetable_id\""},
-	Date:        whereHelperint64{field: "\"lesson\".\"date\""},
+	ID:                    whereHelperstring{field: "\"lesson\".\"id\""},
+	TimetableID:           whereHelperstring{field: "\"lesson\".\"timetable_id\""},
+	Date:                  whereHelperint64{field: "\"lesson\".\"date\""},
+	StartDate:             whereHelperint64{field: "\"lesson\".\"start_date\""},
+	EndDate:               whereHelperint64{field: "\"lesson\".\"end_date\""},
+	TeacherID:             whereHelpernull_String{field: "\"lesson\".\"teacher_id\""},
+	TeacherAttendanceDate: whereHelperint64{field: "\"lesson\".\"teacher_attendance_date\""},
 }
 
 // LessonRels is where relationship names are stored.
 var LessonRels = struct {
+	Teacher        string
 	Timetable      string
 	LessonStudents string
 }{
+	Teacher:        "Teacher",
 	Timetable:      "Timetable",
 	LessonStudents: "LessonStudents",
 }
 
 // lessonR is where relationships are stored.
 type lessonR struct {
+	Teacher        *User
 	Timetable      *Timetable
 	LessonStudents LessonStudentSlice
 }
@@ -93,9 +117,9 @@ func (*lessonR) NewStruct() *lessonR {
 type lessonL struct{}
 
 var (
-	lessonAllColumns            = []string{"id", "timetable_id", "date"}
-	lessonColumnsWithoutDefault = []string{"id", "timetable_id", "date"}
-	lessonColumnsWithDefault    = []string{}
+	lessonAllColumns            = []string{"id", "timetable_id", "date", "start_date", "end_date", "teacher_id", "teacher_attendance_date"}
+	lessonColumnsWithoutDefault = []string{"id", "timetable_id", "date", "start_date", "end_date"}
+	lessonColumnsWithDefault    = []string{"teacher_id", "teacher_attendance_date"}
 	lessonPrimaryKeyColumns     = []string{"id"}
 )
 
@@ -190,6 +214,20 @@ func (q lessonQuery) Exists(ctx context.Context, exec boil.ContextExecutor) (boo
 	return count > 0, nil
 }
 
+// Teacher pointed to by the foreign key.
+func (o *Lesson) Teacher(mods ...qm.QueryMod) userQuery {
+	queryMods := []qm.QueryMod{
+		qm.Where("\"id\" = ?", o.TeacherID),
+	}
+
+	queryMods = append(queryMods, mods...)
+
+	query := Users(queryMods...)
+	queries.SetFrom(query.Query, "\"users\"")
+
+	return query
+}
+
 // Timetable pointed to by the foreign key.
 func (o *Lesson) Timetable(mods ...qm.QueryMod) timetableQuery {
 	queryMods := []qm.QueryMod{
@@ -223,6 +261,103 @@ func (o *Lesson) LessonStudents(mods ...qm.QueryMod) lessonStudentQuery {
 	}
 
 	return query
+}
+
+// LoadTeacher allows an eager lookup of values, cached into the
+// loaded structs of the objects. This is for an N-1 relationship.
+func (lessonL) LoadTeacher(ctx context.Context, e boil.ContextExecutor, singular bool, maybeLesson interface{}, mods queries.Applicator) error {
+	var slice []*Lesson
+	var object *Lesson
+
+	if singular {
+		object = maybeLesson.(*Lesson)
+	} else {
+		slice = *maybeLesson.(*[]*Lesson)
+	}
+
+	args := make([]interface{}, 0, 1)
+	if singular {
+		if object.R == nil {
+			object.R = &lessonR{}
+		}
+		if !queries.IsNil(object.TeacherID) {
+			args = append(args, object.TeacherID)
+		}
+
+	} else {
+	Outer:
+		for _, obj := range slice {
+			if obj.R == nil {
+				obj.R = &lessonR{}
+			}
+
+			for _, a := range args {
+				if queries.Equal(a, obj.TeacherID) {
+					continue Outer
+				}
+			}
+
+			if !queries.IsNil(obj.TeacherID) {
+				args = append(args, obj.TeacherID)
+			}
+
+		}
+	}
+
+	if len(args) == 0 {
+		return nil
+	}
+
+	query := NewQuery(qm.From(`users`), qm.WhereIn(`users.id in ?`, args...))
+	if mods != nil {
+		mods.Apply(query)
+	}
+
+	results, err := query.QueryContext(ctx, e)
+	if err != nil {
+		return errors.Wrap(err, "failed to eager load User")
+	}
+
+	var resultSlice []*User
+	if err = queries.Bind(results, &resultSlice); err != nil {
+		return errors.Wrap(err, "failed to bind eager loaded slice User")
+	}
+
+	if err = results.Close(); err != nil {
+		return errors.Wrap(err, "failed to close results of eager load for users")
+	}
+	if err = results.Err(); err != nil {
+		return errors.Wrap(err, "error occurred during iteration of eager loaded relations for users")
+	}
+
+	if len(resultSlice) == 0 {
+		return nil
+	}
+
+	if singular {
+		foreign := resultSlice[0]
+		object.R.Teacher = foreign
+		if foreign.R == nil {
+			foreign.R = &userR{}
+		}
+		foreign.R.TeacherLessons = append(foreign.R.TeacherLessons, object)
+		return nil
+	}
+
+	for _, local := range slice {
+		for _, foreign := range resultSlice {
+			if queries.Equal(local.TeacherID, foreign.ID) {
+				local.R.Teacher = foreign
+				if foreign.R == nil {
+					foreign.R = &userR{}
+				}
+				foreign.R.TeacherLessons = append(foreign.R.TeacherLessons, local)
+				break
+			}
+		}
+	}
+
+	return nil
 }
 
 // LoadTimetable allows an eager lookup of values, cached into the
@@ -403,6 +538,86 @@ func (lessonL) LoadLessonStudents(ctx context.Context, e boil.ContextExecutor, s
 		}
 	}
 
+	return nil
+}
+
+// SetTeacher of the lesson to the related item.
+// Sets o.R.Teacher to related.
+// Adds o to related.R.TeacherLessons.
+func (o *Lesson) SetTeacher(ctx context.Context, exec boil.ContextExecutor, insert bool, related *User) error {
+	var err error
+	if insert {
+		if err = related.Insert(ctx, exec, boil.Infer()); err != nil {
+			return errors.Wrap(err, "failed to insert into foreign table")
+		}
+	}
+
+	updateQuery := fmt.Sprintf(
+		"UPDATE \"lesson\" SET %s WHERE %s",
+		strmangle.SetParamNames("\"", "\"", 1, []string{"teacher_id"}),
+		strmangle.WhereClause("\"", "\"", 2, lessonPrimaryKeyColumns),
+	)
+	values := []interface{}{related.ID, o.ID}
+
+	if boil.IsDebug(ctx) {
+		writer := boil.DebugWriterFrom(ctx)
+		fmt.Fprintln(writer, updateQuery)
+		fmt.Fprintln(writer, values)
+	}
+	if _, err = exec.ExecContext(ctx, updateQuery, values...); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	queries.Assign(&o.TeacherID, related.ID)
+	if o.R == nil {
+		o.R = &lessonR{
+			Teacher: related,
+		}
+	} else {
+		o.R.Teacher = related
+	}
+
+	if related.R == nil {
+		related.R = &userR{
+			TeacherLessons: LessonSlice{o},
+		}
+	} else {
+		related.R.TeacherLessons = append(related.R.TeacherLessons, o)
+	}
+
+	return nil
+}
+
+// RemoveTeacher relationship.
+// Sets o.R.Teacher to nil.
+// Removes o from all passed in related items' relationships struct (Optional).
+func (o *Lesson) RemoveTeacher(ctx context.Context, exec boil.ContextExecutor, related *User) error {
+	var err error
+
+	queries.SetScanner(&o.TeacherID, nil)
+	if _, err = o.Update(ctx, exec, boil.Whitelist("teacher_id")); err != nil {
+		return errors.Wrap(err, "failed to update local table")
+	}
+
+	if o.R != nil {
+		o.R.Teacher = nil
+	}
+	if related == nil || related.R == nil {
+		return nil
+	}
+
+	for i, ri := range related.R.TeacherLessons {
+		if queries.Equal(o.TeacherID, ri.TeacherID) {
+			continue
+		}
+
+		ln := len(related.R.TeacherLessons)
+		if ln > 1 && i < ln-1 {
+			related.R.TeacherLessons[i] = related.R.TeacherLessons[ln-1]
+		}
+		related.R.TeacherLessons = related.R.TeacherLessons[:ln-1]
+		break
+	}
 	return nil
 }
 

@@ -23,34 +23,39 @@ import (
 
 // LessonStudent is an object representing the database table.
 type LessonStudent struct {
-	ID        string `boil:"id" json:"id" toml:"id" yaml:"id"`
-	LessonID  string `boil:"lesson_id" json:"lesson_id" toml:"lesson_id" yaml:"lesson_id"`
-	StudentID string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	ID             string `boil:"id" json:"id" toml:"id" yaml:"id"`
+	LessonID       string `boil:"lesson_id" json:"lesson_id" toml:"lesson_id" yaml:"lesson_id"`
+	StudentID      string `boil:"student_id" json:"student_id" toml:"student_id" yaml:"student_id"`
+	AttendanceDate int64  `boil:"attendance_date" json:"attendance_date" toml:"attendance_date" yaml:"attendance_date"`
 
 	R *lessonStudentR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L lessonStudentL  `boil:"-" json:"-" toml:"-" yaml:"-"`
 }
 
 var LessonStudentColumns = struct {
-	ID        string
-	LessonID  string
-	StudentID string
+	ID             string
+	LessonID       string
+	StudentID      string
+	AttendanceDate string
 }{
-	ID:        "id",
-	LessonID:  "lesson_id",
-	StudentID: "student_id",
+	ID:             "id",
+	LessonID:       "lesson_id",
+	StudentID:      "student_id",
+	AttendanceDate: "attendance_date",
 }
 
 // Generated where
 
 var LessonStudentWhere = struct {
-	ID        whereHelperstring
-	LessonID  whereHelperstring
-	StudentID whereHelperstring
+	ID             whereHelperstring
+	LessonID       whereHelperstring
+	StudentID      whereHelperstring
+	AttendanceDate whereHelperint64
 }{
-	ID:        whereHelperstring{field: "\"lesson_student\".\"id\""},
-	LessonID:  whereHelperstring{field: "\"lesson_student\".\"lesson_id\""},
-	StudentID: whereHelperstring{field: "\"lesson_student\".\"student_id\""},
+	ID:             whereHelperstring{field: "\"lesson_student\".\"id\""},
+	LessonID:       whereHelperstring{field: "\"lesson_student\".\"lesson_id\""},
+	StudentID:      whereHelperstring{field: "\"lesson_student\".\"student_id\""},
+	AttendanceDate: whereHelperint64{field: "\"lesson_student\".\"attendance_date\""},
 }
 
 // LessonStudentRels is where relationship names are stored.
@@ -77,9 +82,9 @@ func (*lessonStudentR) NewStruct() *lessonStudentR {
 type lessonStudentL struct{}
 
 var (
-	lessonStudentAllColumns            = []string{"id", "lesson_id", "student_id"}
+	lessonStudentAllColumns            = []string{"id", "lesson_id", "student_id", "attendance_date"}
 	lessonStudentColumnsWithoutDefault = []string{"id", "lesson_id", "student_id"}
-	lessonStudentColumnsWithDefault    = []string{}
+	lessonStudentColumnsWithDefault    = []string{"attendance_date"}
 	lessonStudentPrimaryKeyColumns     = []string{"id"}
 )
 

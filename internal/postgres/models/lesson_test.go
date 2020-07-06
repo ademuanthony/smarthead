@@ -506,6 +506,57 @@ func testLessonToManyAddOpLessonStudents(t *testing.T) {
 		}
 	}
 }
+func testLessonToOneUserUsingTeacher(t *testing.T) {
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var local Lesson
+	var foreign User
+
+	seed := randomize.NewSeed()
+	if err := randomize.Struct(seed, &local, lessonDBTypes, true, lessonColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize Lesson struct: %s", err)
+	}
+	if err := randomize.Struct(seed, &foreign, userDBTypes, false, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := foreign.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&local.TeacherID, foreign.ID)
+	if err := local.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := local.Teacher().One(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	if !queries.Equal(check.ID, foreign.ID) {
+		t.Errorf("want: %v, got %v", foreign.ID, check.ID)
+	}
+
+	slice := LessonSlice{&local}
+	if err = local.L.LoadTeacher(ctx, tx, false, (*[]*Lesson)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Teacher == nil {
+		t.Error("struct should have been eager loaded")
+	}
+
+	local.R.Teacher = nil
+	if err = local.L.LoadTeacher(ctx, tx, true, &local, nil); err != nil {
+		t.Fatal(err)
+	}
+	if local.R.Teacher == nil {
+		t.Error("struct should have been eager loaded")
+	}
+}
+
 func testLessonToOneTimetableUsingTimetable(t *testing.T) {
 	ctx := context.Background()
 	tx := MustTx(boil.BeginTx(ctx, nil))
@@ -554,6 +605,115 @@ func testLessonToOneTimetableUsingTimetable(t *testing.T) {
 	}
 	if local.R.Timetable == nil {
 		t.Error("struct should have been eager loaded")
+	}
+}
+
+func testLessonToOneSetOpUserUsingTeacher(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Lesson
+	var b, c User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, lessonDBTypes, false, strmangle.SetComplement(lessonPrimaryKeyColumns, lessonColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	for i, x := range []*User{&b, &c} {
+		err = a.SetTeacher(ctx, tx, i != 0, x)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		if a.R.Teacher != x {
+			t.Error("relationship struct not set to correct value")
+		}
+
+		if x.R.TeacherLessons[0] != &a {
+			t.Error("failed to append to foreign relationship struct")
+		}
+		if !queries.Equal(a.TeacherID, x.ID) {
+			t.Error("foreign key was wrong value", a.TeacherID)
+		}
+
+		zero := reflect.Zero(reflect.TypeOf(a.TeacherID))
+		reflect.Indirect(reflect.ValueOf(&a.TeacherID)).Set(zero)
+
+		if err = a.Reload(ctx, tx); err != nil {
+			t.Fatal("failed to reload", err)
+		}
+
+		if !queries.Equal(a.TeacherID, x.ID) {
+			t.Error("foreign key was wrong value", a.TeacherID, x.ID)
+		}
+	}
+}
+
+func testLessonToOneRemoveOpUserUsingTeacher(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a Lesson
+	var b User
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, lessonDBTypes, false, strmangle.SetComplement(lessonPrimaryKeyColumns, lessonColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &b, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.SetTeacher(ctx, tx, true, &b); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = a.RemoveTeacher(ctx, tx, &b); err != nil {
+		t.Error("failed to remove relationship")
+	}
+
+	count, err := a.Teacher().Count(ctx, tx)
+	if err != nil {
+		t.Error(err)
+	}
+	if count != 0 {
+		t.Error("want no relationships remaining")
+	}
+
+	if a.R.Teacher != nil {
+		t.Error("R struct entry should be nil")
+	}
+
+	if !queries.IsValuerNil(a.TeacherID) {
+		t.Error("foreign key value should be nil")
+	}
+
+	if len(b.R.TeacherLessons) != 0 {
+		t.Error("failed to remove a from b's relationships")
 	}
 }
 
@@ -689,7 +849,7 @@ func testLessonsSelect(t *testing.T) {
 }
 
 var (
-	lessonDBTypes = map[string]string{`ID`: `uuid`, `TimetableID`: `uuid`, `Date`: `bigint`}
+	lessonDBTypes = map[string]string{`ID`: `uuid`, `TimetableID`: `uuid`, `Date`: `bigint`, `StartDate`: `bigint`, `EndDate`: `bigint`, `TeacherID`: `character`, `TeacherAttendanceDate`: `bigint`}
 	_             = bytes.MinRead
 )
 

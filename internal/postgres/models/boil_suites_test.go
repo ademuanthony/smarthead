@@ -221,6 +221,7 @@ func TestToOne(t *testing.T) {
 	t.Run("DepositToPeriodUsingPeriod", testDepositToOnePeriodUsingPeriod)
 	t.Run("DepositToStudentUsingStudent", testDepositToOneStudentUsingStudent)
 	t.Run("DepositToSubjectUsingSubject", testDepositToOneSubjectUsingSubject)
+	t.Run("LessonToUserUsingTeacher", testLessonToOneUserUsingTeacher)
 	t.Run("LessonToTimetableUsingTimetable", testLessonToOneTimetableUsingTimetable)
 	t.Run("LessonStudentToLessonUsingLesson", testLessonStudentToOneLessonUsingLesson)
 	t.Run("LessonStudentToStudentUsingStudent", testLessonStudentToOneStudentUsingStudent)
@@ -274,6 +275,7 @@ func TestToMany(t *testing.T) {
 	t.Run("TimetableToLessons", testTimetableToManyLessons)
 	t.Run("UserToBillingUserAccounts", testUserToManyBillingUserAccounts)
 	t.Run("UserToSignupUserAccounts", testUserToManySignupUserAccounts)
+	t.Run("UserToTeacherLessons", testUserToManyTeacherLessons)
 	t.Run("UserToTeacherTimetables", testUserToManyTeacherTimetables)
 	t.Run("UserToUsersAccounts", testUserToManyUsersAccounts)
 }
@@ -287,6 +289,7 @@ func TestToOneSet(t *testing.T) {
 	t.Run("DepositToPeriodUsingDeposits", testDepositToOneSetOpPeriodUsingPeriod)
 	t.Run("DepositToStudentUsingDeposits", testDepositToOneSetOpStudentUsingStudent)
 	t.Run("DepositToSubjectUsingDeposits", testDepositToOneSetOpSubjectUsingSubject)
+	t.Run("LessonToUserUsingTeacherLessons", testLessonToOneSetOpUserUsingTeacher)
 	t.Run("LessonToTimetableUsingLessons", testLessonToOneSetOpTimetableUsingTimetable)
 	t.Run("LessonStudentToLessonUsingLessonStudents", testLessonStudentToOneSetOpLessonUsingLesson)
 	t.Run("LessonStudentToStudentUsingLessonStudents", testLessonStudentToOneSetOpStudentUsingStudent)
@@ -312,6 +315,7 @@ func TestToOneRemove(t *testing.T) {
 	t.Run("AccountToUserUsingBillingUserAccounts", testAccountToOneRemoveOpUserUsingBillingUser)
 	t.Run("AccountToUserUsingSignupUserAccounts", testAccountToOneRemoveOpUserUsingSignupUser)
 	t.Run("DepositToPeriodUsingDeposits", testDepositToOneRemoveOpPeriodUsingPeriod)
+	t.Run("LessonToUserUsingTeacherLessons", testLessonToOneRemoveOpUserUsingTeacher)
 	t.Run("StudentToClassUsingStudents", testStudentToOneRemoveOpClassUsingClass)
 	t.Run("StudentToSubclassUsingStudents", testStudentToOneRemoveOpSubclassUsingSubclass)
 	t.Run("SubscriptionToPeriodUsingSubscriptions", testSubscriptionToOneRemoveOpPeriodUsingPeriod)
@@ -355,6 +359,7 @@ func TestToManyAdd(t *testing.T) {
 	t.Run("TimetableToLessons", testTimetableToManyAddOpLessons)
 	t.Run("UserToBillingUserAccounts", testUserToManyAddOpBillingUserAccounts)
 	t.Run("UserToSignupUserAccounts", testUserToManyAddOpSignupUserAccounts)
+	t.Run("UserToTeacherLessons", testUserToManyAddOpTeacherLessons)
 	t.Run("UserToTeacherTimetables", testUserToManyAddOpTeacherTimetables)
 	t.Run("UserToUsersAccounts", testUserToManyAddOpUsersAccounts)
 }
@@ -374,6 +379,7 @@ func TestToManySet(t *testing.T) {
 	t.Run("TeacherToSubjects", testTeacherToManySetOpSubjects)
 	t.Run("UserToBillingUserAccounts", testUserToManySetOpBillingUserAccounts)
 	t.Run("UserToSignupUserAccounts", testUserToManySetOpSignupUserAccounts)
+	t.Run("UserToTeacherLessons", testUserToManySetOpTeacherLessons)
 }
 
 // TestToManyRemove tests cannot be run in parallel
@@ -391,6 +397,7 @@ func TestToManyRemove(t *testing.T) {
 	t.Run("TeacherToSubjects", testTeacherToManyRemoveOpSubjects)
 	t.Run("UserToBillingUserAccounts", testUserToManyRemoveOpBillingUserAccounts)
 	t.Run("UserToSignupUserAccounts", testUserToManyRemoveOpSignupUserAccounts)
+	t.Run("UserToTeacherLessons", testUserToManyRemoveOpTeacherLessons)
 }
 
 func TestReload(t *testing.T) {

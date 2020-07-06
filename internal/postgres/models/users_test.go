@@ -507,6 +507,83 @@ func testUserToManySignupUserAccounts(t *testing.T) {
 	}
 }
 
+func testUserToManyTeacherLessons(t *testing.T) {
+	var err error
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c Lesson
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, true, userColumnsWithDefault...); err != nil {
+		t.Errorf("Unable to randomize User struct: %s", err)
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	if err = randomize.Struct(seed, &b, lessonDBTypes, false, lessonColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+	if err = randomize.Struct(seed, &c, lessonDBTypes, false, lessonColumnsWithDefault...); err != nil {
+		t.Fatal(err)
+	}
+
+	queries.Assign(&b.TeacherID, a.ID)
+	queries.Assign(&c.TeacherID, a.ID)
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	check, err := a.TeacherLessons().All(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	bFound, cFound := false, false
+	for _, v := range check {
+		if queries.Equal(v.TeacherID, b.TeacherID) {
+			bFound = true
+		}
+		if queries.Equal(v.TeacherID, c.TeacherID) {
+			cFound = true
+		}
+	}
+
+	if !bFound {
+		t.Error("expected to find b")
+	}
+	if !cFound {
+		t.Error("expected to find c")
+	}
+
+	slice := UserSlice{&a}
+	if err = a.L.LoadTeacherLessons(ctx, tx, false, (*[]*User)(&slice), nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.TeacherLessons); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	a.R.TeacherLessons = nil
+	if err = a.L.LoadTeacherLessons(ctx, tx, true, &a, nil); err != nil {
+		t.Fatal(err)
+	}
+	if got := len(a.R.TeacherLessons); got != 2 {
+		t.Error("number of eager loaded records wrong, got:", got)
+	}
+
+	if t.Failed() {
+		t.Logf("%#v", check)
+	}
+}
+
 func testUserToManyTeacherTimetables(t *testing.T) {
 	var err error
 	ctx := context.Background()
@@ -1161,6 +1238,257 @@ func testUserToManyRemoveOpSignupUserAccounts(t *testing.T) {
 		t.Error("relationship to d should have been preserved")
 	}
 	if a.R.SignupUserAccounts[0] != &e {
+		t.Error("relationship to e should have been preserved")
+	}
+}
+
+func testUserToManyAddOpTeacherLessons(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Lesson
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Lesson{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, lessonDBTypes, false, strmangle.SetComplement(lessonPrimaryKeyColumns, lessonColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	foreignersSplitByInsertion := [][]*Lesson{
+		{&b, &c},
+		{&d, &e},
+	}
+
+	for i, x := range foreignersSplitByInsertion {
+		err = a.AddTeacherLessons(ctx, tx, i != 0, x...)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		first := x[0]
+		second := x[1]
+
+		if !queries.Equal(a.ID, first.TeacherID) {
+			t.Error("foreign key was wrong value", a.ID, first.TeacherID)
+		}
+		if !queries.Equal(a.ID, second.TeacherID) {
+			t.Error("foreign key was wrong value", a.ID, second.TeacherID)
+		}
+
+		if first.R.Teacher != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+		if second.R.Teacher != &a {
+			t.Error("relationship was not added properly to the foreign slice")
+		}
+
+		if a.R.TeacherLessons[i*2] != first {
+			t.Error("relationship struct slice not set to correct value")
+		}
+		if a.R.TeacherLessons[i*2+1] != second {
+			t.Error("relationship struct slice not set to correct value")
+		}
+
+		count, err := a.TeacherLessons().Count(ctx, tx)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if want := int64((i + 1) * 2); count != want {
+			t.Error("want", want, "got", count)
+		}
+	}
+}
+
+func testUserToManySetOpTeacherLessons(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Lesson
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Lesson{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, lessonDBTypes, false, strmangle.SetComplement(lessonPrimaryKeyColumns, lessonColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err = a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = b.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+	if err = c.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.SetTeacherLessons(ctx, tx, false, &b, &c)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.TeacherLessons().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.SetTeacherLessons(ctx, tx, true, &d, &e)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.TeacherLessons().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.TeacherID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.TeacherID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+	if !queries.Equal(a.ID, d.TeacherID) {
+		t.Error("foreign key was wrong value", a.ID, d.TeacherID)
+	}
+	if !queries.Equal(a.ID, e.TeacherID) {
+		t.Error("foreign key was wrong value", a.ID, e.TeacherID)
+	}
+
+	if b.R.Teacher != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Teacher != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Teacher != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+	if e.R.Teacher != &a {
+		t.Error("relationship was not added properly to the foreign struct")
+	}
+
+	if a.R.TeacherLessons[0] != &d {
+		t.Error("relationship struct slice not set to correct value")
+	}
+	if a.R.TeacherLessons[1] != &e {
+		t.Error("relationship struct slice not set to correct value")
+	}
+}
+
+func testUserToManyRemoveOpTeacherLessons(t *testing.T) {
+	var err error
+
+	ctx := context.Background()
+	tx := MustTx(boil.BeginTx(ctx, nil))
+	defer func() { _ = tx.Rollback() }()
+
+	var a User
+	var b, c, d, e Lesson
+
+	seed := randomize.NewSeed()
+	if err = randomize.Struct(seed, &a, userDBTypes, false, strmangle.SetComplement(userPrimaryKeyColumns, userColumnsWithoutDefault)...); err != nil {
+		t.Fatal(err)
+	}
+	foreigners := []*Lesson{&b, &c, &d, &e}
+	for _, x := range foreigners {
+		if err = randomize.Struct(seed, x, lessonDBTypes, false, strmangle.SetComplement(lessonPrimaryKeyColumns, lessonColumnsWithoutDefault)...); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := a.Insert(ctx, tx, boil.Infer()); err != nil {
+		t.Fatal(err)
+	}
+
+	err = a.AddTeacherLessons(ctx, tx, true, foreigners...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err := a.TeacherLessons().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 4 {
+		t.Error("count was wrong:", count)
+	}
+
+	err = a.RemoveTeacherLessons(ctx, tx, foreigners[:2]...)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	count, err = a.TeacherLessons().Count(ctx, tx)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if count != 2 {
+		t.Error("count was wrong:", count)
+	}
+
+	if !queries.IsValuerNil(b.TeacherID) {
+		t.Error("want b's foreign key value to be nil")
+	}
+	if !queries.IsValuerNil(c.TeacherID) {
+		t.Error("want c's foreign key value to be nil")
+	}
+
+	if b.R.Teacher != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if c.R.Teacher != nil {
+		t.Error("relationship was not removed properly from the foreign struct")
+	}
+	if d.R.Teacher != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+	if e.R.Teacher != &a {
+		t.Error("relationship to a should have been preserved")
+	}
+
+	if len(a.R.TeacherLessons) != 2 {
+		t.Error("should have preserved two relationships")
+	}
+
+	// Removal doesn't do a stable deletion for performance so we have to flip the order
+	if a.R.TeacherLessons[1] != &d {
+		t.Error("relationship to d should have been preserved")
+	}
+	if a.R.TeacherLessons[0] != &e {
 		t.Error("relationship to e should have been preserved")
 	}
 }
