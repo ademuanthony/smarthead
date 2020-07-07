@@ -53,7 +53,7 @@ func urlSubscriptionsDownload() string {
 	return fmt.Sprintf("/admin/subscriptions/download")
 }
 
-// Index handles listing all the subscriptions.
+// Index handles listing all the subscriptions. 
 func (h *Subscriptions) Index(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
 	claims, err := auth.ClaimsFromContext(ctx)

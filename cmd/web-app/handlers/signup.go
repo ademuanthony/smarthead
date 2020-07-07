@@ -133,7 +133,7 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 
 				period, err := h.SubscriptionRepo.TrailPeriodID(ctx)
 				if err != nil {
-					return false, err
+					return false, fmt.Errorf("TrailPeriodID failed - %s", err.Error())
 				}
 				trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
 				if err != nil {

@@ -494,7 +494,7 @@ func (repo *Repository) AddManualDeposit(ctx context.Context, req AddManualDepos
 		startDate = now
 	}
 
-	endDate, err := time.Parse("01/02/2006", req.StartDate)
+	endDate, err := time.Parse("01/02/2006", req.EndDate)
 	if err != nil {
 		endDate = now.Add(30 * time.Hour * 24)
 	}
