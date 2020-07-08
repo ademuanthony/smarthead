@@ -25,7 +25,7 @@
                   {{ $t.Day }} {{ $t.Period }}
                 </div>
                 <ul class="list-group list-group-flush">
-                  <li class="list-group-item">{{ $t.Subject }}</li>
+                  <li class="list-group-item">{{ $t.Subject }} {{ $t.Subclass }}</li>
                   <li class="list-group-item">{{ $t.Teacher }}</li>
                   {{ if isLessonTime $._Ctx $t }}
                   <li class="list-group-item">
