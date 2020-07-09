@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -127,6 +128,10 @@ func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string
 		return nil, err
 	}
 
+	sort.Slice(timetables, func(i, j int) bool {
+		return timetables[i].Day < timetables[j].Day &&
+		timetables[i].R.Period.StartHour < timetables[j].R.Period.StartHour
+	})
 	var result Timetables
 	for _, t := range timetables {
 		// result = append(result, FromModel(t))
@@ -153,6 +158,11 @@ func (repo *Repository) TeachersTimetables(ctx context.Context, teacherID string
 		}
 		return nil, err
 	}
+
+	sort.Slice(timetables, func(i, j int) bool {
+		return timetables[i].Day < timetables[j].Day &&
+		timetables[i].R.Period.StartHour < timetables[j].R.Period.StartHour
+	})
 
 	var result Timetables
 	for _, t := range timetables {
