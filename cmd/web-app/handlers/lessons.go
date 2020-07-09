@@ -56,6 +56,8 @@ func (h *Lessons) Join(ctx context.Context, w http.ResponseWriter, r *http.Reque
 		return web.Redirect(ctx, w, r, "/", 320)
 	}
 
+	http.Redirect(w, r, timetable.Subclass.Link, 301)
+	return nil
 	if claims.HasRole(auth.RoleTeacher, auth.RoleAdmin) {
 		// TODO: check that its time for the lesson
 		http.Redirect(w, r, timetable.Subclass.Link, 301)
