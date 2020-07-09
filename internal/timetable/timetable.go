@@ -118,7 +118,6 @@ func (repo *Repository) StudentsTimetables(ctx context.Context, studentID string
 		qm.Load(models.TimetableRels.Subclass),
 		qm.Load(models.TimetableRels.Subject),
 		qm.Load(models.TimetableRels.Teacher),
-		qm.OrderBy(models.TimetableColumns.Day),
 		// qm.OrderBy(models.TimetableColumns.PeriodID),
 	).All(ctx, repo.DbConn)
 	if err != nil {

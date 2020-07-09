@@ -928,7 +928,6 @@ func main() {
 			return s == *sPtr
 		},
 		"isLessonTime": func(ctx context.Context, t timetable.Response) bool {
-			return true
 			ctxValue, err := webcontext.ContextValues(ctx)
 			if err != nil {
 				log.Printf("main: isLessonTime failed to get context value - %s", err.Error())
