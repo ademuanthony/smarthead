@@ -5,7 +5,7 @@ export default class extends Controller {
   loading
   static get targets () {
     return [
-      'class', 'name', 'email', 'phone'
+      'class', 'name', 'email', 'phone', 'message'
     ]
   }
 
@@ -26,20 +26,18 @@ export default class extends Controller {
       'phone': this.phoneTarget.value,
       'email': this.emailTarget.value
     }
-    const that = this
     try {
-      const resp = await axios.post('/api/v1/get-started', req)
-      const result = resp.data
-      if (result.error) {
-        window.alert(result.error)
-        that.loading = false
-        return
-      }
+      await axios.post('/api/v1/get-started', req)
       window.location.href = '/thank-you'
     } catch (error) {
-      console.log(error)
       this.loading = false
-      window.alert(error)
+      if (error.response) {
+        const data = error.response.data
+        this.messageTarget.textContent = data.details
+        window.alert(data.details)
+        return
+      }
+      window.alert('An unknown error has caused the request to fail')
     }
   }
 }

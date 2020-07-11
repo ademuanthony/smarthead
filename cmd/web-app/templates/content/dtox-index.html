@@ -26,6 +26,9 @@ affordable interactive online private teaching and learning.{{end}}
                       <h2 class="d-none d-md-block mt-5">Register For Our Free Lessons</h2>
                       <p>No commitment required. Get enrolled to join our next free classes and see for yourself</p>
                       <form method="post" data-action="submit->root#getStarted">
+                        <div class="form-row">
+                          <p data-target="root.message" class="text-danger"></p>
+                        </div>
                           <div class="form-row">
                               <div class="col-md-3 col-sm-12 mt-3">
                                   <select name="class" required class="form-control" data-target="root.class">

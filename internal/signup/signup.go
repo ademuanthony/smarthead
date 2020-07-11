@@ -2,11 +2,13 @@ package signup
 
 import (
 	"context"
+	"errors"
 	"time"
 
 	"remoteschool/smarthead/internal/account"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
+	"remoteschool/smarthead/internal/platform/web/weberror"
 	"remoteschool/smarthead/internal/postgres/models"
 	"remoteschool/smarthead/internal/user"
 	"remoteschool/smarthead/internal/user_account"
@@ -24,6 +26,9 @@ func (repo *Repository) Signup(ctx context.Context, claims auth.Claims, req Sign
 	uniqEmail, err := user.UniqueEmail(ctx, repo.DbConn, req.User.Email, "")
 	if err != nil {
 		return nil, err
+	}
+	if !uniqEmail {
+		return nil, weberror.NewError(ctx, errors.New("The selected email has already been used"), 400)
 	}
 	ctx = webcontext.ContextAddUniqueValue(ctx, req.User, "Email", uniqEmail)
 
