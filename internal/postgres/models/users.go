@@ -36,6 +36,7 @@ type User struct {
 	ArchivedAt    null.Time   `boil:"archived_at" json:"archived_at,omitempty" toml:"archived_at" yaml:"archived_at,omitempty"`
 	LastName      string      `boil:"last_name" json:"last_name" toml:"last_name" yaml:"last_name"`
 	Phone         string      `boil:"phone" json:"phone" toml:"phone" yaml:"phone"`
+	LastLoginDate int64       `boil:"last_login_date" json:"last_login_date" toml:"last_login_date" yaml:"last_login_date"`
 
 	R *userR `boil:"-" json:"-" toml:"-" yaml:"-"`
 	L userL  `boil:"-" json:"-" toml:"-" yaml:"-"`
@@ -54,6 +55,7 @@ var UserColumns = struct {
 	ArchivedAt    string
 	LastName      string
 	Phone         string
+	LastLoginDate string
 }{
 	ID:            "id",
 	Email:         "email",
@@ -67,6 +69,7 @@ var UserColumns = struct {
 	ArchivedAt:    "archived_at",
 	LastName:      "last_name",
 	Phone:         "phone",
+	LastLoginDate: "last_login_date",
 }
 
 // Generated where
@@ -84,6 +87,7 @@ var UserWhere = struct {
 	ArchivedAt    whereHelpernull_Time
 	LastName      whereHelperstring
 	Phone         whereHelperstring
+	LastLoginDate whereHelperint64
 }{
 	ID:            whereHelperstring{field: "\"users\".\"id\""},
 	Email:         whereHelperstring{field: "\"users\".\"email\""},
@@ -97,6 +101,7 @@ var UserWhere = struct {
 	ArchivedAt:    whereHelpernull_Time{field: "\"users\".\"archived_at\""},
 	LastName:      whereHelperstring{field: "\"users\".\"last_name\""},
 	Phone:         whereHelperstring{field: "\"users\".\"phone\""},
+	LastLoginDate: whereHelperint64{field: "\"users\".\"last_login_date\""},
 }
 
 // UserRels is where relationship names are stored.
@@ -132,9 +137,9 @@ func (*userR) NewStruct() *userR {
 type userL struct{}
 
 var (
-	userAllColumns            = []string{"id", "email", "first_name", "password_hash", "password_salt", "password_reset", "timezone", "created_at", "updated_at", "archived_at", "last_name", "phone"}
+	userAllColumns            = []string{"id", "email", "first_name", "password_hash", "password_salt", "password_reset", "timezone", "created_at", "updated_at", "archived_at", "last_name", "phone", "last_login_date"}
 	userColumnsWithoutDefault = []string{"id", "email", "password_hash", "password_salt", "timezone", "created_at", "updated_at", "archived_at"}
-	userColumnsWithDefault    = []string{"first_name", "password_reset", "last_name", "phone"}
+	userColumnsWithDefault    = []string{"first_name", "password_reset", "last_name", "phone", "last_login_date"}
 	userPrimaryKeyColumns     = []string{"id"}
 )
 

@@ -64,7 +64,7 @@ func (repo *Repository) UserFindByAccount(ctx context.Context, claims auth.Claim
 		Select("u.id,u.first_name,u.last_name,concat(u.first_name, ' ',u.last_name) as name,u.email,u.timezone,ua.account_id,ua.status,ua.roles,"+
 			"CASE WHEN ua.created_at > u.created_at THEN ua.created_at ELSE u.created_at END AS created_at,"+
 			"CASE WHEN ua.updated_at > u.updated_at THEN ua.updated_at ELSE u.updated_at END AS updated_at,"+
-			"CASE WHEN ua.archived_at > u.archived_at THEN ua.archived_at ELSE u.archived_at END AS archived_at").
+			"CASE WHEN ua.archived_at > u.archived_at THEN ua.archived_at ELSE u.archived_at END AS archived_at,u.last_login_date").
 		From(userTableName+" u").
 		Join(userAccountTableName+" ua", "u.id = ua.user_id", "ua.account_id = '"+req.AccountID+"'")
 
@@ -96,7 +96,7 @@ func (repo *Repository) UserFindByAccount(ctx context.Context, claims auth.Claim
 	subQueryStr, queryArgs := subQuery.Build()
 
 	query := sqlbuilder.NewSelectBuilder().
-		Select("id,first_name,last_name,name,email,timezone,account_id,status,roles,created_at,updated_at,archived_at").
+		Select("id,first_name,last_name,name,email,timezone,account_id,status,roles,created_at,updated_at,archived_at,last_login_date").
 		From("(" + subQueryStr + ") res")
 	if req.Where != "" {
 		query.Where(query.And(req.Where))
@@ -133,7 +133,7 @@ func (repo *Repository) UserFindByAccount(ctx context.Context, claims auth.Claim
 			err error
 		)
 		err = rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Name, &u.Email, &u.Timezone, &u.AccountID, &u.Status,
-			&u.Roles, &u.CreatedAt, &u.UpdatedAt, &u.ArchivedAt)
+			&u.Roles, &u.CreatedAt, &u.UpdatedAt, &u.ArchivedAt,&u.LastLogin)
 		if err != nil {
 			err = errors.Wrapf(err, "query - %s", query.String())
 			return nil, err

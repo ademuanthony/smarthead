@@ -279,6 +279,7 @@ func APP(shutdown chan os.Signal, appCtx *AppContext) http.Handler {
 		GeoRepo:         appCtx.GeoRepo,
 		Redis:           appCtx.Redis,
 		Renderer:        appCtx.Renderer,
+		EmailNotifier:   appCtx.InviteRepo.Notify,
 	}
 	app.Handle("POST", "/users/:user_id/update", us.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))
 	app.Handle("GET", "/users/:user_id/update", us.Update, mid.AuthenticateSessionRequired(appCtx.Authenticator), mid.HasRole(auth.RoleAdmin))

@@ -3,7 +3,6 @@ package user_auth
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"strings"
 	"time"
 
@@ -62,7 +61,6 @@ func (repo *Repository) Authenticate(ctx context.Context, req AuthenticateReques
 		}
 	}
 
-	fmt.Println(req.Password)
 	// Append the salt from the user record to the supplied password.
 	saltedPassword := req.Password + u.PasswordSalt
 
@@ -74,6 +72,7 @@ func (repo *Repository) Authenticate(ctx context.Context, req AuthenticateReques
 		return Token{}, err
 	}
 
+	repo.User.SetLastLogin(ctx, u.ID, now)
 	// The user is successfully authenticated with the supplied email and password.
 	return repo.generateToken(ctx, auth.Claims{}, u.ID, req.AccountID, expires, now, scopes...)
 }

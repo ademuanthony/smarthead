@@ -40,7 +40,7 @@ var (
 )
 
 // userMapColumns is the list of columns needed for mapRowsToUser
-var userMapColumns = "id,first_name,last_name,email,password_salt,password_hash,password_reset,timezone,created_at,updated_at,archived_at"
+var userMapColumns = "id,first_name,last_name,email,password_salt,password_hash,password_reset,timezone,created_at,updated_at,archived_at,last_login_date"
 
 // mapRowsToUser takes the SQL rows and maps it to the UserAccount struct
 // with the columns defined by userMapColumns
@@ -49,7 +49,7 @@ func mapRowsToUser(rows *sql.Rows) (*User, error) {
 		u   User
 		err error
 	)
-	err = rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.PasswordSalt, &u.PasswordHash, &u.PasswordReset, &u.Timezone, &u.CreatedAt, &u.UpdatedAt, &u.ArchivedAt)
+	err = rows.Scan(&u.ID, &u.FirstName, &u.LastName, &u.Email, &u.PasswordSalt, &u.PasswordHash, &u.PasswordReset, &u.Timezone, &u.CreatedAt, &u.UpdatedAt, &u.ArchivedAt, &u.LastLoginDate)
 	if err != nil {
 		return nil, errors.WithStack(err)
 	}
@@ -654,6 +654,14 @@ func (repo *Repository) UpdatePassword(ctx context.Context, claims auth.Claims, 
 	return nil
 }
 
+// SetLastLogin 
+func (repo *Repository) SetLastLogin(ctx context.Context, userID string, now time.Time) error {
+	_, err := models.Users(models.UserWhere.ID.EQ(userID)).UpdateAll(ctx, repo.DbConn, models.M{
+		models.UserColumns.LastLoginDate: now.Unix(),
+	})
+	return err
+}
+
 // Archive soft deleted the user from the database.
 func (repo *Repository) Archive(ctx context.Context, claims auth.Claims, req UserArchiveRequest, now time.Time) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.user.Archive")
@@ -727,7 +735,7 @@ func (repo *Repository) Archive(ctx context.Context, claims auth.Claims, req Use
 
 	return nil
 }
-
+   
 // Restore undeletes the user from the database.
 func (repo *Repository) Restore(ctx context.Context, claims auth.Claims, req UserRestoreRequest, now time.Time) error {
 	span, ctx := tracer.StartSpanFromContext(ctx, "internal.user.Restore")

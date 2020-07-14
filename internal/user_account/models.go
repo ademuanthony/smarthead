@@ -315,6 +315,7 @@ type User struct {
 	CreatedAt  time.Time         `json:"created_at"`
 	UpdatedAt  time.Time         `json:"updated_at"`
 	ArchivedAt *pq.NullTime      `json:"archived_at,omitempty"`
+	LastLogin  int64			 `json:"last_login_date"`
 }
 
 // UserResponse represents someone with access to our system that is returned for display.
@@ -330,6 +331,7 @@ type UserResponse struct {
 	Status     web.EnumResponse      `json:"status"`                // Status is enum with values [active, invited, disabled].
 	CreatedAt  web.TimeResponse      `json:"created_at"`            // CreatedAt contains multiple format options for display.
 	UpdatedAt  web.TimeResponse      `json:"updated_at"`            // UpdatedAt contains multiple format options for display.
+	LastLogin  web.TimeResponse      `json:"last_login"`            // UpdatedAt contains multiple format options for display.
 	ArchivedAt *web.TimeResponse     `json:"archived_at,omitempty"` // ArchivedAt contains multiple format options for display.
 	Gravatar   web.GravatarResponse  `json:"gravatar"`
 }
@@ -351,6 +353,7 @@ func (m *User) Response(ctx context.Context) *UserResponse {
 		Status:    web.NewEnumResponse(ctx, m.Status, UserAccountStatus_Values),
 		CreatedAt: web.NewTimeResponse(ctx, m.CreatedAt),
 		UpdatedAt: web.NewTimeResponse(ctx, m.UpdatedAt),
+		LastLogin: web.NewTimeResponse(ctx, time.Unix(m.LastLogin, 0)),
 		Gravatar:  web.NewGravatarResponse(ctx, m.Email),
 	}
 

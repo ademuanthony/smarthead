@@ -11,6 +11,7 @@ import (
 	"remoteschool/smarthead/internal/geonames"
 	"remoteschool/smarthead/internal/platform/auth"
 	"remoteschool/smarthead/internal/platform/datatable"
+	"remoteschool/smarthead/internal/platform/notify"
 	"remoteschool/smarthead/internal/platform/web"
 	"remoteschool/smarthead/internal/platform/web/webcontext"
 	"remoteschool/smarthead/internal/platform/web/weberror"
@@ -37,6 +38,7 @@ type Users struct {
 	MasterDB        *sqlx.DB
 	Redis           *redis.Client
 	Renderer        web.Renderer
+	EmailNotifier   notify.Email
 }
 
 func urlUsersIndex() string {
@@ -52,7 +54,7 @@ func urlUsersInvite() string {
 }
 
 func urlUsersView(userID string) string {
-	return fmt.Sprintf("/users/%s", userID) 
+	return fmt.Sprintf("/users/%s", userID)
 }
 
 func urlUsersUpdate(userID string) string {
@@ -95,6 +97,7 @@ func (h *Users) Index(ctx context.Context, w http.ResponseWriter, r *http.Reques
 		{Field: "status", Title: "Status", Visible: true, Searchable: true, Orderable: true, Filterable: true, FilterPlaceholder: "All Statuses", FilterItems: statusFilterItems},
 		{Field: "updated_at", Title: "Last Updated", Visible: true, Searchable: true, Orderable: true, Filterable: false},
 		{Field: "created_at", Title: "Created", Visible: true, Searchable: true, Orderable: true, Filterable: false},
+		{Field: "last_login_date", Title: "Last Login", Visible: true, Searchable: true, Orderable: true, Filterable: false},
 	}
 
 	mapFunc := func(q *user_account.User, cols []datatable.DisplayField) (resp []datatable.ColumnValue, err error) {
@@ -135,6 +138,10 @@ func (h *Users) Index(ctx context.Context, w http.ResponseWriter, r *http.Reques
 				v.Formatted = fmt.Sprintf("<span class='cell-font-date'>%s</span>", v.Value)
 			case "updated_at":
 				dt := web.NewTimeResponse(ctx, q.UpdatedAt)
+				v.Value = dt.Local
+				v.Formatted = fmt.Sprintf("<span class='cell-font-date'>%s</span>", v.Value)
+			case "last_login_date":
+				dt := web.NewTimeResponse(ctx, time.Unix(q.LastLogin, 0))
 				v.Value = dt.Local
 				v.Formatted = fmt.Sprintf("<span class='cell-font-date'>%s</span>", v.Value)
 			default:
@@ -233,7 +240,7 @@ func (h *Users) Create(ctx context.Context, w http.ResponseWriter, r *http.Reque
 				} else {
 					return false, err
 				}
-			} 
+			}
 
 			usr, err := h.UserRepo.Create(ctx, claims, req.UserCreateRequest, ctxValues.Now)
 			if err != nil {
@@ -320,6 +327,11 @@ func (h *Users) View(ctx context.Context, w http.ResponseWriter, r *http.Request
 		return err
 	}
 
+	usr, err := h.UserRepo.ReadByID(ctx, claims, userID)
+	if err != nil {
+		return err
+	}
+
 	data := make(map[string]interface{})
 	f := func() (bool, error) {
 		if r.Method == http.MethodPost {
@@ -329,6 +341,26 @@ func (h *Users) View(ctx context.Context, w http.ResponseWriter, r *http.Request
 			}
 
 			switch r.PostForm.Get("action") {
+			case "resend_welcome_email":
+				pass := randomPassword()
+				req := user.UserUpdatePasswordRequest{
+					ID:              usr.ID,
+					Password:        pass,
+					PasswordConfirm: pass,
+				}
+				if err = h.UserRepo.UpdatePassword(ctx, claims, req, ctxValues.Now); err != nil {
+					return false, err
+				}
+				data := map[string]interface{}{
+					"Name":     usr.FirstName + " " + usr.LastName,
+					"Email":    usr.Email,
+					"Password": pass,
+				}
+				err = h.EmailNotifier.Send(ctx, usr.Email, "Welcome to Remote School", "welcome_email", data)
+				if err != nil {
+					return false, err
+				}
+				return false, nil
 			case "archive":
 				err = h.UserRepo.Archive(ctx, claims, user.UserArchiveRequest{
 					ID: userID,
@@ -353,11 +385,6 @@ func (h *Users) View(ctx context.Context, w http.ResponseWriter, r *http.Request
 		return web.RenderError(ctx, w, r, err, h.Renderer, TmplLayoutBase, TmplContentErrorGeneric, web.MIMETextHTMLCharsetUTF8)
 	} else if end {
 		return nil
-	}
-
-	usr, err := h.UserRepo.ReadByID(ctx, claims, userID)
-	if err != nil {
-		return err
 	}
 
 	data["user"] = usr.Response(ctx)
