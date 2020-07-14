@@ -164,7 +164,7 @@ func (h *Students) Download(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	res, err := h.Repo.Find(ctx, claims, student.FindRequest{
-		Order: []string{"name"},
+		Order: []string{"created_at desc"},
 		IncludeClass: true,
 		IncludeSubclass: true,
 	})
