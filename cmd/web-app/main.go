@@ -752,7 +752,7 @@ func main() {
 			var displayFullError bool
 			switch webcontext.ContextEnv(ctx) {
 			case webcontext.Env_Dev, webcontext.Env_Stage:
-				// displayFullError = true
+				displayFullError = true
 			}
 
 			if !displayFullError {
