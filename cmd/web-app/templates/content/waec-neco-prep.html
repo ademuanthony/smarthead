@@ -1,5 +1,6 @@
-{{define "title"}}WAEC/NECO preparatory classes{{end}}
-{{define "description"}}Intensive WAEC/NECO preparatory classes for guarantied success.{{end}}
+{{define "title"}}Get started with interactive online classes{{end}}
+{{define "description"}}Cloud-based learning platform that offers safe and
+affordable interactive online private teaching and learning.{{end}}
 {{define "homeActive"}}active{{end}}
 {{define "style"}}
 
@@ -21,24 +22,25 @@
     <div id="free-lessons" class="row">
       <div class="col-md-12 text-center">
           <hr class="mt-5"/>
-                      <h2 class="d-none d-md-block mt-5">Register For Our Intensive WAEC/NECO preparatory classes</h2>
-                      <p data-target="root.message" class="text-danger"></p>
-                      <form method="post" data-action="submit->root#getStarted">
-                        <input type="hidden" name="class" data-target="root.class" value="014b663d-37e3-4e1e-95e0-cbfaf7e63675">
-                          <div class="form-row">
-                              <div class="col-md-4 col-sm-12 mt-3">
-                                  <input data-target="root.name" name="name" required type="text" class="form-control" placeholder="Full Name">
-                              </div>
-                              <div class="col-md-4 col-sm-12 mt-3">
-                                  <input data-target="root.email" name="email" required type="email" class="form-control" placeholder="Email">
-                              </div>
-                              <div class="col-md-4 col-sm-12 mt-3">
-                                  <input data-target="root.phone" name="phone" required type="text" class="form-control" placeholder="Phone Number">
-                              </div>
-                          </div>
-                          <input type="submit" class="btb btn-danger btn-lg mt-3" value="Register">
-                      </form>
-                  </div>
+          <h2 class="d-none d-md-block mt-5">Register For Our Free Lessons</h2>
+          <p>No commitment required. Get enrolled to join our next free classes and see for yourself</p>
+          <p data-target="root.message" class="text-danger">{{ .error }}</p>
+          <form method="post">
+            <input type="hidden" name="class" data-target="root.class" value="014b663d-37e3-4e1e-95e0-cbfaf7e63675">
+            <div class="form-row">
+              <div class="col-md-4 col-sm-12 mt-3">
+                <input data-target="root.name" name="name" required type="text" class="form-control" placeholder="Full Name">
+              </div>
+              <div class="col-md-4 col-sm-12 mt-3">
+                <input data-target="root.email" name="email" required type="email" class="form-control" placeholder="Email">
+              </div>
+              <div class="col-md-4 col-sm-12 mt-3">
+                <input data-target="root.phone" name="phone" required type="text" class="form-control" placeholder="Phone Number">
+              </div>
+            </div>
+            <input type="submit" class="btb btn-danger btn-lg mt-3" value="Register">
+          </form>
+        </div>
   </div>
 
   </div>
@@ -192,121 +194,4 @@
 </section>
 <!-- /feature -->
 
-
-<!-- team -->
-<section class="section-lg team" id="team">
-  <div class="container">
-    <div class="row">
-      <div class="col-lg-12 text-center">
-        <h2 class="section-title">Our Team</h2>
-        <p class="mb-100">Remote School is built on a solid foundation by a team of highly committed partners</p>
-      </div>
-    </div>
-    <div class="col-12">
-      <div class="team-slider">
-        <!-- team-member Anthony-->
-        <div class="team-member">
-            <div class="d-flex mb-4">
-              <div class="mr-3">
-                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-Anthony.jpg" }}" alt="team-member">
-              </div>
-              <div class="align-self-center">
-                <h4>Ademu Anthony</h4>
-                <h6 class="text-color">Director of IT & Innovation</h6>
-              </div>
-            </div>
-            <p style="text-align: justify;">
-              A seasoned Software Engineer who has been consistently praised by clients as competent, 
-              committed & hardworking.
-              An addicted/perpetual learner with an unquenchable thirst for innovation and technology.
-            </p>
-          </div>
-
-        <!-- team-member Abakpa-->
-        <div class="team-member">
-          <div class="d-flex mb-4">
-            <div class="mr-3">
-              <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-Abakpa.jpg" }}" alt="team-member">
-            </div>
-            <div class="align-self-center">
-              <h4>Abakpa Joseph Elachi</h4>
-              <h6 class="text-color">Managing Director</h6>
-            </div>
-          </div>
-          <p style="text-align: justify;">
-            Mr Abakpa has a Bachelor of Science Honors degree in Physics
-            from the University of Agriculture Makurdi Benue State, Nigeria in 2012.
-            He has a Diploma in Software Engineering from Global Techs Institute Lagos.
-            
-          </p>
-        </div>
-        
-        <!-- team-member Afanabere-->
-        <div class="team-member">
-            <div class="d-flex mb-4">
-              <div class="mr-3">
-                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-Afanabere.jpg" }}" alt="team-member">
-              </div>
-              <div class="align-self-center">
-                <h4>Afanabere Bernard</h4>
-                <h6 class="text-color">Director Of Education</h6>
-              </div>
-            </div>
-            <p style="text-align: justify;">
-              Afanabere Bernard Akoshi is a trained educationist with more than a decade of working with students. 
-              He is a prolific writer, a teacher, a life coach, and a guest to many seminars and conferences.
-            </p>
-          </div>
-           
-        
-          <!-- team-member Raph-->
-        <div class="team-member">
-            <div class="d-flex mb-4">
-              <div class="mr-3">
-                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team-raphael-xs.jpg" }}" alt="team-member">
-              </div>
-              <div class="align-self-center">
-                <h4>Ikediashi Raphael</h4>
-                <h6 class="text-color">Director Of Sales & Marketing</h6>
-              </div>
-            </div>
-            <p style="text-align: justify;">
-              I'm Raphael, a software engineer based in Lagos, Nigeria. I enjoy creating things that live on the internet, 
-              whether that be websites, applications, or anything in between.        
-            </p>
-          </div>
-
-           <!-- team-member Onoja-->
-        
-           <div class="team-member">
-            <div class="d-flex mb-4">
-              <div class="mr-3">
-                <img class="rounded-circle img-fluid" src="{{ SiteAssetUrl "/images/remote-school-team--xs-onoja.jpg" }}" alt="team-member">
-              </div>
-              <div class="align-self-center">
-                <h4>Onoja Emmanuel</h4>
-                <h6 class="text-color">Director of Cloud Platform</h6>
-              </div>
-            </div>
-            <p style="text-align: justify;">
-              An expert in cloud base technologies with MS, MCTS & MCITP in Microsoft Office 365.
-              An experience teacher of Information Technology, Computer Science & Data Processing
-          </p>
-          </div>
-          
-      </div>
-    </div>
-  </div>
-  <!-- backgound image -->
-  <img src="{{ SiteAssetUrl "/dtox/images/backgrounds/team-bg.png" }}" alt="team-bg" class="img-fluid team-bg">
-  <!-- background shapes -->
-  <img class="team-bg-shape-1" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-1.png" }}" alt="background-shape">
-  <img class="team-bg-shape-2" src="{{ SiteAssetUrl "/dtox/images/background-shape/seo-ball-1.png" }}" alt="background-shape">
-  <img class="team-bg-shape-3" src="{{ SiteAssetUrl "/dtox/images/background-shape/team-bg-triangle.png" }}" alt="background-shape">
-  <img class="team-bg-shape-4 img-fluid" src="{{ SiteAssetUrl "/dtox/images/background-shape/team-bg-dots.png" }}" alt="background-shape">
-</section>
-<!-- /team -->
-
 {{ end }}
-
-{{ define "js-controller"}}root{{ end }}

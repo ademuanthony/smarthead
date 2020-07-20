@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"math"
+	"math/rand"
 	"net/http"
 	"strings"
 	"time"
@@ -108,6 +109,18 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	r.ParseForm()
 	dDay := currentStudent.CreatedAt.Sub(time.Now()).Hours()
 	data["isNew"] = math.Abs(dDay) < 24*5
+	numbers := []string{
+		"2348069430990",
+		"2348135532447",
+		"2340938889931",
+	}
+	s1 := rand.NewSource(time.Now().UnixNano())
+	r1 := rand.New(s1)
+	number := numbers[r1.Intn(100)%len(numbers)]
+	whatsAppLink := "https://api.whatsapp.com/send?phone=" + number +
+		"&text=I%20have%20registered%20on%20remote%20school,%20how%20do%20I%20get%20started?"
+	data["whatsAppLink"] = whatsAppLink
+	data["teamLink"] = "https://play.google.com/store/apps/details?id=com.microsoft.teams&hl=en"
 
 	classes, err := h.ClassRepo.Find(ctx, class.FindRequest{
 		Order: []string{models.ClassColumns.SchoolOrder, models.ClassColumns.Name},

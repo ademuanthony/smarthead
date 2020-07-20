@@ -42,14 +42,14 @@ type Signup struct {
 	GeoRepo          *geonames.Repository
 	StudentRepo      *student.Repository
 	ClassRepo        *class.Repository
-	SubclassRepo	 *subclass.Repository
+	SubclassRepo     *subclass.Repository
 	SubscriptionRepo *subscription.Repository
 	SubjectRepo      *subject.Repository
 	DepositRepo      *deposit.Repository
-	Timetable 		 *timetable.Repository
+	Timetable        *timetable.Repository
 	MasterDB         *sqlx.DB
 	Renderer         web.Renderer
-	EmailNotifier	 notify.Email
+	EmailNotifier    notify.Email
 }
 
 // Step1 handles collecting the first detailed needed to create a new account.
@@ -245,6 +245,8 @@ func (h *Signup) Step1(ctx context.Context, w http.ResponseWriter, r *http.Reque
 }
 
 func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+	
+	
 	v, err := webcontext.ContextValues(ctx)
 	if err != nil {
 		return err
@@ -272,17 +274,17 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		return web.RespondJsonError(ctx, w, err)
 	}
 
-	pass := randomPassword()
+	pass := req.Phone
 	names := strings.Split(req.Name, " ")
 	firstName := names[0]
-	lastName := names[len(names) - 1]
+	lastName := names[len(names)-1]
 	regReq := signup.SignupRequest{
 		ClassID: req.ClassID,
 		User: signup.SignupUser{
 			Email:           req.Email,
 			Phone:           req.Phone,
 			FirstName:       firstName,
-			LastName: 		 lastName,
+			LastName:        lastName,
 			Password:        pass,
 			PasswordConfirm: pass,
 		},
@@ -324,7 +326,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 		ParentPhone: req.Phone,
 		Username:    req.Email,
 		ClassID:     req.ClassID,
-		SubclassID:	 subclassA.ID,
+		SubclassID:  subclassA.ID,
 	}, v.Now)
 	if err != nil {
 		return err
@@ -332,7 +334,7 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	res.StudentID = s.ID
 	res.ClassID = req.ClassID
 
-	// create the one week trail lesson 
+	// create the one week trail lesson
 	startDate := subscription.NextMonday(v.Now)
 	startDate = time.Now()
 	endDate := startDate.Add(7 * 24 * time.Hour)
@@ -351,18 +353,18 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 
 	trailDeposit, err := h.DepositRepo.TrailDeposit(ctx)
 	if err != nil {
-		if err.Error() != sql.ErrNoRows.Error(){
+		if err.Error() != sql.ErrNoRows.Error() {
 			return err
 		}
 		dept := models.Deposit{
-			ID: uuid.NewRandom().String(),
-			Amount: 0,
-			Channel: "trail",
-			ClassID: req.ClassID,
+			ID:        uuid.NewRandom().String(),
+			Amount:    0,
+			Channel:   "trail",
+			ClassID:   req.ClassID,
 			CreatedAt: time.Now(),
 			StudentID: s.ID,
 			SubjectID: maths.ID,
-			Status: "paid",
+			Status:    "paid",
 		}
 		err = h.DepositRepo.Insert(ctx, dept)
 		if err != nil {
@@ -396,21 +398,21 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	if len(timetables) < 2 {
-		// TODO: log the issue for admin to resolve 
+		// TODO: log the issue for admin to resolve
 		data := map[string]interface{}{
-			"Name": req.Name,
-			"Email": req.Email,
-			"Password": pass,
+			"Name":        req.Name,
+			"Email":       req.Email,
+			"Password":    pass,
 			"Lesson1Date": "Monday",
 			"Lesson2Date": "Wednesday",
-			"Subject1": maths.Name,
-			"Subject2": maths.Name,
+			"Subject1":    maths.Name,
+			"Subject2":    maths.Name,
 		}
 		err = h.EmailNotifier.Send(ctx, req.Email, "Welcome to Remote School", "welcome_email", data)
 		if err != nil {
 			return err
 		}
-		err = h.EmailNotifier.Send(ctx, "onlineremoteschool@gmail.com", "Welcome to Remote School for " + req.Name, "welcome_email", data)
+		err = h.EmailNotifier.Send(ctx, "onlineremoteschool@gmail.com", "Welcome to Remote School for "+req.Name, "welcome_email", data)
 		if err != nil {
 			return err
 		}
@@ -418,18 +420,19 @@ func (h *Signup) GetStarted(ctx context.Context, w http.ResponseWriter, r *http.
 	}
 
 	data := map[string]interface{}{
-		"Name": req.Name,
-		"Email": req.Email,
-		"Password": pass,
+		"Name":        req.Name,
+		"Email":       req.Email,
+		"Password":    pass,
 		"Lesson1Date": fmt.Sprintf("%s, %s", time.Weekday(timetables[0].Day).String(), timetables[0].Period.String()),
 		"Lesson2Date": fmt.Sprintf("%s, %s", time.Weekday(timetables[1].Day).String(), timetables[1].Period.String()),
-		"Subject1": maths.Name,
-		"Subject2": maths.Name,
+		"Subject1":    maths.Name,
+		"Subject2":    maths.Name,
 	}
 	err = h.EmailNotifier.Send(ctx, req.Email, "Welcome to Remote School", "welcome_email", data)
 	if err != nil {
 		return err
 	}
+
 	return web.RespondJson(ctx, w, res.Response(ctx), http.StatusCreated)
 }
 
@@ -442,7 +445,7 @@ func (h *Signup) ThankYou(ctx context.Context, w http.ResponseWriter, r *http.Re
 	s1 := rand.NewSource(time.Now().UnixNano())
 	r1 := rand.New(s1)
 	number := numbers[r1.Intn(100)%len(numbers)]
-	whatsAppLink := "https://api.whatsapp.com/send?phone=" + number + 
+	whatsAppLink := "https://api.whatsapp.com/send?phone=" + number +
 		"&text=I%20have%20registered%20on%20remote%20school,%20how%20do%20I%20get%20started?"
 	data := map[string]interface{}{
 		"whatsAppLink": whatsAppLink,
@@ -454,7 +457,7 @@ func (h *Signup) WeacNecoPrep(ctx context.Context, w http.ResponseWriter, r *htt
 	return h.Renderer.Render(ctx, w, r, landingPageLayout, "waec-neco-prep.html", web.MIMETextHTMLCharsetUTF8, http.StatusOK, nil)
 }
 
-func randomPassword () string {
+func randomPassword() string {
 	var seededRand *rand.Rand = rand.New(rand.NewSource(time.Now().UnixNano()))
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 	b := make([]byte, 10)

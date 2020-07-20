@@ -28,7 +28,7 @@ export default class extends Controller {
     }
     try {
       await axios.post('/api/v1/get-started', req)
-      window.location.href = '/thank-you'
+      window.location.href = `/continue?s=${this.emailTarget.value}&t=${this.phoneTarget.value}`
     } catch (error) {
       this.loading = false
       if (error.response) {

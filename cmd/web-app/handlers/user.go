@@ -75,7 +75,7 @@ func (h UserRepos) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 			if req.RememberMe {
 				sessionTTL = time.Hour * 36
 			}
- 
+
 			// Authenticated the user.
 			token, err := h.AuthRepo.Authenticate(ctx, user_auth.AuthenticateRequest{
 				Email:    req.Email,
@@ -135,6 +135,103 @@ func (h UserRepos) Login(ctx context.Context, w http.ResponseWriter, r *http.Req
 	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "user-login.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
 }
 
+// Login handles authenticating a user into the system.
+func (h UserRepos) LoginContinue(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
+
+	ctxValues, err := webcontext.ContextValues(ctx)
+	if err != nil {
+		return err
+	}
+
+	// Claims are optional as authentication is not required ATM for this method.
+	claims, _ := auth.ClaimsFromContext(ctx)
+
+	//
+	req := new(UserLoginRequest)
+	data := make(map[string]interface{})
+	f := func() (bool, error) {
+
+		err := r.ParseForm()
+		if err != nil {
+			return false, err
+		}
+
+		req.Email = r.FormValue("s")
+		req.Password = strings.Replace(r.FormValue("t"), ".", "", -1)
+		sessionTTL := time.Hour
+		if req.RememberMe {
+			sessionTTL = time.Hour * 36
+		}
+		id, err := h.AccountRepo.First(ctx)
+		if err != nil {
+			status := account.AccountStatus_Active
+			acc, err := h.AccountRepo.Create(ctx, claims, account.AccountCreateRequest{
+				Name:   "Main Account",
+				Status: &status,
+			}, ctxValues.Now)
+			if err != nil {
+				return false, err
+			}
+			id = &acc.ID
+		}
+		req.AccountID = *id
+
+		// Authenticated the user.
+		token, err := h.AuthRepo.Authenticate(ctx, user_auth.AuthenticateRequest{
+			Email:    req.Email,
+			Password: req.Password,
+		}, sessionTTL, ctxValues.Now)
+		if err != nil {
+			switch errors.Cause(err) {
+			case user.ErrForbidden:
+				return false, web.RespondError(ctx, w, weberror.NewError(ctx, err, http.StatusForbidden))
+			case user_auth.ErrAuthenticationFailure:
+				data["error"] = weberror.NewErrorMessage(ctx, err, http.StatusUnauthorized, "Invalid username or password. Try again.")
+				return false, nil
+			default:
+				if verr, ok := weberror.NewValidationError(ctx, err); ok {
+					data["validationErrors"] = verr.(*weberror.Error)
+					return false, nil
+				} else {
+					return false, err
+				}
+			}
+		}
+
+		// Add the token to the users session.
+		err = handleSessionToken(ctx, w, r, token)
+		if err != nil {
+			return false, err
+		}
+
+		redirectUri := "/"
+		if qv := r.URL.Query().Get("redirect"); qv != "" {
+			redirectUri, err = url.QueryUnescape(qv)
+			if err != nil {
+				return false, err
+			}
+		}
+
+		// Redirect the user to the dashboard.
+		return true, web.Redirect(ctx, w, r, redirectUri, http.StatusFound)
+	}
+
+	end, err := f()
+	if err != nil {
+		return web.RenderError(ctx, w, r, err, h.Renderer, TmplLayoutBase, TmplContentErrorGeneric, web.MIMETextHTMLCharsetUTF8)
+	} else if end {
+		return nil
+	}
+
+	data["form"] = req
+
+	if verr, ok := weberror.NewValidationError(ctx, webcontext.Validator().Struct(UserLoginRequest{})); ok {
+		data["validationDefaults"] = verr.(*weberror.Error)
+	}
+
+	return h.Renderer.Render(ctx, w, r, TmplLayoutBase, "user-login.gohtml", web.MIMETextHTMLCharsetUTF8, http.StatusOK, data)
+}
+
 // Logout handles removing authentication for the user.
 func (h *UserRepos) Logout(ctx context.Context, w http.ResponseWriter, r *http.Request, params map[string]string) error {
 
@@ -163,12 +260,12 @@ func (h *UserRepos) ResetPassword(ctx context.Context, w http.ResponseWriter, r 
 	req := new(user.UserResetPasswordRequest)
 	data := make(map[string]interface{})
 	f := func() error {
- 
+
 		if r.Method == http.MethodPost {
 			err := r.ParseForm()
-			if err != nil { 
+			if err != nil {
 				return err
-			} 
+			}
 
 			decoder := schema.NewDecoder()
 			if err := decoder.Decode(req, r.PostForm); err != nil {
