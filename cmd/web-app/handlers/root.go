@@ -102,7 +102,7 @@ func (h *Root) studentsDashboard(ctx context.Context, w http.ResponseWriter, r *
 	data["sssThreeStudent"] = strings.Contains(currentStudent.Class.Name, "SSS 3")
 	data["school"] = currentStudent.Class.SchoolOrder
 	var paymentLink = "https://paystack.com/pay/remoteschool-primary-school"
-	if currentStudent.Class.SchoolOrder == 1 {
+	if currentStudent.Class.SchoolOrder >= 1 {
 		paymentLink = "https://paystack.com/pay/remoteschool-secondary-school"
 	}
 	data["paymentLink"] = paymentLink
